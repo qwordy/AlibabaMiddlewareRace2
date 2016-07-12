@@ -1,7 +1,5 @@
 package com.alibaba.middleware.race;
 
-import jdk.nashorn.internal.ir.Block;
-
 import java.io.RandomAccessFile;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +22,7 @@ public class Cache {
   // blockId, block
   private Map<BlockId, Node> blockMap;
 
-  Node head, tail;
+  private Node head, tail;
 
   // filename, fd
   private Map<String, RandomAccessFile> fileMap;
@@ -37,24 +35,52 @@ public class Cache {
 
   // read len bytes from position off in filename to buf
   // please guarantee buf's size >= len
-  public boolean read(String filename, long off, long len, byte[] buf) {
-    long beginBlockId = off >>> BIT;
-    long endBlockId = (off + len) >>> BIT;
-    if (beginBlockId == endBlockId) {
+  public void read(String filename, long offset, int len, byte[] buf) throws Exception {
+    long beginBlockNo = offset >>> BIT;
+    // end offset in file
+    long endOffset = offset + len - 1;
+    long endBlockNo = endOffset >>> BIT;
+
+    if (beginBlockNo == endBlockNo) {  // in one block
       // offset in the block
-      long beginOff = off & MASK;
-      byte[] block = readBlock();
+      int beginOff = (int) (offset & MASK);
+      byte[] block = readBlock(new BlockId(filename, beginBlockNo));
+      System.arraycopy(block, beginOff, buf, 0, len);
 
+    } else {  // multiple blocks
+      // first block
+      int beginOff = (int) (offset & MASK);  // offset in the block
+      byte[] block = readBlock(new BlockId(filename, beginBlockNo));
+      int copyLen = BLOCK_SIZE - beginOff;
+      System.arraycopy(block, beginOff, buf, 0, copyLen);
+      int destPos = copyLen;
 
+      // middle blocks
+      for (long blockNo = beginBlockNo + 1; blockNo < endBlockNo; blockNo++) {
+        block = readBlock(new BlockId(filename, blockNo));
+        System.arraycopy(block, 0, buf, destPos, BLOCK_SIZE);
+        destPos += BLOCK_SIZE;
+      }
+
+      // last block
+      int endOff = (int) (endOffset & MASK);
+      block = readBlock(new BlockId(filename, endBlockNo));
+      System.arraycopy(block, 0, buf, destPos, endOff + 1);
     }
-
-    return false;
   }
 
   // write len bytes of buf to filename from position off
   // please guarantee buf's size >= len
-  public boolean write(String filename, long off, long len, byte[] buf) {
-    return false;
+  public void write(String filename, long offset, int len, byte[] buf) {
+    long beginBlockNo = offset >>> BIT;
+    long endOffset = offset + length - 1;
+    long endBlockNo = endOffset >>> BIT;
+
+    if (beginBlockNo == endBlockNo) {  // in one block
+      int beginOff = (int) (offset & MASK);
+    } else {  // multiple blocks
+
+    }
   }
 
   // do not modify the return block
@@ -64,7 +90,7 @@ public class Cache {
       // read from disk
       byte[] block = new byte[BLOCK_SIZE];
       RandomAccessFile f = getFd(blockId.filename);
-      f.seek(blockId.id << BIT);
+      f.seek(blockId.no << BIT);
       f.read(block, 0, BLOCK_SIZE);
 
       node = new Node(blockId, block);
@@ -84,7 +110,7 @@ public class Cache {
     return node.block;
   }
 
-  private void writeBlock(BlockId blockId, byte[] buf) throws Exception {
+  private void writeBlock(BlockId blockId, byte[] buf, int offset, int len) throws Exception {
     Node node = blockMap.get(blockId);
     if (node == null) {  // not in cache
       // build a node
@@ -107,6 +133,12 @@ public class Cache {
     }
   }
 
+  private void writeBlockToDisk(Node node) throws Exception {
+    RandomAccessFile f = getFd(node.blockId.filename);
+    f.seek(node.blockId.no << BIT);
+    f.write(node.block, 0, BLOCK_SIZE);
+  }
+
   private RandomAccessFile getFd(String filename) throws Exception {
     RandomAccessFile f = fileMap.get(filename);
     if (f == null) {
@@ -114,12 +146,6 @@ public class Cache {
       fileMap.put(filename, f);
     }
     return f;
-  }
-
-  private void writeBlockToDisk(Node node) throws Exception {
-    RandomAccessFile f = getFd(node.blockId.filename);
-    f.seek(node.blockId.id << BIT);
-    f.write(node.block, 0, BLOCK_SIZE);
   }
 
   private void remove(Node node) {

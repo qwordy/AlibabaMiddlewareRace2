@@ -6,8 +6,13 @@ package com.alibaba.middleware.race;
  */
 public class BlockId {
 
-  public String filename;
+  public final String filename;
 
-  // the id-th block in file
-  public long id;
+  // the no-th block in file
+  public final long no;
+
+  public BlockId(String filename, long no) {
+    this.filename = filename;
+    this.no = no;
+  }
 }
