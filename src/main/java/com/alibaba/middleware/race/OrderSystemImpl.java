@@ -10,10 +10,12 @@ import java.util.Iterator;
  */
 public class OrderSystemImpl implements OrderSystem {
 
+  private Collection<String> storeFolders;
+
   public OrderSystemImpl() {}
 
   public void construct(Collection<String> orderFiles, Collection<String> buyerFiles, Collection<String> goodFiles, Collection<String> storeFolders) throws IOException, InterruptedException {
-
+    this.storeFolders = storeFolders;
   }
 
   public Result queryOrder(long orderId, Collection<String> keys) {
