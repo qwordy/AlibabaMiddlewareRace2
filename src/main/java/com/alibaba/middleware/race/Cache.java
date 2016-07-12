@@ -33,19 +33,19 @@ public class Cache {
     head = tail = null;
   }
 
-  // read len bytes from position off in filename to buf
-  // please guarantee buf's size >= len
-  public void read(String filename, long offset, int len, byte[] buf) throws Exception {
+  // read len bytes at position off in filename to buf
+  // please guarantee buf's size >= length
+  public void read(String filename, long offset, int length, byte[] buf) throws Exception {
     long beginBlockNo = offset >>> BIT;
     // end offset in file
-    long endOffset = offset + len - 1;
+    long endOffset = offset + length - 1;
     long endBlockNo = endOffset >>> BIT;
 
     if (beginBlockNo == endBlockNo) {  // in one block
-      // offset in the block
+      // offset in block
       int beginOff = (int) (offset & MASK);
       byte[] block = readBlock(new BlockId(filename, beginBlockNo));
-      System.arraycopy(block, beginOff, buf, 0, len);
+      System.arraycopy(block, beginOff, buf, 0, length);
 
     } else {  // multiple blocks
       // first block
@@ -69,17 +69,22 @@ public class Cache {
     }
   }
 
-  // write len bytes of buf to filename from position off
-  // please guarantee buf's size >= len
-  public void write(String filename, long offset, int len, byte[] buf) {
+  // write len bytes of buf to filename at position off
+  // please guarantee buf's size >= length
+  public void write(String filename, long offset, int length, byte[] buf) throws Exception {
     long beginBlockNo = offset >>> BIT;
     long endOffset = offset + length - 1;
     long endBlockNo = endOffset >>> BIT;
 
     if (beginBlockNo == endBlockNo) {  // in one block
+      // offset in block
       int beginOff = (int) (offset & MASK);
-    } else {  // multiple blocks
+      writeBlock(new BlockId(filename, beginBlockNo), beginOff, buf, 0, length);
 
+    } else {  // multiple blocks
+      // first block
+      // middle blocks
+      // last block
     }
   }
 
@@ -103,6 +108,7 @@ public class Cache {
       }
       addHead(node);
       blockMap.put(blockId, node);
+
     } else {  // in cache
       remove(node);
       addHead(node);
@@ -110,12 +116,23 @@ public class Cache {
     return node.block;
   }
 
-  private void writeBlock(BlockId blockId, byte[] buf, int offset, int len) throws Exception {
+  // write len bytes of buf at bufOff into block at blockOff
+  private void writeBlock(BlockId blockId, int blockOff, byte[] buf, int bufOff, int len) throws Exception {
     Node node = blockMap.get(blockId);
     if (node == null) {  // not in cache
-      // build a node
+      // new a block, write data
       byte[] block = new byte[BLOCK_SIZE];
-      System.arraycopy(buf, 0, block, 0, BLOCK_SIZE);
+
+      if (blockOff == 0 && len == BLOCK_SIZE) {  // write to cache directly
+        System.arraycopy(buf, bufOff, block, 0, BLOCK_SIZE);
+      } else {  // read from disk first
+        RandomAccessFile f = getFd(blockId.filename);
+        f.seek(blockId.no << BIT);
+        f.read(block, 0, BLOCK_SIZE);
+
+        System.arraycopy(buf, bufOff, block, blockOff, len);
+      }
+
       node = new Node(blockId, block);
 
       // add a new node into cache
@@ -126,8 +143,9 @@ public class Cache {
       }
       addHead(node);
       blockMap.put(blockId, node);
+
     } else {  // in cache
-      System.arraycopy(buf, 0, node.block, 0, BLOCK_SIZE);
+      System.arraycopy(buf, bufOff, node.block, blockOff, len);
       remove(node);
       addHead(node);
     }
