@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -21,6 +22,15 @@ public class OrderSystemImpl implements OrderSystem {
                         Collection<String> storeFolders)
       throws IOException, InterruptedException {
 
+    Constructor constructor = new Constructor();
+
+    int i = 0;
+    orderFilesList = new ArrayList<>();
+    for (String file : orderFiles) {
+      orderFilesList.add(file);
+      constructor.readOrderFile(file, i);
+      i++;
+    }
 
   }
 

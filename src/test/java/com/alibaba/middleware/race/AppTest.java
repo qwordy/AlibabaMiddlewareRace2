@@ -12,6 +12,12 @@ import java.util.Arrays;
 public class AppTest {
 
   @Test
+  public void construct() throws Exception {
+    OrderSystem os = new OrderSystemImpl();
+    os.construct(Arrays.asList("order_records.txt"), null, null, null);
+  }
+
+  @Test
   public void move() {
     int a, b;
     long t1, t2;
