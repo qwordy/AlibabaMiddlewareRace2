@@ -2,6 +2,9 @@ package com.alibaba.middleware.race;
 
 import org.junit.Test;
 
+import java.io.RandomAccessFile;
+import java.util.Arrays;
+
 /**
  * Created by yfy on 7/11/16.
  * Test
@@ -35,5 +38,21 @@ public class AppTest {
   @Test
   public void t() {
     System.out.println(0xfffffffffffffl & 0xfff);
+  }
+
+  @Test
+  public void disk() {
+    try {
+      RandomAccessFile f = new RandomAccessFile("test", "rwd");
+      byte[] buf = new byte[4096];
+
+      Arrays.fill(buf, (byte) 5);
+
+      System.out.println(System.currentTimeMillis());
+      f.write(buf);
+      System.out.println(System.currentTimeMillis());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 }

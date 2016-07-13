@@ -1,6 +1,7 @@
-package com.alibaba.middleware.race;
+package com.alibaba.middleware.race.cache;
 
 import java.io.RandomAccessFile;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,7 +9,7 @@ import java.util.Map;
  * Created by yfy on 7/11/16.
  * Cache
  */
-public class Cache {
+public class Cache implements IDiskManager {
 
   private final int BLOCK_SIZE = 4096;
 
@@ -17,7 +18,7 @@ public class Cache {
 
   private final int MASK = 0xfff;
 
-  private final int CACHE_SIZE = 1024;
+  private final int CACHE_SIZE = 10;
 
   // blockId, block
   private Map<BlockId, Node> blockMap;
@@ -33,12 +34,12 @@ public class Cache {
     head = tail = null;
   }
 
-  // read len bytes at position off in filename to buf
-  // please guarantee buf's size >= length
+  @Override
   public void read(String filename, long offset, int length, byte[] buf) throws Exception {
-    long beginBlockNo = offset >>> BIT;
     // end offset in file
     long endOffset = offset + length - 1;
+
+    long beginBlockNo = offset >>> BIT;
     long endBlockNo = endOffset >>> BIT;
 
     if (beginBlockNo == endBlockNo) {  // in one block
@@ -51,9 +52,9 @@ public class Cache {
       // first block
       int beginOff = (int) (offset & MASK);  // offset in the block
       byte[] block = readBlock(new BlockId(filename, beginBlockNo));
-      int copyLen = BLOCK_SIZE - beginOff;
-      System.arraycopy(block, beginOff, buf, 0, copyLen);
-      int destPos = copyLen;
+      int readLen = BLOCK_SIZE - beginOff;
+      System.arraycopy(block, beginOff, buf, 0, readLen);
+      int destPos = readLen;  // next position in buf
 
       // middle blocks
       for (long blockNo = beginBlockNo + 1; blockNo < endBlockNo; blockNo++) {
@@ -69,11 +70,12 @@ public class Cache {
     }
   }
 
-  // write len bytes of buf to filename at position off
-  // please guarantee buf's size >= length
+  @Override
   public void write(String filename, long offset, int length, byte[] buf) throws Exception {
-    long beginBlockNo = offset >>> BIT;
+    // end offset in file
     long endOffset = offset + length - 1;
+
+    long beginBlockNo = offset >>> BIT;
     long endBlockNo = endOffset >>> BIT;
 
     if (beginBlockNo == endBlockNo) {  // in one block
@@ -83,8 +85,20 @@ public class Cache {
 
     } else {  // multiple blocks
       // first block
+      int beginOff = (int) (offset & MASK);  // offset in the block
+      int writeLen = BLOCK_SIZE - beginOff;
+      writeBlock(new BlockId(filename, beginBlockNo), beginOff, buf, 0, writeLen);
+      int srcPos = writeLen;  // next position in buf
+
       // middle blocks
+      for (long blockNo = beginBlockNo + 1; blockNo < endBlockNo; blockNo++) {
+        writeBlock(new BlockId(filename, blockNo), 0, buf, srcPos, BLOCK_SIZE);
+        srcPos += BLOCK_SIZE;
+      }
+
       // last block
+      int endOff = (int) (endOffset & MASK);
+      writeBlock(new BlockId(filename, endBlockNo), 0, buf, srcPos, endOff + 1);
     }
   }
 
@@ -151,6 +165,7 @@ public class Cache {
     }
   }
 
+  // write to disk immediately
   private void writeBlockToDisk(Node node) throws Exception {
     RandomAccessFile f = getFd(node.blockId.filename);
     f.seek(node.blockId.no << BIT);
@@ -166,6 +181,7 @@ public class Cache {
     return f;
   }
 
+  // remove node in linked list
   private void remove(Node node) {
     if (node.prev == null)
       head = node.next;
@@ -178,6 +194,7 @@ public class Cache {
       node.next.prev = node.prev;
   }
 
+  // add node in the head
   private void addHead(Node node) {
     if (head == null)
       head = tail = node;
@@ -207,6 +224,29 @@ public class Cache {
     Node(BlockId blockId, byte[] block) {
       this.blockId = blockId;
       this.block = block;
+    }
+  }
+
+  public static void main(String[] args) {
+    try {
+      RandomAccessFile f = new RandomAccessFile("test", "rwd");
+      byte[] buf = new byte[4096];
+
+      for (int i = 0; i < 20; i++) {
+        Arrays.fill(buf, (byte)i);
+        f.write(buf);
+      }
+
+      Cache cache = new Cache();
+      for (int i = 0; i < 20; i++) {
+        buf = cache.readBlock(new BlockId("test", i));
+        System.out.println(buf[0]);
+      }
+
+      f.seek(99999999);
+      System.out.println(f.read(buf));
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 

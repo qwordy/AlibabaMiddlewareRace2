@@ -3,6 +3,7 @@ package com.alibaba.middleware.race;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by yfy on 7/11/16.
@@ -10,23 +11,30 @@ import java.util.Iterator;
  */
 public class OrderSystemImpl implements OrderSystem {
 
-  private Collection<String> storeFolders;
+  private List<String> orderFilesList;
 
   public OrderSystemImpl() {}
 
-  public void construct(Collection<String> orderFiles, Collection<String> buyerFiles, Collection<String> goodFiles, Collection<String> storeFolders) throws IOException, InterruptedException {
-    this.storeFolders = storeFolders;
+  public void construct(Collection<String> orderFiles,
+                        Collection<String> buyerFiles,
+                        Collection<String> goodFiles,
+                        Collection<String> storeFolders)
+      throws IOException, InterruptedException {
+
+
   }
 
   public Result queryOrder(long orderId, Collection<String> keys) {
     return null;
   }
 
-  public Iterator<Result> queryOrdersByBuyer(long startTime, long endTime, String buyerid) {
+  public Iterator<Result> queryOrdersByBuyer(
+      long startTime, long endTime, String buyerid) {
     return null;
   }
 
-  public Iterator<Result> queryOrdersBySaler(String salerid, String goodid, Collection<String> keys) {
+  public Iterator<Result> queryOrdersBySaler(
+      String salerid, String goodid, Collection<String> keys) {
     return null;
   }
 

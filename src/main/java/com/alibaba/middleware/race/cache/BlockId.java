@@ -1,4 +1,4 @@
-package com.alibaba.middleware.race;
+package com.alibaba.middleware.race.cache;
 
 /**
  * Created by yfy on 7/11/16.
