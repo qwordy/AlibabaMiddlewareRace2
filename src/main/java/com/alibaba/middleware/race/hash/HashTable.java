@@ -6,8 +6,15 @@ package com.alibaba.middleware.race.hash;
  */
 public class HashTable {
 
-  public HashTable() {}
+  private String indexFile, dataFile;
 
+  public HashTable(String indexFile, String dataFile) {
+    this.indexFile = indexFile;
+    this.dataFile = dataFile;
+  }
 
+  public void add(byte[] key, int fileId, long fileOff) {
+
+  }
 
 }

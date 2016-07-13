@@ -14,7 +14,8 @@ public class AppTest {
   @Test
   public void construct() throws Exception {
     OrderSystem os = new OrderSystemImpl();
-    os.construct(Arrays.asList("order_records.txt"), null, null, null);
+//    os.construct(Arrays.asList("order_records.txt"), null, null, null);
+    os.construct(Arrays.asList("rec.txt"), null, null, null);
   }
 
   @Test

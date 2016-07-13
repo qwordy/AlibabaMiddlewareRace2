@@ -24,12 +24,12 @@ public class OrderSystemImpl implements OrderSystem {
 
     Constructor constructor = new Constructor();
 
-    int i = 0;
+    int fileId = 0;
     orderFilesList = new ArrayList<>();
     for (String file : orderFiles) {
       orderFilesList.add(file);
-      constructor.readOrderFile(file, i);
-      i++;
+      constructor.readOrderFile(file, fileId);
+      fileId++;
     }
 
   }
