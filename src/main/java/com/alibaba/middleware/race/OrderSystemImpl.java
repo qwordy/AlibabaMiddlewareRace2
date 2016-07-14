@@ -1,7 +1,6 @@
 package com.alibaba.middleware.race;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -11,6 +10,8 @@ import java.util.List;
  * OrderSystemImpl
  */
 public class OrderSystemImpl implements OrderSystem {
+
+  private Database db;
 
   private List<String> orderFilesList;
 
@@ -23,15 +24,15 @@ public class OrderSystemImpl implements OrderSystem {
       throws IOException, InterruptedException {
 
     try {
-      Constructor constructor = new Constructor(orderFiles, buyerFiles, goodFiles, storeFolders);
-      constructor.buildOrder2OrderHash();
-
+      db = new Database(orderFiles, buyerFiles, goodFiles, storeFolders);
+      db.construct();
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
   public Result queryOrder(long orderId, Collection<String> keys) {
+    db.queryOrder(orderId, keys);
     return null;
   }
 

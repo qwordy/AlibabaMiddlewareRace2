@@ -4,6 +4,7 @@ import com.alibaba.middleware.race.Util;
 import com.alibaba.middleware.race.cache.Cache;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by yfy on 7/13/16.
@@ -38,20 +39,23 @@ public class HashTable {
   // current number of blocks
   private int blockNums;
 
+  private List<String> dataFiles;
+
   private String indexFile;
 
   private Cache cache;
 
-  public HashTable(String indexFile, int keySize) {
+  public HashTable(List<String> dataFiles, String indexFile, int keySize) {
+    this.dataFiles = dataFiles;
     this.indexFile = indexFile;
-    blockNums = SIZE;
     KEY_SIZE = keySize;
     ENTRY_SIZE = KEY_SIZE + 12;
+    blockNums = SIZE;
     cache = Cache.getInstance();
   }
 
   public void add(long key, int fileId, long fileOffset) throws Exception {
-    //System.out.println("add " + key + " " + fileId + " " + fileOffset);
+    System.out.println("add " + key + " " + fileId + " " + fileOffset);
     add(Util.long2byte(key), fileId, fileOffset);
   }
 
@@ -114,7 +118,7 @@ public class HashTable {
 
   }
 
-  public void get(byte[] key) throws Exception {
+  public byte[] get(byte[] key) throws Exception {
     if (key.length != KEY_SIZE)
       throw new Exception();
 
@@ -129,16 +133,20 @@ public class HashTable {
         if (Util.bytesEqual(bucket, off, key, 0, KEY_SIZE)) {  // find
           int fileId = Util.byte2int(bucket, off + KEY_SIZE);
           long fileOffset = Util.byte2int(bucket, off + KEY_SIZE + 4);
-          //System.out.println("get " + Util.byte2int(key) + ' ' + fileId + ' ' + fileOffset);
-          return;
+          System.out.println("get " + Util.byte2int(key) + ' ' + fileId + ' ' + fileOffset);
+          return getData(fileId, fileOffset);
         }
       }
       blockNo = Util.byte2int(bucket, 0);
       if (blockNo == 0) {
-        //System.out.println("get " + Util.byte2int(key) + ' ' + "fail");
-        return;
+        System.out.println("get " + Util.byte2int(key) + ' ' + "fail");
+        return null;
       }
     }
+  }
+
+  private byte[] getData(int fileId, long offset) {
+    return null;
   }
 
   private int keyHashCode(byte[] key) {

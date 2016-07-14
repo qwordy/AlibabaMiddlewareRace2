@@ -111,6 +111,10 @@ public class Cache implements IDiskManager {
     }
   }
 
+  public void readByte(String filename, long offset) {
+
+  }
+
   // copy block to buf
   public void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
     byte[] block = readBlock(new BlockId(filename, blockNo));

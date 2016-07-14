@@ -9,9 +9,9 @@ import java.util.List;
 
 /**
  * Created by yfy on 7/13/16.
- * Constructor
+ * Database
  */
-public class Constructor {
+public class Database {
 
   private List<String> orderFilesList;
 
@@ -20,22 +20,26 @@ public class Constructor {
   private final static byte[] orderidBytes =
       new byte[]{'o', 'r', 'd', 'e', 'r', 'i', 'd'};
 
-  public Constructor(Collection<String> orderFiles,
-                     Collection<String> buyerFiles,
-                     Collection<String> goodFiles,
-                     Collection<String> storeFolders) {
+  public Database(Collection<String> orderFiles,
+                  Collection<String> buyerFiles,
+                  Collection<String> goodFiles,
+                  Collection<String> storeFolders) {
     orderFilesList = new ArrayList<>();
     for (String file : orderFiles)
       orderFilesList.add(file);
   }
 
+  public void construct() throws Exception {
+    buildOrder2OrderHash();
+  }
+
   public void buildOrder2OrderHash() throws Exception {
-    orderHashTable = new HashTable("order.hash", 8);
+    orderHashTable = new HashTable(orderFilesList, "order.hash", 8);
     for (int i = 0; i < orderFilesList.size(); i++)
       readOrderFile(orderFilesList.get(i), i);
   }
 
-  public void readOrderFile(String filename, int fileId) throws Exception {
+  private void readOrderFile(String filename, int fileId) throws Exception {
     BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filename));
     int b, keyLen = 0, valueLen = 0;
     long offset = 0, count = 0;
@@ -109,6 +113,11 @@ public class Constructor {
     for (int i = 0; i < valueLen; i++)
       System.out.print((char)value[i]);
     System.out.print('\t');
+  }
+
+  public OrderSystem.Result queryOrder(long orderId, Collection<String> keys) {
+
+    return null;
   }
 
 //  public void readOrderFile2(String filename, int fileId) throws IOException {
