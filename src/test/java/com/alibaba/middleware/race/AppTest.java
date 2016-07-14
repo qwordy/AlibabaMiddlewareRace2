@@ -24,6 +24,12 @@ public class AppTest {
     assertEquals(Long.MAX_VALUE, Util.byte2long(Util.long2byte(Long.MAX_VALUE)));
     assertEquals(Long.MIN_VALUE, Util.byte2long(Util.long2byte(Long.MIN_VALUE)));
     assertEquals(-1, Util.byte2long(Util.long2byte(-1)));
+    assertEquals(0, Util.byte2long(Util.long2byte(0)));
+
+    assertEquals(Integer.MAX_VALUE, Util.byte2int(Util.int2byte(Integer.MAX_VALUE)));
+    assertEquals(Integer.MIN_VALUE, Util.byte2int(Util.int2byte(Integer.MIN_VALUE)));
+    assertEquals(-1, Util.byte2int(Util.int2byte(-1)));
+    assertEquals(0, Util.byte2int(Util.int2byte(0)));
   }
 
   @Test

@@ -9,9 +9,9 @@ public class BlockId {
   public final String filename;
 
   // the no-th block in file
-  public final long no;
+  public final int no;
 
-  public BlockId(String filename, long no) {
+  public BlockId(String filename, int no) {
     this.filename = filename;
     this.no = no;
   }

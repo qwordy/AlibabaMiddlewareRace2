@@ -22,16 +22,19 @@ public class OrderSystemImpl implements OrderSystem {
                         Collection<String> storeFolders)
       throws IOException, InterruptedException {
 
-    Constructor constructor = new Constructor();
+    try {
+      Constructor constructor = new Constructor(orderFiles, buyerFiles, goodFiles, storeFolders);
 
-    int fileId = 0;
-    orderFilesList = new ArrayList<>();
-    for (String file : orderFiles) {
-      orderFilesList.add(file);
-      constructor.readOrderFile(file, fileId);
-      fileId++;
+      int fileId = 0;
+      orderFilesList = new ArrayList<>();
+      for (String file : orderFiles) {
+        orderFilesList.add(file);
+        constructor.readOrderFile(file, fileId);
+        fileId++;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-
   }
 
   public Result queryOrder(long orderId, Collection<String> keys) {

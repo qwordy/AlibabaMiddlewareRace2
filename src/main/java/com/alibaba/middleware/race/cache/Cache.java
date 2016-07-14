@@ -28,10 +28,14 @@ public class Cache implements IDiskManager {
   // filename, fd
   private Map<String, RandomAccessFile> fileMap;
 
-  public Cache() {
+  private Cache() {
     blockMap = new HashMap<>();
     fileMap = new HashMap<>();
     head = tail = null;
+  }
+
+  public static Cache getInstance() {
+    return new Cache();
   }
 
   @Override
@@ -39,8 +43,8 @@ public class Cache implements IDiskManager {
     // end offset in file
     long endOffset = offset + length - 1;
 
-    long beginBlockNo = offset >>> BIT;
-    long endBlockNo = endOffset >>> BIT;
+    int beginBlockNo = (int) (offset >>> BIT);
+    int endBlockNo = (int) (endOffset >>> BIT);
 
     if (beginBlockNo == endBlockNo) {  // in one block
       // offset in block
@@ -57,7 +61,7 @@ public class Cache implements IDiskManager {
       int destPos = readLen;  // next position in buf
 
       // middle blocks
-      for (long blockNo = beginBlockNo + 1; blockNo < endBlockNo; blockNo++) {
+      for (int blockNo = beginBlockNo + 1; blockNo < endBlockNo; blockNo++) {
         block = readBlock(new BlockId(filename, blockNo));
         System.arraycopy(block, 0, buf, destPos, BLOCK_SIZE);
         destPos += BLOCK_SIZE;
@@ -75,8 +79,8 @@ public class Cache implements IDiskManager {
     // end offset in file
     long endOffset = offset + length - 1;
 
-    long beginBlockNo = offset >>> BIT;
-    long endBlockNo = endOffset >>> BIT;
+    int beginBlockNo = (int) (offset >>> BIT);
+    int endBlockNo = (int) (endOffset >>> BIT);
 
     if (beginBlockNo == endBlockNo) {  // in one block
       // offset in block
@@ -91,7 +95,7 @@ public class Cache implements IDiskManager {
       int srcPos = writeLen;  // next position in buf
 
       // middle blocks
-      for (long blockNo = beginBlockNo + 1; blockNo < endBlockNo; blockNo++) {
+      for (int blockNo = beginBlockNo + 1; blockNo < endBlockNo; blockNo++) {
         writeBlock(new BlockId(filename, blockNo), 0, buf, srcPos, BLOCK_SIZE);
         srcPos += BLOCK_SIZE;
       }
@@ -100,6 +104,12 @@ public class Cache implements IDiskManager {
       int endOff = (int) (endOffset & MASK);
       writeBlock(new BlockId(filename, endBlockNo), 0, buf, srcPos, endOff + 1);
     }
+  }
+
+  // copy block to buf
+  public void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
+    byte[] block = readBlock(new BlockId(filename, blockNo));
+    System.arraycopy(block, 0, buf, 0, BLOCK_SIZE);
   }
 
   // do not modify the return block
@@ -128,6 +138,11 @@ public class Cache implements IDiskManager {
       addHead(node);
     }
     return node.block;
+  }
+
+  // write the entire block
+  public void writeBlock(String filename, int blockNo, byte[] buf) throws Exception {
+    writeBlock(new BlockId(filename, blockNo), 0, buf, 0, BLOCK_SIZE);
   }
 
   // write len bytes of buf at bufOff into block at blockOff
@@ -206,6 +221,22 @@ public class Cache implements IDiskManager {
     }
   }
 
+  private void flush() throws Exception {
+    Node p = this.head;
+    while (p != null) {
+      writeBlockToDisk(p);
+      p = p.next;
+    }
+  }
+
+  protected void finalize() {
+    try {
+      flush();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
   /**
    * newest <--------> oldest
    * head  next  next  tail
@@ -243,8 +274,12 @@ public class Cache implements IDiskManager {
         System.out.println(buf[0]);
       }
 
-      f.seek(99999999);
-      System.out.println(f.read(buf));
+      f.seek(999999);
+      f.write(5);
+      System.out.println();
+
+      buf = cache.readBlock(new BlockId("test", 99));
+      System.out.println(Arrays.toString(buf));
     } catch (Exception e) {
       e.printStackTrace();
     }

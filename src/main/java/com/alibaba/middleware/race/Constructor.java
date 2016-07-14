@@ -3,6 +3,7 @@ package com.alibaba.middleware.race;
 import com.alibaba.middleware.race.hash.HashTable;
 
 import java.io.*;
+import java.util.Collection;
 
 /**
  * Created by yfy on 7/13/16.
@@ -15,10 +16,13 @@ public class Constructor {
   private final static byte[] orderidBytes =
       new byte[]{'o', 'r', 'd', 'e', 'r', 'i', 'd'};
 
-  public Constructor() {
+  public Constructor(Collection<String> orderFiles,
+                     Collection<String> buyerFiles,
+                     Collection<String> goodFiles,
+                     Collection<String> storeFolders) {
   }
 
-  public void readOrderFile(String filename, int fileId) throws IOException {
+  public void readOrderFile(String filename, int fileId) throws Exception {
     orderHashTable = new HashTable("order.hash");
 
     BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filename));
