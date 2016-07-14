@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race;
 
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import java.io.RandomAccessFile;
@@ -16,6 +17,13 @@ public class AppTest {
     OrderSystem os = new OrderSystemImpl();
 //    os.construct(Arrays.asList("order_records.txt"), null, null, null);
     os.construct(Arrays.asList("rec.txt"), null, null, null);
+  }
+
+  @Test
+  public void util() {
+    assertEquals(Long.MAX_VALUE, Util.byte2long(Util.long2byte(Long.MAX_VALUE)));
+    assertEquals(Long.MIN_VALUE, Util.byte2long(Util.long2byte(Long.MIN_VALUE)));
+    assertEquals(-1, Util.byte2long(Util.long2byte(-1)));
   }
 
   @Test

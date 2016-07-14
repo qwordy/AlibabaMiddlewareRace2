@@ -12,19 +12,24 @@ public class Constructor {
 
   private HashTable orderHashTable;
 
-  public Constructor() {}
+  private final static byte[] orderidBytes =
+      new byte[]{'o', 'r', 'd', 'e', 'r', 'i', 'd'};
+
+  public Constructor() {
+  }
 
   public void readOrderFile(String filename, int fileId) throws IOException {
-    orderHashTable = new HashTable("order.hash", filename);
+    orderHashTable = new HashTable("order.hash");
 
     BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filename));
     int b, keyLen = 0, valueLen = 0;
-    long offset;
+    long offset = 0, count = 0;
     // 0 for read key, 1 for read value, 2 for skip line
     int status = 0;
     byte[] key = new byte[256];
     byte[] value = new byte[65536];
     while ((b = bis.read()) != -1) {
+      count++;
       if (status == 0) {
         if (b == ':') {
           valueLen = 0;
@@ -34,23 +39,50 @@ public class Constructor {
         }
       } else if (status == 1) {
         if (b == '\t') {
-          print(key, keyLen, value, valueLen);
+          //print(key, keyLen, value, valueLen);
 
-          keyLen = 0;
-          status = 0;
+          if (bytesEqual(key, keyLen, orderidBytes)) {
+            long valueLong = Long.decode(new String(value, 0, valueLen));
+            orderHashTable.add(valueLong, fileId, offset);
+            status = 2;
+          } else {
+            keyLen = 0;
+            status = 0;
+          }
         } else if (b == '\n') {
-          print(key, keyLen, value, valueLen);
-          System.out.println();
+          //print(key, keyLen, value, valueLen);
+          //System.out.println("offset: " + offset);
 
+          if (bytesEqual(key, keyLen, orderidBytes)) {
+            long valueLong = Long.decode(new String(value, 0, valueLen));
+            orderHashTable.add(valueLong, fileId, offset);
+          }
+
+          offset = count;
           keyLen = 0;
           status = 0;
         } else {
           value[valueLen++] = (byte) b;
         }
       } else {
+        if (b == '\n') {
+          //System.out.println("offset: " + offset);
 
+          offset = count;
+          keyLen = 0;
+          status = 0;
+        }
       }
     }
+  }
+
+  private boolean bytesEqual(byte[] a, int aLen, byte[] b) {
+    if (aLen != b.length)
+      return false;
+    for (int i = 0; i < aLen; i++)
+      if (a[i] != b[i])
+        return false;
+    return true;
   }
 
   private void print(byte[] key, int keyLen, byte[] value, int valueLen) {
@@ -63,7 +95,7 @@ public class Constructor {
   }
 
   public void readOrderFile2(String filename, int fileId) throws IOException {
-    orderHashTable = new HashTable("order.hash", filename);
+    orderHashTable = new HashTable("order.hash");
 
     BufferedReader br = new BufferedReader(new FileReader(filename));
     String line;
