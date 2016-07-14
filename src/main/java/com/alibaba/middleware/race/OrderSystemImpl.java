@@ -24,14 +24,8 @@ public class OrderSystemImpl implements OrderSystem {
 
     try {
       Constructor constructor = new Constructor(orderFiles, buyerFiles, goodFiles, storeFolders);
+      constructor.buildOrder2OrderHash();
 
-      int fileId = 0;
-      orderFilesList = new ArrayList<>();
-      for (String file : orderFiles) {
-        orderFilesList.add(file);
-        constructor.readOrderFile(file, fileId);
-        fileId++;
-      }
     } catch (Exception e) {
       e.printStackTrace();
     }

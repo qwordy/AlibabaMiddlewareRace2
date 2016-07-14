@@ -15,8 +15,8 @@ public class AppTest {
   @Test
   public void construct() throws Exception {
     OrderSystem os = new OrderSystemImpl();
-//    os.construct(Arrays.asList("order_records.txt"), null, null, null);
-    os.construct(Arrays.asList("rec.txt"), null, null, null);
+    os.construct(Arrays.asList("order_records.txt"), null, null, null);
+//    os.construct(Arrays.asList("rec.txt"), null, null, null);
   }
 
   @Test
@@ -58,7 +58,8 @@ public class AppTest {
 
   @Test
   public void t() {
-    System.out.println(0xfffffffffffffl & 0xfff);
+    System.out.println((long)0xfffffff << 6);
+    System.out.println((int) (0xfffffffffL >> 4));
   }
 
   @Test

@@ -18,7 +18,7 @@ public class Cache implements IDiskManager {
 
   private final int MASK = 0xfff;
 
-  private final int CACHE_SIZE = 10;
+  private final int CACHE_SIZE = 1000;
 
   // blockId, block
   private Map<BlockId, Node> blockMap;
@@ -28,6 +28,8 @@ public class Cache implements IDiskManager {
   // filename, fd
   private Map<String, RandomAccessFile> fileMap;
 
+  private static Cache cache;
+
   private Cache() {
     blockMap = new HashMap<>();
     fileMap = new HashMap<>();
@@ -35,7 +37,10 @@ public class Cache implements IDiskManager {
   }
 
   public static Cache getInstance() {
-    return new Cache();
+    if (cache == null) {
+      cache = new Cache();
+    }
+    return cache;
   }
 
   @Override
@@ -119,17 +124,18 @@ public class Cache implements IDiskManager {
       // read from disk
       byte[] block = new byte[BLOCK_SIZE];
       RandomAccessFile f = getFd(blockId.filename);
-      f.seek(blockId.no << BIT);
+      f.seek(((long) blockId.no) << BIT);
       f.read(block, 0, BLOCK_SIZE);
 
       node = new Node(blockId, block);
 
-      // add a new node into cache
-      if (blockMap.size() >= CACHE_SIZE) {  // remove the lru cache
+      // remove the lru cache
+      if (blockMap.size() >= CACHE_SIZE) {
         writeBlockToDisk(tail);
         remove(tail);
         blockMap.remove(tail.blockId);
       }
+      // add a new node into cache
       addHead(node);
       blockMap.put(blockId, node);
 
@@ -156,7 +162,7 @@ public class Cache implements IDiskManager {
         System.arraycopy(buf, bufOff, block, 0, BLOCK_SIZE);
       } else {  // read from disk first
         RandomAccessFile f = getFd(blockId.filename);
-        f.seek(blockId.no << BIT);
+        f.seek(((long) blockId.no) << BIT);
         f.read(block, 0, BLOCK_SIZE);
 
         System.arraycopy(buf, bufOff, block, blockOff, len);
@@ -183,7 +189,7 @@ public class Cache implements IDiskManager {
   // write to disk immediately
   private void writeBlockToDisk(Node node) throws Exception {
     RandomAccessFile f = getFd(node.blockId.filename);
-    f.seek(node.blockId.no << BIT);
+    f.seek(((long) node.blockId.no) << BIT);
     f.write(node.block, 0, BLOCK_SIZE);
   }
 

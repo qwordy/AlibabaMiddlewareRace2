@@ -53,4 +53,12 @@ public class Util {
         | (((long) b[offset + 1] & 0xff) << 8)
         | ((long) b[offset] & 0xff);
   }
+
+  public static boolean bytesEqual(byte[] a, int aPos, byte[] b, int bPos, int len) {
+    for (int i = 0; i < len; i++)
+      if (a[aPos + i] != b[bPos + i])
+        return false;
+    return true;
+  }
+
 }

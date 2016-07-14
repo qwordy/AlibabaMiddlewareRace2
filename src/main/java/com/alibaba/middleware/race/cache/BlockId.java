@@ -15,4 +15,18 @@ public class BlockId {
     this.filename = filename;
     this.no = no;
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof BlockId) {
+      BlockId bi = (BlockId) obj;
+      return filename.equals(bi.filename) && no == bi.no;
+    }
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    return filename.hashCode() + no;
+  }
 }

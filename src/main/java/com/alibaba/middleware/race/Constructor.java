@@ -3,13 +3,17 @@ package com.alibaba.middleware.race;
 import com.alibaba.middleware.race.hash.HashTable;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by yfy on 7/13/16.
  * Constructor
  */
 public class Constructor {
+
+  private List<String> orderFilesList;
 
   private HashTable orderHashTable;
 
@@ -20,11 +24,18 @@ public class Constructor {
                      Collection<String> buyerFiles,
                      Collection<String> goodFiles,
                      Collection<String> storeFolders) {
+    orderFilesList = new ArrayList<>();
+    for (String file : orderFiles)
+      orderFilesList.add(file);
+  }
+
+  public void buildOrder2OrderHash() throws Exception {
+    orderHashTable = new HashTable("order.hash", 8);
+    for (int i = 0; i < orderFilesList.size(); i++)
+      readOrderFile(orderFilesList.get(i), i);
   }
 
   public void readOrderFile(String filename, int fileId) throws Exception {
-    orderHashTable = new HashTable("order.hash");
-
     BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filename));
     int b, keyLen = 0, valueLen = 0;
     long offset = 0, count = 0;
@@ -45,9 +56,10 @@ public class Constructor {
         if (b == '\t') {
           //print(key, keyLen, value, valueLen);
 
-          if (bytesEqual(key, keyLen, orderidBytes)) {
+          if (expectedKey(key, keyLen, orderidBytes)) {
             long valueLong = Long.decode(new String(value, 0, valueLen));
             orderHashTable.add(valueLong, fileId, offset);
+            orderHashTable.get(Util.long2byte(valueLong));
             status = 2;
           } else {
             keyLen = 0;
@@ -57,9 +69,10 @@ public class Constructor {
           //print(key, keyLen, value, valueLen);
           //System.out.println("offset: " + offset);
 
-          if (bytesEqual(key, keyLen, orderidBytes)) {
+          if (expectedKey(key, keyLen, orderidBytes)) {
             long valueLong = Long.decode(new String(value, 0, valueLen));
             orderHashTable.add(valueLong, fileId, offset);
+            orderHashTable.get(Util.long2byte(valueLong));
           }
 
           offset = count;
@@ -80,11 +93,11 @@ public class Constructor {
     }
   }
 
-  private boolean bytesEqual(byte[] a, int aLen, byte[] b) {
-    if (aLen != b.length)
+  private boolean expectedKey(byte[] key, int keyLen, byte[] expectedKey) {
+    if (keyLen != expectedKey.length)
       return false;
-    for (int i = 0; i < aLen; i++)
-      if (a[i] != b[i])
+    for (int i = 0; i < keyLen; i++)
+      if (key[i] != expectedKey[i])
         return false;
     return true;
   }
@@ -98,35 +111,35 @@ public class Constructor {
     System.out.print('\t');
   }
 
-  public void readOrderFile2(String filename, int fileId) throws IOException {
-    orderHashTable = new HashTable("order.hash");
-
-    BufferedReader br = new BufferedReader(new FileReader(filename));
-    String line;
-    long fileOff = 0;  // offset in file
-    while ((line = br.readLine()) != null) {
-      int lineOff = 0, sepPos, tabPos = 0;
-      while (tabPos != -1) {
-        sepPos = line.indexOf(':', lineOff);  // pos of :
-        String key = line.substring(lineOff, sepPos);
-        tabPos = line.indexOf('\t', lineOff);  // pos of tab
-        String value;
-        if (tabPos == -1)
-          value = line.substring(sepPos + 1);
-        else
-          value = line.substring(sepPos + 1, tabPos);
-
-        System.out.println(key + ":" + value);
-
-//        if (key.equals("orderid"))
-//          orderHashTable.add(value, fileId, fileOff);
-
-        lineOff = tabPos + 1;
-      }
-      fileOff += line.length();
-
-      System.out.println(fileOff);
-    }
-  }
+//  public void readOrderFile2(String filename, int fileId) throws IOException {
+//    orderHashTable = new HashTable("order.hash");
+//
+//    BufferedReader br = new BufferedReader(new FileReader(filename));
+//    String line;
+//    long fileOff = 0;  // offset in file
+//    while ((line = br.readLine()) != null) {
+//      int lineOff = 0, sepPos, tabPos = 0;
+//      while (tabPos != -1) {
+//        sepPos = line.indexOf(':', lineOff);  // pos of :
+//        String key = line.substring(lineOff, sepPos);
+//        tabPos = line.indexOf('\t', lineOff);  // pos of tab
+//        String value;
+//        if (tabPos == -1)
+//          value = line.substring(sepPos + 1);
+//        else
+//          value = line.substring(sepPos + 1, tabPos);
+//
+//        System.out.println(key + ":" + value);
+//
+////        if (key.equals("orderid"))
+////          orderHashTable.add(value, fileId, fileOff);
+//
+//        lineOff = tabPos + 1;
+//      }
+//      fileOff += line.length();
+//
+//      System.out.println(fileOff);
+//    }
+//  }
 
 }
