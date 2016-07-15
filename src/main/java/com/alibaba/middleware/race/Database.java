@@ -44,8 +44,14 @@ public class Database {
     OrderKvDealer dealer = new OrderKvDealer(orderHashTable);
     for (int i = 0; i < orderFilesList.size(); i++) {
       dealer.setFileId(i);
-      readOrderFile(orderFilesList.get(i), i);
+      readDataFile(orderFilesList.get(i), dealer);
     }
+  }
+
+  private void buildGood2GoodHash() {
+    goodHashTable = new HashTable(goodFilesList, "good.hash");
+    for (int i = 0; i < goodFilesList.size(); i++)
+      readOrdFile(goodFilesList.get(i), i);
   }
 
   private void readDataFile(String filename, IKvDealer dealer) throws Exception {
@@ -69,86 +75,26 @@ public class Database {
         }
       } else if (status == 1) {
         if (b == '\t') {
-          dealer.deal(key, keyLen, value, valueLen, offset);
-
-        } else if (b == '\n') {
-
-        }
-      }
-    }
-  }
-
-  private void readOrderFile(String filename, int fileId) throws Exception {
-    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filename));
-    int b, keyLen = 0, valueLen = 0;
-    long offset = 0, count = 0;
-    // 0 for read key, 1 for read value, 2 for skip line
-    int status = 0;
-    byte[] key = new byte[256];
-    byte[] value = new byte[65536];
-    while ((b = bis.read()) != -1) {
-      count++;
-      if (status == 0) {
-        if (b == ':') {
-          valueLen = 0;
-          status = 1;
-        } else {
-          key[keyLen++] = (byte) b;
-        }
-      } else if (status == 1) {
-        if (b == '\t') {
-          //print(key, keyLen, value, valueLen);
-
-          if (expectedKey(key, keyLen, orderidBytes)) {
-            long valueLong = Long.parseLong(new String(value, 0, valueLen));
-            orderHashTable.add(valueLong, fileId, offset);
-            //orderHashTable.get(Util.long2byte(valueLong));
+          int code = dealer.deal(key, keyLen, value, valueLen, offset);
+          if (code == 2)
             status = 2;
-          } else {
-            keyLen = 0;
-            status = 0;
-          }
+          else
+            status = keyLen = 0;
         } else if (b == '\n') {
-          //print(key, keyLen, value, valueLen);
-          //System.out.println("offset: " + offset);
-
-          if (expectedKey(key, keyLen, orderidBytes)) {
-            long valueLong = Long.decode(new String(value, 0, valueLen));
-            orderHashTable.add(valueLong, fileId, offset);
-            //orderHashTable.get(Util.long2byte(valueLong));
-          }
-
+          dealer.deal(key, keyLen, value, valueLen, offset);
           offset = count;
-          keyLen = 0;
-          status = 0;
+          status = keyLen = 0;
         } else {
           value[valueLen++] = (byte) b;
         }
-      } else {
+      } else { // status == 2
         if (b == '\n') {
-          //System.out.println("offset: " + offset);
-
           offset = count;
-          keyLen = 0;
-          status = 0;
+          status = keyLen = 0;
         }
       }
     }
-  }
-
-  private void buildGood2GoodHash() {
-//    goodHashTable = new HashTable(goodFilesList, "good.hash");
-//    for (int i = 0; i < goodFilesList.size(); i++)
-//      readOrdFile(goodFilesList.get(i), i);
-  }
-
-  private boolean expectedKey(byte[] key, int keyLen, byte[] expectedKey) {
-    if (keyLen != expectedKey.length)
-      return false;
-    for (int i = 0; i < keyLen; i++)
-      if (key[i] != expectedKey[i])
-        return false;
-    return true;
+    dealer.deal(key, keyLen, value, valueLen, offset);
   }
 
   private void print(byte[] key, int keyLen, byte[] value, int valueLen) {
@@ -172,6 +118,64 @@ public class Database {
 
     return result;
   }
+
+//  private void readOrderFile(String filename, int fileId) throws Exception {
+//    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filename));
+//    int b, keyLen = 0, valueLen = 0;
+//    long offset = 0, count = 0;
+//    // 0 for read key, 1 for read value, 2 for skip line
+//    int status = 0;
+//    byte[] key = new byte[256];
+//    byte[] value = new byte[65536];
+//    while ((b = bis.read()) != -1) {
+//      count++;
+//      if (status == 0) {
+//        if (b == ':') {
+//          valueLen = 0;
+//          status = 1;
+//        } else {
+//          key[keyLen++] = (byte) b;
+//        }
+//      } else if (status == 1) {
+//        if (b == '\t') {
+//          //print(key, keyLen, value, valueLen);
+//
+//          if (expectedKey(key, keyLen, orderidBytes)) {
+//            long valueLong = Long.parseLong(new String(value, 0, valueLen));
+//            orderHashTable.add(valueLong, fileId, offset);
+//            //orderHashTable.get(Util.long2byte(valueLong));
+//            status = 2;
+//          } else {
+//            keyLen = 0;
+//            status = 0;
+//          }
+//        } else if (b == '\n') {
+//          //print(key, keyLen, value, valueLen);
+//          //System.out.println("offset: " + offset);
+//
+//          if (expectedKey(key, keyLen, orderidBytes)) {
+//            long valueLong = Long.decode(new String(value, 0, valueLen));
+//            orderHashTable.add(valueLong, fileId, offset);
+//            //orderHashTable.get(Util.long2byte(valueLong));
+//          }
+//
+//          offset = count;
+//          keyLen = 0;
+//          status = 0;
+//        } else {
+//          value[valueLen++] = (byte) b;
+//        }
+//      } else {
+//        if (b == '\n') {
+//          //System.out.println("offset: " + offset);
+//
+//          offset = count;
+//          keyLen = 0;
+//          status = 0;
+//        }
+//      }
+//    }
+//  }
 
 //  public void readOrderFile2(String filename, int fileId) throws IOException {
 //    orderHashTable = new HashTable("order.hash");

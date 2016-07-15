@@ -20,6 +20,8 @@ public class OrderKvDealer extends AbstractKvDealer {
     if (keyMatch(key, keyLen, orderidBytes)) {
       long valueLong = Long.parseLong(new String(value, 0, valueLen));
       orderHashTable.add(Util.long2byte(valueLong), fileId, offset);
+      return 2;
     }
+    return 0;
   }
 }
