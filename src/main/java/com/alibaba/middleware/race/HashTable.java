@@ -169,7 +169,11 @@ public class HashTable {
           }
         }
       } else {
-        
+        int off = 8;
+        while (true) {
+          int keyLen = Util.byte2short(bucket, off);
+          if (key.length == keyLen && )
+        }
       }
       blockNo = Util.byte2int(bucket, 0);
       if (blockNo == 0) {
