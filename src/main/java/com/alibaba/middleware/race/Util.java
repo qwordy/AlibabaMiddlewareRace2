@@ -6,6 +6,22 @@ package com.alibaba.middleware.race;
  */
 public class Util {
 
+  public static byte[] short2byte(int n) {
+    byte[] b = new byte[2];
+    b[1] = (byte) (n >> 8);
+    b[0] = (byte) (n);
+    return b;
+  }
+
+  public static int byte2short(byte[] b) {
+    return byte2short(b, 0);
+  }
+
+  public static int byte2short(byte[] b, int offset) {
+    return (((int) b[offset + 1] & 0xff) << 8)
+        | ((int) b[offset] & 0xff);
+  }
+
   public static byte[] int2byte(int n) {
     byte[] b = new byte[4];
     b[3] = (byte) (n >> 24);

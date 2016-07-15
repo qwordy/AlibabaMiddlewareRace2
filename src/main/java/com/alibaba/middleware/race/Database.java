@@ -40,7 +40,7 @@ public class Database {
   }
 
   private void buildOrder2OrderHash() throws Exception {
-    orderHashTable = new HashTable(orderFilesList, "order.hash", 8);
+    orderHashTable = new HashTable(orderFilesList, "order.hash", 100, 8);
     OrderKvDealer dealer = new OrderKvDealer(orderHashTable);
     for (int i = 0; i < orderFilesList.size(); i++) {
       dealer.setFileId(i);
@@ -49,9 +49,9 @@ public class Database {
   }
 
   private void buildGood2GoodHash() {
-    goodHashTable = new HashTable(goodFilesList, "good.hash");
-    for (int i = 0; i < goodFilesList.size(); i++)
-      readOrdFile(goodFilesList.get(i), i);
+//    goodHashTable = new HashTable(goodFilesList, "good.hash");
+//    for (int i = 0; i < goodFilesList.size(); i++)
+//      readOrdFile(goodFilesList.get(i), i);
   }
 
   private void readDataFile(String filename, IKvDealer dealer) throws Exception {

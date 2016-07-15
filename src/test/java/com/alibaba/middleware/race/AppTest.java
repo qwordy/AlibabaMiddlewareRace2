@@ -55,6 +55,10 @@ public class AppTest {
     assertEquals(Integer.MIN_VALUE, Util.byte2int(Util.int2byte(Integer.MIN_VALUE)));
     assertEquals(-1, Util.byte2int(Util.int2byte(-1)));
     assertEquals(0, Util.byte2int(Util.int2byte(0)));
+
+    assertEquals(Short.MAX_VALUE, Util.byte2short(Util.short2byte(Short.MAX_VALUE)));
+    assertEquals(65535, Util.byte2short(Util.short2byte(-1)));
+    assertEquals(0, Util.byte2short(Util.short2byte(0)));
   }
 
   @Test
