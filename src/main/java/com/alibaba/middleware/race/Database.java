@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race;
 
 import com.alibaba.middleware.race.kvDealer.IKvDealer;
+import com.alibaba.middleware.race.kvDealer.OrderKvDealer;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -40,11 +41,14 @@ public class Database {
 
   private void buildOrder2OrderHash() throws Exception {
     orderHashTable = new HashTable(orderFilesList, "order.hash", 8);
-    for (int i = 0; i < orderFilesList.size(); i++)
+    OrderKvDealer dealer = new OrderKvDealer(orderHashTable);
+    for (int i = 0; i < orderFilesList.size(); i++) {
+      dealer.setFileId(i);
       readOrderFile(orderFilesList.get(i), i);
+    }
   }
 
-  private void readDataFile(String filename, int fileId, IKvDealer dealer) throws Exception {
+  private void readDataFile(String filename, IKvDealer dealer) throws Exception {
     BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filename));
 
     int b, keyLen = 0, valueLen = 0;
@@ -65,7 +69,10 @@ public class Database {
         }
       } else if (status == 1) {
         if (b == '\t') {
-          dealer.deal(key, keyLen, value, valueLen);
+          dealer.deal(key, keyLen, value, valueLen, offset);
+
+        } else if (b == '\n') {
+
         }
       }
     }
@@ -93,7 +100,7 @@ public class Database {
           //print(key, keyLen, value, valueLen);
 
           if (expectedKey(key, keyLen, orderidBytes)) {
-            long valueLong = Long.decode(new String(value, 0, valueLen));
+            long valueLong = Long.parseLong(new String(value, 0, valueLen));
             orderHashTable.add(valueLong, fileId, offset);
             //orderHashTable.get(Util.long2byte(valueLong));
             status = 2;

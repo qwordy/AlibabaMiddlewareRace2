@@ -6,6 +6,6 @@ package com.alibaba.middleware.race.kvDealer;
  */
 public interface IKvDealer {
 
-  void deal(byte[] key, int keyLen, byte[] value, int valueLen);
+  int deal(byte[] key, int keyLen, byte[] value, int valueLen, long offset) throws Exception;
 
 }

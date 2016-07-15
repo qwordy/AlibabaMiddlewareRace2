@@ -6,13 +6,19 @@ package com.alibaba.middleware.race.kvDealer;
  */
 public abstract class AbstractKvDealer implements IKvDealer {
 
-  private final static byte[] orderidBytes =
+  protected final static byte[] orderidBytes =
       new byte[]{'o', 'r', 'd', 'e', 'r', 'i', 'd'};
 
-  private final static byte[] goodidBytes =
+  protected final static byte[] goodidBytes =
       new byte[]{'g', 'o', 'o', 'd', 'i', 'd'};
 
-  private boolean keyMatch(byte[] key, int keyLen, byte[] expectKey) {
+  protected int fileId;
+
+  public void setFileId(int fileId) {
+    this.fileId = fileId;
+  }
+
+  protected boolean keyMatch(byte[] key, int keyLen, byte[] expectKey) {
     if (keyLen != expectKey.length)
       return false;
     for (int i = 0; i < keyLen; i++)
