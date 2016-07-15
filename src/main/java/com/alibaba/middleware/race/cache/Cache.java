@@ -208,7 +208,7 @@ public class Cache implements IDiskManager {
   private RandomAccessFile getFd(String filename) throws Exception {
     RandomAccessFile f = fileMap.get(filename);
     if (f == null) {
-      f = new RandomAccessFile(filename, "rwd");
+      f = new RandomAccessFile(filename, "rw");
       fileMap.put(filename, f);
     }
     return f;

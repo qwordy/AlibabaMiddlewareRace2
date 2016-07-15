@@ -1,6 +1,6 @@
 package com.alibaba.middleware.race;
 
-import com.alibaba.middleware.race.hash.HashTable;
+import com.alibaba.middleware.race.kvDealer.IKvDealer;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -13,9 +13,9 @@ import java.util.List;
  */
 public class Database {
 
-  private List<String> orderFilesList;
+  private List<String> orderFilesList, goodFilesList;
 
-  private HashTable orderHashTable;
+  private HashTable orderHashTable, goodHashTable;
 
   private final static byte[] orderidBytes =
       new byte[]{'o', 'r', 'd', 'e', 'r', 'i', 'd'};
@@ -27,16 +27,48 @@ public class Database {
     orderFilesList = new ArrayList<>();
     for (String file : orderFiles)
       orderFilesList.add(file);
+
+    goodFilesList = new ArrayList<>();
+    for (String file : goodFiles)
+      goodFilesList.add(file);
   }
 
   public void construct() throws Exception {
     buildOrder2OrderHash();
+    buildGood2GoodHash();
   }
 
-  public void buildOrder2OrderHash() throws Exception {
+  private void buildOrder2OrderHash() throws Exception {
     orderHashTable = new HashTable(orderFilesList, "order.hash", 8);
     for (int i = 0; i < orderFilesList.size(); i++)
       readOrderFile(orderFilesList.get(i), i);
+  }
+
+  private void readDataFile(String filename, int fileId, IKvDealer dealer) throws Exception {
+    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filename));
+
+    int b, keyLen = 0, valueLen = 0;
+    long offset = 0, count = 0;
+    // 0 for read key, 1 for read value, 2 for skip line
+    int status = 0;
+    byte[] key = new byte[256];
+    byte[] value = new byte[65536];
+
+    while ((b = bis.read()) != -1) {
+      count++;
+      if (status == 0) {
+        if (b == ':') {
+          valueLen = 0;
+          status = 1;
+        } else {
+          key[keyLen++] = (byte) b;
+        }
+      } else if (status == 1) {
+        if (b == '\t') {
+          dealer.deal(key, keyLen, value, valueLen);
+        }
+      }
+    }
   }
 
   private void readOrderFile(String filename, int fileId) throws Exception {
@@ -95,6 +127,12 @@ public class Database {
         }
       }
     }
+  }
+
+  private void buildGood2GoodHash() {
+//    goodHashTable = new HashTable(goodFilesList, "good.hash");
+//    for (int i = 0; i < goodFilesList.size(); i++)
+//      readOrdFile(goodFilesList.get(i), i);
   }
 
   private boolean expectedKey(byte[] key, int keyLen, byte[] expectedKey) {

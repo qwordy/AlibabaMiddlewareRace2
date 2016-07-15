@@ -13,9 +13,9 @@ import java.util.Arrays;
 public class AppTest {
 
   @Test
-  public void testmidium() throws Exception {
+  public void testMidium() throws Exception {
     OrderSystem os = new OrderSystemImpl();
-    os.construct(Arrays.asList("order_records.txt"), null, null, null);
+    os.construct(Arrays.asList("order_records.txt"), null, Arrays.asList("good_records.txt"), null);
 
     OrderSystem.Result result;
 
@@ -27,6 +27,9 @@ public class AppTest {
         result.get("remark").valueAsString());
     assertEquals(8380.42, result.get("app_order_3334_0").valueAsDouble(), 1e-6);
 
+//    assertEquals("一些", result.get("good_name").valueAsString());
+//    assertEquals(42.9, result.get("price").valueAsDouble(), 1e-6);
+
     result = os.queryOrder(2982725, Arrays.asList("amount", "hehe"));
     assertEquals(2982725, result.orderId());
     assertEquals(220, result.get("amount").valueAsLong());
@@ -34,7 +37,7 @@ public class AppTest {
   }
 
   @Test
-  public void testsmall() throws Exception {
+  public void testSmall() throws Exception {
     OrderSystem os = new OrderSystemImpl();
     os.construct(Arrays.asList("rec.txt"), null, null, null);
     os.queryOrder(345, null);

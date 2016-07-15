@@ -8,17 +8,9 @@ public class KeyValueImpl implements OrderSystem.KeyValue {
 
   private String key, value;
 
-  private byte[] valueBytes;
-
   public KeyValueImpl(String key, String value) {
     this.key = key;
     this.value = value;
-  }
-
-  public KeyValueImpl(byte[] key, int keyLen, byte[] value, int valueLen) {
-    this.key = new String(key, 0, keyLen);
-    valueBytes = new byte[valueLen];
-    System.arraycopy(value, 0, valueBytes, 0, valueLen);
   }
 
   @Override

@@ -1,4 +1,4 @@
-package com.alibaba.middleware.race.hash;
+package com.alibaba.middleware.race;
 
 import com.alibaba.middleware.race.Tuple;
 import com.alibaba.middleware.race.Util;
@@ -22,7 +22,7 @@ import java.util.List;
  * next size entry1 entry2 ... entryn
  * <p>
  * Entry structure:
- * 4B      8B
+ * KEY_SIZE, 4B, 8B
  * key, fileId, offset
  */
 public class HashTable {
@@ -62,8 +62,8 @@ public class HashTable {
 
   // pay attention to key.length
   public void add(byte[] key, int fileId, long fileOffset) throws Exception {
-    if (key.length != KEY_SIZE)
-      throw new Exception();
+//    if (key.length != KEY_SIZE)
+//      throw new Exception();
 
     byte[] bucket = new byte[BLOCK_SIZE];
     int blockNo = keyHashCode(key);  // current blockNo
