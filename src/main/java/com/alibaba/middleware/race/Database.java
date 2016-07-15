@@ -63,7 +63,7 @@ public class Database {
           if (expectedKey(key, keyLen, orderidBytes)) {
             long valueLong = Long.decode(new String(value, 0, valueLen));
             orderHashTable.add(valueLong, fileId, offset);
-            orderHashTable.get(Util.long2byte(valueLong));
+            //orderHashTable.get(Util.long2byte(valueLong));
             status = 2;
           } else {
             keyLen = 0;
@@ -76,7 +76,7 @@ public class Database {
           if (expectedKey(key, keyLen, orderidBytes)) {
             long valueLong = Long.decode(new String(value, 0, valueLen));
             orderHashTable.add(valueLong, fileId, offset);
-            orderHashTable.get(Util.long2byte(valueLong));
+            //orderHashTable.get(Util.long2byte(valueLong));
           }
 
           offset = count;
@@ -123,7 +123,7 @@ public class Database {
       return null;
 
     ResultImpl result = new ResultImpl(orderTuple, keys);
-    result.printOrderTuple();
+    //result.printOrderTuple();
 
     return result;
   }

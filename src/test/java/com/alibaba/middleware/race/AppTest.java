@@ -16,9 +16,21 @@ public class AppTest {
   public void testmidium() throws Exception {
     OrderSystem os = new OrderSystemImpl();
     os.construct(Arrays.asList("order_records.txt"), null, null, null);
-    os.queryOrder(2982262, null);
-    os.queryOrder(2999777, null);
-    os.queryOrder(3007737, null);
+
+    OrderSystem.Result result;
+
+    result = os.queryOrder(3007847, null);
+    assertEquals(3007847, result.orderId());
+    assertEquals(true, result.get("done").valueAsBoolean());
+    assertEquals(117, result.get("amount").valueAsLong());
+    assertEquals("椰子节一路工程授权如何苏子河纯利润，奎松离别剑打扮网上开店慌张四",
+        result.get("remark").valueAsString());
+    assertEquals(8380.42, result.get("app_order_3334_0").valueAsDouble(), 1e-6);
+
+    result = os.queryOrder(2982725, Arrays.asList("amount", "hehe"));
+    assertEquals(2982725, result.orderId());
+    assertEquals(220, result.get("amount").valueAsLong());
+    assertEquals(null, result.get("hehe"));
   }
 
   @Test

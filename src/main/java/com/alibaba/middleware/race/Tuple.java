@@ -52,6 +52,7 @@ public class Tuple {
 
   public void reset() {
     pos = offset;
+    valid = false;
   }
 
 }

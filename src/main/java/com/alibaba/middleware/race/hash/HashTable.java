@@ -56,7 +56,7 @@ public class HashTable {
   }
 
   public void add(long key, int fileId, long fileOffset) throws Exception {
-    System.out.println("add " + key + " " + fileId + " " + fileOffset);
+    //System.out.println("add " + key + " " + fileId + " " + fileOffset);
     add(Util.long2byte(key), fileId, fileOffset);
   }
 
@@ -134,13 +134,13 @@ public class HashTable {
         if (Util.bytesEqual(bucket, off, key, 0, KEY_SIZE)) {  // find
           int fileId = Util.byte2int(bucket, off + KEY_SIZE);
           long fileOffset = Util.byte2int(bucket, off + KEY_SIZE + 4);
-          System.out.println("get " + Util.byte2int(key) + ' ' + fileId + ' ' + fileOffset);
+          //System.out.println("get " + Util.byte2int(key) + ' ' + fileId + ' ' + fileOffset);
           return new Tuple(dataFiles.get(fileId), fileOffset);
         }
       }
       blockNo = Util.byte2int(bucket, 0);
       if (blockNo == 0) {
-        System.out.println("get " + Util.byte2int(key) + ' ' + "fail");
+        //System.out.println("get " + Util.byte2int(key) + ' ' + "fail");
         return null;
       }
     }
