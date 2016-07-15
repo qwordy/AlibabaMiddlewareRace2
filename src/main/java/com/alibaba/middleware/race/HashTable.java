@@ -57,7 +57,7 @@ public class HashTable {
    * @param dataFiles
    * @param indexFile
    * @param size
-   * @param keySize -1 when not fixed
+   * @param keySize 0 when not fixed
    */
   public HashTable(List<String> dataFiles, String indexFile, int size, int keySize) {
     this.dataFiles = dataFiles;
@@ -65,7 +65,7 @@ public class HashTable {
 
     SIZE = size;
 
-    if (keySize == -1) {
+    if (keySize == 0) {
       keySizeFixed = false;
       KEY_SIZE = ENTRY_SIZE = 0;
     } else {

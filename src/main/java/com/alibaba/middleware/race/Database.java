@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race;
 
+import com.alibaba.middleware.race.kvDealer.GoodKvDealer;
 import com.alibaba.middleware.race.kvDealer.IKvDealer;
 import com.alibaba.middleware.race.kvDealer.OrderKvDealer;
 
@@ -48,10 +49,13 @@ public class Database {
     }
   }
 
-  private void buildGood2GoodHash() {
-//    goodHashTable = new HashTable(goodFilesList, "good.hash");
-//    for (int i = 0; i < goodFilesList.size(); i++)
-//      readOrdFile(goodFilesList.get(i), i);
+  private void buildGood2GoodHash() throws Exception {
+    goodHashTable = new HashTable(goodFilesList, "good.hash", 100, 0);
+    GoodKvDealer dealer = new GoodKvDealer(goodHashTable);
+    for (int i = 0; i < goodFilesList.size(); i++) {
+      dealer.setFileId(i);
+      readDataFile(goodFilesList.get(i), dealer);
+    }
   }
 
   private void readDataFile(String filename, IKvDealer dealer) throws Exception {
