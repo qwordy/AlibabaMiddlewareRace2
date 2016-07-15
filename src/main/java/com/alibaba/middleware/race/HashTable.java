@@ -1,7 +1,5 @@
 package com.alibaba.middleware.race;
 
-import com.alibaba.middleware.race.Tuple;
-import com.alibaba.middleware.race.Util;
 import com.alibaba.middleware.race.cache.Cache;
 
 import java.util.Arrays;
@@ -28,10 +26,12 @@ import java.util.List;
 public class HashTable {
 
   // number of buckets
-  private final int SIZE = 1000;
+  private final int SIZE;
 
   // also bucket size
   private final int BLOCK_SIZE = 4096;
+
+  private final boolean keySizeFixed;
 
   private final int KEY_SIZE;
 
@@ -46,18 +46,30 @@ public class HashTable {
 
   private Cache cache;
 
-  public HashTable(List<String> dataFiles, String indexFile, int keySize) {
+  /**
+   *
+   * @param dataFiles
+   * @param indexFile
+   * @param size
+   * @param keySize -1 when not fixed
+   */
+  public HashTable(List<String> dataFiles, String indexFile, int size, int keySize) {
     this.dataFiles = dataFiles;
     this.indexFile = indexFile;
-    KEY_SIZE = keySize;
-    ENTRY_SIZE = KEY_SIZE + 12;
+
+    SIZE = size;
+
+    if (keySize == -1) {
+      keySizeFixed = false;
+      KEY_SIZE = ENTRY_SIZE = 0;
+    } else {
+      keySizeFixed = true;
+      KEY_SIZE = keySize;
+      ENTRY_SIZE = KEY_SIZE + 12;
+    }
+
     blockNums = SIZE;
     cache = Cache.getInstance();
-  }
-
-  public void add(long key, int fileId, long fileOffset) throws Exception {
-    //System.out.println("add " + key + " " + fileId + " " + fileOffset);
-    add(Util.long2byte(key), fileId, fileOffset);
   }
 
   // pay attention to key.length
