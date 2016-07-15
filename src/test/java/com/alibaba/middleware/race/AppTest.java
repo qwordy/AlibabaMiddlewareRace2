@@ -34,6 +34,7 @@ public class AppTest {
     assertEquals(2982725, result.orderId());
     assertEquals(220, result.get("amount").valueAsLong());
     assertEquals(null, result.get("hehe"));
+    assertEquals(null, result.get("buyerid"));
   }
 
   @Test

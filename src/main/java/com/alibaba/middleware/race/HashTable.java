@@ -88,10 +88,10 @@ public class HashTable {
     int blockNo = keyHashCode(key);  // current blockNo
     while (true) {
       cache.readBlock(indexFile, blockNo, bucket);
-      if (Util.byte2int(bucket, 0) == 0)  // no next bucket
+      int nextBlockNo = Util.byte2int(bucket, 0);
+      if (nextBlockNo == 0)  // no next bucket
         break;
-      else
-        blockNo = Util.byte2int(bucket, 0);
+      blockNo = nextBlockNo;
     }
 
     // the next position in block to add entry
@@ -142,8 +142,8 @@ public class HashTable {
     nextPos += 8;
 
     // current size of block
-    byte[] offsetBytes = Util.int2byte(nextPos);
-    System.arraycopy(offsetBytes, 0, bucket, 4, 4);
+    byte[] csizeBytes = Util.int2byte(nextPos);
+    System.arraycopy(csizeBytes, 0, bucket, 4, 4);
 
     cache.writeBlock(indexFile, blockNo, bucket);
   }
@@ -163,7 +163,7 @@ public class HashTable {
         for (int off = 8; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
           if (Util.bytesEqual(bucket, off, key, 0, KEY_SIZE)) {  // find
             int fileId = Util.byte2int(bucket, off + KEY_SIZE);
-            long fileOffset = Util.byte2int(bucket, off + KEY_SIZE + 4);
+            long fileOffset = Util.byte2long(bucket, off + KEY_SIZE + 4);
             //System.out.println("get " + Util.byte2int(key) + ' ' + fileId + ' ' + fileOffset);
             return new Tuple(dataFiles.get(fileId), fileOffset);
           }
@@ -172,7 +172,15 @@ public class HashTable {
         int off = 8;
         while (true) {
           int keyLen = Util.byte2short(bucket, off);
-          if (key.length == keyLen && )
+          off += 2;
+          if (key.length == keyLen && Util.bytesEqual(key, 0, bucket, off, keyLen)) {
+            off += keyLen;
+            int fileId = Util.byte2int(bucket, off);
+            off += 4;
+            long fileOffset = Util.byte2long(bucket, off);
+            return new Tuple(dataFiles.get(fileId), fileOffset);
+          }
+          off += keyLen + 12;
         }
       }
       blockNo = Util.byte2int(bucket, 0);

@@ -73,14 +73,8 @@ public class ResultImpl implements OrderSystem.Result {
       return true;
     for (String queryKey : keySet) {
       if (queryKey.length() == keyLen) {
-        byte[] queryKeyBytes = queryKey.getBytes();
-        boolean eq = true;
-        for (int i = 0; i < keyLen; i++)
-          if (key[i] != queryKeyBytes[i]) {
-            eq = false;
-            break;
-          }
-        if (eq) return true;
+        if (Util.bytesEqual(key, 0, queryKey.getBytes(), 0, keyLen))
+          return true;
       }
     }
     return false;
