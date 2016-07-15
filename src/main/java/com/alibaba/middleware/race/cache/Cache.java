@@ -115,10 +115,18 @@ public class Cache implements IDiskManager {
 
   }
 
-  // copy block to buf
+  // copy entire block to buf
   public void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
     byte[] block = readBlock(new BlockId(filename, blockNo));
     System.arraycopy(block, 0, buf, 0, BLOCK_SIZE);
+  }
+
+  // read from offset in filename to the end of block
+  public void readPartBlock(String filename, long offset, byte[] buf) throws Exception {
+    int blockNo = (int) (offset >>> BIT);
+    int blockOff = (int) (offset & MASK);
+    byte[] block = readBlock(new BlockId(filename, blockNo));
+    System.arraycopy(block, blockOff, buf, 0, BLOCK_SIZE - blockOff);
   }
 
   // do not modify the return block

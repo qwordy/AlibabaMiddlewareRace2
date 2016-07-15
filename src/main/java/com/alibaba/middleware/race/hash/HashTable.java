@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race.hash;
 
+import com.alibaba.middleware.race.Tuple;
 import com.alibaba.middleware.race.Util;
 import com.alibaba.middleware.race.cache.Cache;
 
@@ -118,7 +119,7 @@ public class HashTable {
 
   }
 
-  public byte[] get(byte[] key) throws Exception {
+  public Tuple get(byte[] key) throws Exception {
     if (key.length != KEY_SIZE)
       throw new Exception();
 
@@ -134,7 +135,7 @@ public class HashTable {
           int fileId = Util.byte2int(bucket, off + KEY_SIZE);
           long fileOffset = Util.byte2int(bucket, off + KEY_SIZE + 4);
           System.out.println("get " + Util.byte2int(key) + ' ' + fileId + ' ' + fileOffset);
-          return getData(fileId, fileOffset);
+          return new Tuple(dataFiles.get(fileId), fileOffset);
         }
       }
       blockNo = Util.byte2int(bucket, 0);
@@ -146,6 +147,7 @@ public class HashTable {
   }
 
   private byte[] getData(int fileId, long offset) {
+
     return null;
   }
 

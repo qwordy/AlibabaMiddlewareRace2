@@ -115,9 +115,17 @@ public class Database {
     System.out.print('\t');
   }
 
-  public OrderSystem.Result queryOrder(long orderId, Collection<String> keys) {
+  public ResultImpl queryOrder(long orderId, Collection<String> keys)
+      throws Exception {
 
-    return null;
+    Tuple orderTuple = orderHashTable.get(Util.long2byte(orderId));
+    if (orderTuple == null)
+      return null;
+
+    ResultImpl result = new ResultImpl(orderTuple, keys);
+    result.printOrderTuple();
+
+    return result;
   }
 
 //  public void readOrderFile2(String filename, int fileId) throws IOException {

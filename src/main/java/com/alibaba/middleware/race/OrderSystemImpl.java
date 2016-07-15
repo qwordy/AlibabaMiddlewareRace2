@@ -32,8 +32,12 @@ public class OrderSystemImpl implements OrderSystem {
   }
 
   public Result queryOrder(long orderId, Collection<String> keys) {
-    db.queryOrder(orderId, keys);
-    return null;
+    try {
+      return db.queryOrder(orderId, keys);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
   }
 
   public Iterator<Result> queryOrdersByBuyer(

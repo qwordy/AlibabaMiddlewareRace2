@@ -13,10 +13,20 @@ import java.util.Arrays;
 public class AppTest {
 
   @Test
-  public void construct() throws Exception {
+  public void testmidium() throws Exception {
     OrderSystem os = new OrderSystemImpl();
     os.construct(Arrays.asList("order_records.txt"), null, null, null);
-//    os.construct(Arrays.asList("rec.txt"), null, null, null);
+    os.queryOrder(2982262, null);
+    os.queryOrder(2999777, null);
+    os.queryOrder(3007737, null);
+  }
+
+  @Test
+  public void testsmall() throws Exception {
+    OrderSystem os = new OrderSystemImpl();
+    os.construct(Arrays.asList("rec.txt"), null, null, null);
+    os.queryOrder(345, null);
+    os.queryOrder(199, null);
   }
 
   @Test
