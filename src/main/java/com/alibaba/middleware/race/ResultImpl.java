@@ -8,6 +8,12 @@ import java.util.*;
  */
 public class ResultImpl implements OrderSystem.Result {
 
+  private final String orderidStr = "orderid";
+
+  private final String goodidStr = "goodid";
+
+  private final String buyeridStr = "buyerid";
+
   private Tuple orderTuple;
 
   // key, keyValue
@@ -15,21 +21,39 @@ public class ResultImpl implements OrderSystem.Result {
 
   private Set<String> keySet;
 
+  private boolean allScaned, orderScaned, goodScaned, buyerScaned;
+
   public ResultImpl(Tuple orderTuple, Collection<String> keys) throws Exception {
     this.orderTuple = orderTuple;
     if (keys != null) {
       keySet = new HashSet<>();
-      keySet.add("orderid");
+      keySet.add(orderidStr);
+      keySet.add(goodidStr);
+      keySet.add(buyeridStr);
       for (String key : keys)
         keySet.add(key);
     }
 
     resultMap = new HashMap<>();
-    buildMap();
   }
 
   private void buildMap() throws Exception {
     scan(orderTuple);
+  }
+
+  private void scanOrder() {
+    try {
+      scan(orderTuple);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void scanGood() {
+    OrderSystem.KeyValue goodidKv = resultMap.get(goodidStr);
+    if (goodidKv == null)
+      return;
+    goodidKv.valueAsString().getBytes()
   }
 
   private void scan(Tuple tuple) throws Exception {
@@ -82,7 +106,42 @@ public class ResultImpl implements OrderSystem.Result {
 
   @Override
   public OrderSystem.KeyValue get(String key) {
-    return resultMap.get(key);
+    if (allScaned)
+      return resultMap.get(key);
+
+    OrderSystem.KeyValue kv = resultMap.get(key);
+    if (kv != null)
+      return kv;
+
+    if (!orderScaned) {
+      scanOrder();
+      orderScaned = true;
+      kv = resultMap.get(key);
+      if (kv != null)
+        return kv;
+    }
+
+    if (!goodScaned) {
+      try {
+        scanGood();
+        goodScaned = true;
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      kv = resultMap.get(key);
+      if (kv != null)
+        return kv;
+    }
+
+    if (!buyerScaned) {
+      try {
+
+        allScaned = buyerScaned = true;
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      return resultMap.get(key);
+    }
   }
 
   @Override
