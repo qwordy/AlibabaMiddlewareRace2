@@ -170,7 +170,44 @@ public class HashTable {
    * @param extra extra information
    */
   public void addMulti(byte[] key, int fileId, long fileOffset, byte[] extra) {
-    
+
+  }
+
+  private static class InnerAddr {
+    public byte[] bucket;
+    public int off;
+    public InnerAddr(byte[] bucket, int off) {
+      this.bucket = bucket;
+      this.off = off;
+    }
+  }
+
+  private InnerAddr innerGet(byte[] key) throws Exception {
+//    if (keySizeFixed && key.length != KEY_SIZE)
+//      throw new Exception();
+
+    byte[] bucket = new byte[BLOCK_SIZE];
+    int blockNo = keyHashCode(key);  // current blockNo
+    while (true) {
+      cache.readBlock(indexFile, blockNo, bucket);
+      int size = Util.byte2int(bucket, 4);
+      if (size == 0) size = 8;
+
+      if (keySizeFixed) {
+        for (int off = 8; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
+          if (Util.bytesEqual(bucket, off, key, 0, KEY_SIZE))  // find
+            return new InnerAddr(bucket, off + KEY_SIZE);
+        }
+      } else {
+        int off = 8;
+        while (off < size) {
+          int keyLen = Util.byte2short(bucket, off);
+          off += 2;
+          
+        }
+      }
+    }
+    return null;
   }
 
   public Tuple get(byte[] key) throws Exception {
