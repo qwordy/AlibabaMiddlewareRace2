@@ -52,6 +52,8 @@ public class HashTable {
 
   private Cache cache;
 
+  public static HashTable goodHashTable;
+
   /**
    *
    * @param dataFiles

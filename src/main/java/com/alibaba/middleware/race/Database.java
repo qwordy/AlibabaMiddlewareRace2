@@ -51,6 +51,7 @@ public class Database {
 
   private void buildGood2GoodHash() throws Exception {
     goodHashTable = new HashTable(goodFilesList, "good.hash", 100, 0);
+    HashTable.goodHashTable = goodHashTable;
     GoodKvDealer dealer = new GoodKvDealer(goodHashTable);
     for (int i = 0; i < goodFilesList.size(); i++) {
       dealer.setFileId(i);

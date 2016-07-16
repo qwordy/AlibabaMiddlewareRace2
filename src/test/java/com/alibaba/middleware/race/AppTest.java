@@ -27,14 +27,21 @@ public class AppTest {
         result.get("remark").valueAsString());
     assertEquals(8380.42, result.get("app_order_3334_0").valueAsDouble(), 1e-6);
 
-//    assertEquals("一些", result.get("good_name").valueAsString());
-//    assertEquals(42.9, result.get("price").valueAsDouble(), 1e-6);
+    assertEquals("一些", result.get("good_name").valueAsString());
+    assertEquals(42.9, result.get("price").valueAsDouble(), 1e-6);
+    assertEquals(null, result.get("ggg"));
+    assertEquals("tm_758d7a5f-c254-4bb8-9587-d211a4327814",
+        result.get("salerid").valueAsString());
 
-    result = os.queryOrder(2982725, Arrays.asList("amount", "hehe"));
+    result = os.queryOrder(2982725, Arrays.asList("amount", "hehe", "offprice"));
     assertEquals(2982725, result.orderId());
     assertEquals(220, result.get("amount").valueAsLong());
     assertEquals(null, result.get("hehe"));
     assertEquals(null, result.get("buyerid"));
+    assertEquals(null, result.get("yyyy"));
+
+    assertEquals(6.71, result.get("offprice").valueAsDouble(), 1e-6);
+
   }
 
   @Test

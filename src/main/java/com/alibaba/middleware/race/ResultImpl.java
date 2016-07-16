@@ -19,12 +19,15 @@ public class ResultImpl implements OrderSystem.Result {
   // key, keyValue
   private HashMap<String, OrderSystem.KeyValue> resultMap;
 
+  private Collection<String> keys;
+
   private Set<String> keySet;
 
   private boolean allScaned, orderScaned, goodScaned, buyerScaned;
 
   public ResultImpl(Tuple orderTuple, Collection<String> keys) throws Exception {
     this.orderTuple = orderTuple;
+    this.keys = keys;
     if (keys != null) {
       keySet = new HashSet<>();
       keySet.add(orderidStr);
@@ -35,10 +38,6 @@ public class ResultImpl implements OrderSystem.Result {
     }
 
     resultMap = new HashMap<>();
-  }
-
-  private void buildMap() throws Exception {
-    scan(orderTuple);
   }
 
   private void scanOrder() {
@@ -53,7 +52,12 @@ public class ResultImpl implements OrderSystem.Result {
     OrderSystem.KeyValue goodidKv = resultMap.get(goodidStr);
     if (goodidKv == null)
       return;
-    goodidKv.valueAsString().getBytes()
+    try {
+      Tuple goodTuple = HashTable.goodHashTable.get(goodidKv.valueAsString().getBytes());
+      scan(goodTuple);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   private void scan(Tuple tuple) throws Exception {
@@ -106,6 +110,9 @@ public class ResultImpl implements OrderSystem.Result {
 
   @Override
   public OrderSystem.KeyValue get(String key) {
+    if (keys != null && !keys.contains(key))
+      return null;
+
     if (allScaned)
       return resultMap.get(key);
 
@@ -142,6 +149,8 @@ public class ResultImpl implements OrderSystem.Result {
       }
       return resultMap.get(key);
     }
+
+    return null;
   }
 
   @Override
@@ -151,9 +160,15 @@ public class ResultImpl implements OrderSystem.Result {
 
   @Override
   public long orderId() {
+    if (!orderScaned) {
+      scanOrder();
+      orderScaned = true;
+    }
+    OrderSystem.KeyValue kv = resultMap.get(orderidStr);
+
     long id = 0;
     try {
-      id = resultMap.get("orderid").valueAsLong();
+      id = kv.valueAsLong();
     } catch (Exception e) {
       e.printStackTrace();
     }
