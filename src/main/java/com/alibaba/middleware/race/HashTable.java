@@ -26,6 +26,12 @@ import java.util.List;
  * 2. variable-size key
  * 2B,    keySize,  4B,    8B
  * keySize, key, fileId, offset
+ *
+ * order -> order
+ * buyer -> order
+ * good -> order
+ * good -> good
+ * buyer -> buyer
  */
 public class HashTable {
 
@@ -41,7 +47,7 @@ public class HashTable {
 
   private final int ENTRY_SIZE;
 
-  //private final boolean multipleValue;
+  private final int EXTRA_SIZE;
 
   // current number of blocks
   private int blockNums;
@@ -58,14 +64,14 @@ public class HashTable {
    *
    * @param dataFiles
    * @param indexFile
-   * @param size
+   * @param size number of buckets
    * @param keySize 0 when not fixed
    */
-  public HashTable(List<String> dataFiles, String indexFile, int size, int keySize) {
+  public HashTable(List<String> dataFiles, String indexFile, int size, int keySize, int extraSize) {
     this.dataFiles = dataFiles;
     this.indexFile = indexFile;
 
-    SIZE = size;
+    SIZE = blockNums = size;
 
     if (keySize == 0) {
       keySizeFixed = false;
@@ -76,13 +82,19 @@ public class HashTable {
       ENTRY_SIZE = KEY_SIZE + 12;
     }
 
-    blockNums = SIZE;
+    EXTRA_SIZE = extraSize;
     cache = Cache.getInstance();
   }
 
-  // pay attention to key.length
+  /**
+   * no replicated key
+   * @param key
+   * @param fileId
+   * @param fileOffset
+   * @throws Exception
+   */
   public void add(byte[] key, int fileId, long fileOffset) throws Exception {
-//    if (key.length != KEY_SIZE)
+//    if (keySizeFixed && key.length != KEY_SIZE)
 //      throw new Exception();
 
     // find the last block with the same hashcode in the chain
@@ -150,8 +162,19 @@ public class HashTable {
     cache.writeBlock(indexFile, blockNo, bucket);
   }
 
+  /**
+   * allow one key maps to multiple value
+   * @param key
+   * @param fileId
+   * @param fileOffset
+   * @param extra extra information
+   */
+  public void addMulti(byte[] key, int fileId, long fileOffset, byte[] extra) {
+    
+  }
+
   public Tuple get(byte[] key) throws Exception {
-//    if (key.length != KEY_SIZE)
+//    if (keySizeFixed && key.length != KEY_SIZE)
 //      throw new Exception();
 
     byte[] bucket = new byte[BLOCK_SIZE];
