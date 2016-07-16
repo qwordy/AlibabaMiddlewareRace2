@@ -39,9 +39,9 @@ public class HashTable {
   private final int SIZE;
 
   // also bucket size
-  private final int BLOCK_SIZE = 4096;
+  private static final int BLOCK_SIZE = 4096;
 
-  private final boolean keySizeFixed;
+  private final boolean keySizeFixed, multiValue;
 
   private final int KEY_SIZE;
 
@@ -67,7 +67,8 @@ public class HashTable {
    * @param size number of buckets
    * @param keySize 0 when not fixed
    */
-  public HashTable(List<String> dataFiles, String indexFile, int size, int keySize, int extraSize) {
+  public HashTable(List<String> dataFiles, String indexFile,
+                   int size, int keySize, boolean multiValue, int extraSize) {
     this.dataFiles = dataFiles;
     this.indexFile = indexFile;
 
@@ -82,6 +83,7 @@ public class HashTable {
       ENTRY_SIZE = KEY_SIZE + 12;
     }
 
+    this.multiValue = multiValue;
     EXTRA_SIZE = extraSize;
     cache = Cache.getInstance();
   }
@@ -94,8 +96,10 @@ public class HashTable {
    * @throws Exception
    */
   public void add(byte[] key, int fileId, long fileOffset) throws Exception {
-//    if (keySizeFixed && key.length != KEY_SIZE)
-//      throw new Exception();
+    if (multiValue)
+      throw new Exception();
+    if (keySizeFixed && key.length != KEY_SIZE)
+      throw new Exception();
 
     // find the last block with the same hashcode in the chain
     byte[] bucket = new byte[BLOCK_SIZE];
@@ -183,8 +187,8 @@ public class HashTable {
   }
 
   private InnerAddr innerGet(byte[] key) throws Exception {
-//    if (keySizeFixed && key.length != KEY_SIZE)
-//      throw new Exception();
+    if (keySizeFixed && key.length != KEY_SIZE)
+      throw new Exception();
 
     byte[] bucket = new byte[BLOCK_SIZE];
     int blockNo = keyHashCode(key);  // current blockNo
@@ -203,59 +207,29 @@ public class HashTable {
         while (off < size) {
           int keyLen = Util.byte2short(bucket, off);
           off += 2;
-          
+          if (key.length == keyLen && Util.bytesEqual(key, 0, bucket, off, keyLen))
+            return new InnerAddr(bucket, off + keyLen);
+          off += keyLen;
+          off += multiValue ? 4 : 12;
         }
       }
+
+      blockNo = Util.byte2int(bucket, 0);
+      if (blockNo == 0)
+        return null;
     }
-    return null;
   }
 
   public Tuple get(byte[] key) throws Exception {
-//    if (keySizeFixed && key.length != KEY_SIZE)
-//      throw new Exception();
+    if (multiValue)
+      throw new Exception();
 
-    byte[] bucket = new byte[BLOCK_SIZE];
-    int blockNo = keyHashCode(key);  // current blockNo
-    while (true) {
-      cache.readBlock(indexFile, blockNo, bucket);
-      int size = Util.byte2int(bucket, 4);
-      if (size == 0) size = 8;
-
-      if (keySizeFixed) {
-        for (int off = 8; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
-          if (Util.bytesEqual(bucket, off, key, 0, KEY_SIZE)) {  // find
-            int fileId = Util.byte2int(bucket, off + KEY_SIZE);
-            long fileOffset = Util.byte2long(bucket, off + KEY_SIZE + 4);
-            //System.out.println("get " + Util.byte2int(key) + ' ' + fileId + ' ' + fileOffset);
-            return new Tuple(dataFiles.get(fileId), fileOffset);
-          }
-        }
-      } else {
-        int off = 8;
-        while (true) {
-          int keyLen = Util.byte2short(bucket, off);
-          off += 2;
-          if (key.length == keyLen && Util.bytesEqual(key, 0, bucket, off, keyLen)) {
-            off += keyLen;
-            int fileId = Util.byte2int(bucket, off);
-            off += 4;
-            long fileOffset = Util.byte2long(bucket, off);
-            return new Tuple(dataFiles.get(fileId), fileOffset);
-          }
-          off += keyLen + 12;
-        }
-      }
-      blockNo = Util.byte2int(bucket, 0);
-      if (blockNo == 0) {
-        //System.out.println("get " + Util.byte2int(key) + ' ' + "fail");
-        return null;
-      }
-    }
-  }
-
-  private byte[] getData(int fileId, long offset) {
-
-    return null;
+    InnerAddr addr = innerGet(key);
+    if (addr == null)
+      return null;
+    int fileId = Util.byte2int(addr.bucket, addr.off);
+    long fileOffset = Util.byte2long(addr.bucket, addr.off + 4);
+    return new Tuple(dataFiles.get(fileId), fileOffset);
   }
 
   private int keyHashCode(byte[] key) {

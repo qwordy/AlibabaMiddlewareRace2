@@ -43,7 +43,7 @@ public class Database {
   }
 
   private void buildOrder2OrderHash() throws Exception {
-    orderHashTable = new HashTable(orderFilesList, "order.hash", 100, 8, 0);
+    orderHashTable = new HashTable(orderFilesList, "order.hash", 100, 8, false, 0);
     OrderKvDealer dealer = new OrderKvDealer(orderHashTable);
     for (int i = 0; i < orderFilesList.size(); i++) {
       dealer.setFileId(i);
@@ -52,7 +52,7 @@ public class Database {
   }
 
   private void buildGood2GoodHash() throws Exception {
-    goodHashTable = new HashTable(goodFilesList, "good.hash", 100, 0, 0);
+    goodHashTable = new HashTable(goodFilesList, "good.hash", 100, 0, false, 0);
     HashTable.goodHashTable = goodHashTable;
     GoodKvDealer dealer = new GoodKvDealer(goodHashTable);
     for (int i = 0; i < goodFilesList.size(); i++) {
