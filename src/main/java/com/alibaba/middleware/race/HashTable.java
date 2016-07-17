@@ -22,10 +22,18 @@ import java.util.List;
  * Entry structure:
  * 1. fix-size key
  * KEY_SIZE, 4B, 8B
- * key, fileId, offset
+ * key, fileId, fileOffset
  * 2. variable-size key
  * 2B,    keySize,  4B,    8B
  * keySize, key, fileId, offset
+ *
+ * If multivalue
+ * entry:
+ * (keysize), key, blockNo
+ * subbucket:
+ * next bucket, size, entrys
+ * entry:
+ * fileId, fileOffset, (extraInfo)
  *
  * order -> order
  * buyer -> order
@@ -121,7 +129,7 @@ public class HashTable {
 
     // this bucket has no enough space to add entry
     if (keySizeFixed && nextPos + ENTRY_SIZE > BLOCK_SIZE ||
-        !keySizeFixed && nextPos + key.length + 14> BLOCK_SIZE) {
+        !keySizeFixed && nextPos + key.length + 14 > BLOCK_SIZE) {
       byte[] blockNumsBytes = Util.int2byte(blockNums);
       System.arraycopy(blockNumsBytes, 0, bucket, 0, 4);
 
@@ -145,9 +153,8 @@ public class HashTable {
     }
 
     // key
-    int keyLen = keySizeFixed ? KEY_SIZE : key.length;
-    System.arraycopy(key, 0, bucket, nextPos, keyLen);
-    nextPos += keyLen;
+    System.arraycopy(key, 0, bucket, nextPos, key.length);
+    nextPos += key.length;
 
     // fileId
     byte[] fileIdBytes = Util.int2byte(fileId);
@@ -174,11 +181,25 @@ public class HashTable {
    * @param extra extra information
    */
   public void addMulti(byte[] key, int fileId, long fileOffset, byte[] extra) throws Exception {
+    if (!multiValue)
+      throw new Exception();
+    if (keySizeFixed && key.length != KEY_SIZE)
+      throw new Exception();
+    if (extra == null) {
+      if (EXTRA_SIZE != 0)
+        throw new Exception();
+    } else {
+      if (extra.length != EXTRA_SIZE)
+        throw new Exception();
+    }
+
     InnerAddr addr = innerGet(key);
     byte[] bucket = addr.bucket;
     int blockNo = addr.blockNo;
     if (addr.find) {
-
+      blockNo = Util.byte2int(bucket, addr.off);
+      cache.readBlock(indexFile, blockNo, bucket);
+      addValueMulti(bucket, blockNo, fileId, fileOffset, extra);
     } else {
       // the next position in block to add entry
       int nextPos = Util.byte2int(bucket, 4);
@@ -223,10 +244,58 @@ public class HashTable {
 
         cache.writeBlock(indexFile, blockNo, bucket);
 
-        
+        // init new bucket
+        Arrays.fill(bucket, (byte) 0);
+        System.arraycopy(Util.int2byte(8), 0, bucket, 4, 4);
+        blockNo = blockNums;
+        blockNums++;
+
+        addValueMulti(bucket, blockNo, fileId, fileOffset, extra);
 
       } else {}
     }
+  }
+
+  // only used in addMulti
+  // add fileId, fileOffset, (extra)
+  private void addValueMulti(byte[] bucket, int blockNo, int fileId, long fileOffset, byte[] extra)
+      throws Exception {
+
+    int nextPos = Util.byte2int(bucket, 4);
+
+    if (nextPos + 12 + EXTRA_SIZE > BLOCK_SIZE) {
+      byte[] blockNumsBytes = Util.int2byte(blockNums);
+      System.arraycopy(blockNumsBytes, 0, bucket, 0, 4);
+
+      cache.writeBlock(indexFile, blockNo, bucket);
+
+      Arrays.fill(bucket, (byte) 0);
+      System.arraycopy(Util.int2byte(8), 0, bucket, 4, 4);
+      nextPos = 8;
+
+      blockNo = blockNums;
+      blockNums++;
+    }
+
+    // fileId
+    byte[] fileIdBytes = Util.int2byte(fileId);
+    System.arraycopy(fileIdBytes, 0, bucket, nextPos, 4);
+    nextPos += 4;
+
+    // fileOffset
+    byte[] fileOffsetBytes = Util.long2byte(fileOffset);
+    System.arraycopy(fileOffsetBytes, 0, bucket, nextPos, 8);
+    nextPos += 8;
+
+    // extra
+    System.arraycopy(extra, 0, bucket, nextPos, EXTRA_SIZE);
+    nextPos += EXTRA_SIZE;
+
+    // current size of block
+    byte[] csizeBytes = Util.int2byte(nextPos);
+    System.arraycopy(csizeBytes, 0, bucket, 4, 4);
+
+    cache.writeBlock(indexFile, blockNo, bucket);
   }
 
   private static class InnerAddr {
@@ -270,9 +339,10 @@ public class HashTable {
         }
       }
 
-      blockNo = Util.byte2int(bucket, 0);
-      if (blockNo == 0)
+      int newBLockNo = Util.byte2int(bucket, 0);
+      if (newBLockNo == 0)
         return new InnerAddr(bucket, blockNo, 0, false);
+      blockNo = newBLockNo;
     }
   }
 
@@ -286,6 +356,12 @@ public class HashTable {
     int fileId = Util.byte2int(addr.bucket, addr.off);
     long fileOffset = Util.byte2long(addr.bucket, addr.off + 4);
     return new Tuple(dataFiles.get(fileId), fileOffset);
+  }
+
+  public List<Tuple> getMulti(byte[] key) throws Exception {
+    if (!multiValue)
+      throw new Exception();
+    
   }
 
   private int keyHashCode(byte[] key) {

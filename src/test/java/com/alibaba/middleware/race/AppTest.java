@@ -42,6 +42,9 @@ public class AppTest {
 
     assertEquals(6.71, result.get("offprice").valueAsDouble(), 1e-6);
 
+    result = os.queryOrder(12345, null);
+    assertEquals(null, result);
+
   }
 
   @Test
