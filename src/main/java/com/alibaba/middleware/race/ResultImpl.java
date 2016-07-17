@@ -8,11 +8,11 @@ import java.util.*;
  */
 public class ResultImpl implements OrderSystem.Result {
 
-  private final String orderidStr = "orderid";
+  private static final String orderidStr = "orderid";
 
-  private final String goodidStr = "goodid";
+  private static final String goodidStr = "goodid";
 
-  private final String buyeridStr = "buyerid";
+  private static final String buyeridStr = "buyerid";
 
   private Tuple orderTuple;
 
@@ -55,6 +55,18 @@ public class ResultImpl implements OrderSystem.Result {
     try {
       Tuple goodTuple = HashTable.goodHashTable.get(goodidKv.valueAsString().getBytes());
       scan(goodTuple);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void scanBuyer() {
+    OrderSystem.KeyValue buyeridKv = resultMap.get(buyeridStr);
+    if (buyeridKv == null)
+      return;
+    try {
+      Tuple buyerTuple = HashTable.buyerHashTable.get(buyeridKv.valueAsString().getBytes());
+      scan(buyerTuple);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -129,24 +141,16 @@ public class ResultImpl implements OrderSystem.Result {
     }
 
     if (!goodScaned) {
-      try {
-        scanGood();
-        goodScaned = true;
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+      scanGood();
+      goodScaned = true;
       kv = resultMap.get(key);
       if (kv != null)
         return kv;
     }
 
     if (!buyerScaned) {
-      try {
-
-        allScaned = buyerScaned = true;
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+      scanBuyer();
+      allScaned = buyerScaned = true;
       return resultMap.get(key);
     }
 

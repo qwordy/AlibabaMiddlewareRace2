@@ -15,7 +15,9 @@ public class AppTest {
   @Test
   public void testMidium() throws Exception {
     OrderSystem os = new OrderSystemImpl();
-    os.construct(Arrays.asList("order_records.txt"), null, Arrays.asList("good_records.txt"), null);
+    os.construct(Arrays.asList("order_records.txt"),
+        Arrays.asList("buyer_records.txt"),
+        Arrays.asList("good_records.txt"), null);
 
     OrderSystem.Result result;
 
@@ -32,6 +34,9 @@ public class AppTest {
     assertEquals(null, result.get("ggg"));
     assertEquals("tm_758d7a5f-c254-4bb8-9587-d211a4327814",
         result.get("salerid").valueAsString());
+
+    assertEquals("376 55715168", result.get("contactphone").valueAsString());
+    assertEquals("三寸不烂之舌", result.get("buyername").valueAsString());
 
     result = os.queryOrder(2982725, Arrays.asList("amount", "hehe", "offprice"));
     assertEquals(2982725, result.orderId());
