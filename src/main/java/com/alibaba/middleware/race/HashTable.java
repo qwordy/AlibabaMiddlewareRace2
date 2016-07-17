@@ -203,10 +203,25 @@ public class HashTable {
           blockNums++;
         }
 
-        // key
+        // key size
         byte[] keySizeBytes = Util.short2byte(key.length);
         System.arraycopy(keySizeBytes, 0, bucket, nextPos, 2);
         nextPos += 2;
+
+        // key
+        System.arraycopy(key, 0, bucket, nextPos, key.length);
+        nextPos += key.length;
+
+        // point to a block which contains values of the same key
+        byte[] blockNumsBytes = Util.int2byte(blockNums);
+        System.arraycopy(blockNumsBytes, 0, bucket, nextPos, 4);
+        nextPos += 4;
+
+        // current size of block
+        byte[] csizeBytes = Util.int2byte(nextPos);
+        System.arraycopy(csizeBytes, 0, bucket, 4, 4);
+
+        cache.writeBlock(indexFile, blockNo, bucket);
 
         
 
