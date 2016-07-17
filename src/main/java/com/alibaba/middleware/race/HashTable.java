@@ -173,16 +173,57 @@ public class HashTable {
    * @param fileOffset
    * @param extra extra information
    */
-  public void addMulti(byte[] key, int fileId, long fileOffset, byte[] extra) {
+  public void addMulti(byte[] key, int fileId, long fileOffset, byte[] extra) throws Exception {
+    InnerAddr addr = innerGet(key);
+    byte[] bucket = addr.bucket;
+    int blockNo = addr.blockNo;
+    if (addr.find) {
 
+    } else {
+      // the next position in block to add entry
+      int nextPos = Util.byte2int(bucket, 4);
+      if (nextPos == 0) {
+        nextPos = 8;
+        System.arraycopy(Util.int2byte(8), 0, bucket, 4, 4);
+      }
+
+      if (!keySizeFixed) {
+        // no enough space in this bucket
+        if (nextPos + 2 + key.length + 4 > BLOCK_SIZE) {
+          byte[] blockNumsBytes = Util.int2byte(blockNums);
+          System.arraycopy(blockNumsBytes, 0, bucket, 0, 4);
+
+          cache.writeBlock(indexFile, blockNo, bucket);
+
+          Arrays.fill(bucket, (byte) 0);
+          System.arraycopy(Util.int2byte(8), 0, bucket, 4, 4);
+          nextPos = 8;
+
+          blockNo = blockNums;
+          blockNums++;
+        }
+
+        // key
+        byte[] keySizeBytes = Util.short2byte(key.length);
+        System.arraycopy(keySizeBytes, 0, bucket, nextPos, 2);
+        nextPos += 2;
+
+        
+
+      } else {}
+    }
   }
 
   private static class InnerAddr {
     public byte[] bucket;
-    public int off;
-    public InnerAddr(byte[] bucket, int off) {
+    public int blockNo;
+    public int off;  // start position of value
+    public boolean find;  // find the key
+    public InnerAddr(byte[] bucket, int blockNo, int off, boolean find) {
       this.bucket = bucket;
+      this.blockNo = blockNo;
       this.off = off;
+      this.find = find;
     }
   }
 
@@ -200,7 +241,7 @@ public class HashTable {
       if (keySizeFixed) {
         for (int off = 8; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
           if (Util.bytesEqual(bucket, off, key, 0, KEY_SIZE))  // find
-            return new InnerAddr(bucket, off + KEY_SIZE);
+            return new InnerAddr(bucket, blockNo, off + KEY_SIZE, true);
         }
       } else {
         int off = 8;
@@ -208,7 +249,7 @@ public class HashTable {
           int keyLen = Util.byte2short(bucket, off);
           off += 2;
           if (key.length == keyLen && Util.bytesEqual(key, 0, bucket, off, keyLen))
-            return new InnerAddr(bucket, off + keyLen);
+            return new InnerAddr(bucket, blockNo, off + keyLen, true);
           off += keyLen;
           off += multiValue ? 4 : 12;
         }
@@ -216,7 +257,7 @@ public class HashTable {
 
       blockNo = Util.byte2int(bucket, 0);
       if (blockNo == 0)
-        return null;
+        return new InnerAddr(bucket, blockNo, 0, false);
     }
   }
 
@@ -225,7 +266,7 @@ public class HashTable {
       throw new Exception();
 
     InnerAddr addr = innerGet(key);
-    if (addr == null)
+    if (!addr.find)
       return null;
     int fileId = Util.byte2int(addr.bucket, addr.off);
     long fileOffset = Util.byte2long(addr.bucket, addr.off + 4);
