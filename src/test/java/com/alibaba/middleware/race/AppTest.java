@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import java.io.RandomAccessFile;
 import java.util.Arrays;
+import java.util.Iterator;
 
 /**
  * Created by yfy on 7/11/16.
@@ -50,6 +51,8 @@ public class AppTest {
     result = os.queryOrder(12345, null);
     assertEquals(null, result);
 
+    Iterator<OrderSystem.Result> iter = os.queryOrdersByBuyer(1408867965, 1508867965,
+        "ap_855a4497-5614-401f-97be-45a6c6e8936c");
   }
 
   @Test

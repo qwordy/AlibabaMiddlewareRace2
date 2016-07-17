@@ -8,6 +8,7 @@ import com.alibaba.middleware.race.kvDealer.OrderKvDealer;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -51,6 +52,7 @@ public class Database {
 
   private void buildOrder2OrderHash() throws Exception {
     orderHashTable = new HashTable(orderFilesList, "order.hash", 100, 8, false, 0);
+    buyer2OrderHashTable = new HashTable(orderFilesList, "buyer2Order.hash", 100, 0, true, 8);
     OrderKvDealer dealer = new OrderKvDealer(orderHashTable);
     for (int i = 0; i < orderFilesList.size(); i++) {
       dealer.setFileId(i);
@@ -141,6 +143,11 @@ public class Database {
     //result.printOrderTuple();
 
     return result;
+  }
+
+  public Iterator<OrderSystem.Result> queryOrdersByBuyer(
+      long startTime, long endTime, String buyerid) {
+
   }
 
 //  private void readOrderFile(String filename, int fileId) throws Exception {
