@@ -10,7 +10,7 @@ public class Tuple {
 
   private String file;
 
-  private long offset, pos;
+  private long offset, extra, pos;
 
   private byte[] buf;
 
@@ -24,9 +24,14 @@ public class Tuple {
   private final int MASK = 0xfff;
 
   public Tuple(String file, long offset) {
+    this(file, offset, 0);
+  }
+
+  public Tuple(String file, long offset, long extra) {
     this.file = file;
     this.offset = offset;
-    pos = offset;
+    this.extra = extra;
+    pos = offset;  // current pos
     buf = new byte[BLOCK_SIZE];
     cache = Cache.getInstance();
     valid = false;

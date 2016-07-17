@@ -2,6 +2,7 @@ package com.alibaba.middleware.race;
 
 import com.alibaba.middleware.race.cache.Cache;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -66,7 +67,7 @@ public class HashTable {
 
   private Cache cache;
 
-  public static HashTable goodHashTable;
+  public static HashTable goodHashTable, buyerHashTable;
 
   /**
    *
@@ -288,8 +289,10 @@ public class HashTable {
     nextPos += 8;
 
     // extra
-    System.arraycopy(extra, 0, bucket, nextPos, EXTRA_SIZE);
-    nextPos += EXTRA_SIZE;
+    if (EXTRA_SIZE > 0) {
+      System.arraycopy(extra, 0, bucket, nextPos, EXTRA_SIZE);
+      nextPos += EXTRA_SIZE;
+    }
 
     // current size of block
     byte[] csizeBytes = Util.int2byte(nextPos);
@@ -361,7 +364,32 @@ public class HashTable {
   public List<Tuple> getMulti(byte[] key) throws Exception {
     if (!multiValue)
       throw new Exception();
-    
+
+    InnerAddr addr = innerGet(key);
+    if (!addr.find)
+      return null;
+
+    int blockNo = Util.byte2int(addr.bucket, addr.off);
+    byte[] bucket = addr.bucket;
+
+    List<Tuple> list = new ArrayList<>();
+    while (true) {
+      cache.readBlock(indexFile, blockNo, bucket);
+      int size = Util.byte2int(bucket, 4);
+
+      for (int off = 8; off + 12 + EXTRA_SIZE <= size; off += 12 + EXTRA_SIZE) {
+        int fileId = Util.byte2int(bucket, off);
+        long fileOffset = Util.byte2long(bucket, off + 4);
+        if (EXTRA_SIZE == 0)
+          list.add(new Tuple(dataFiles.get(fileId), fileOffset));
+        else if (EXTRA_SIZE == 8)
+          list.add(new Tuple(dataFiles.get(fileId), fileOffset, Util.byte2long(bucket, off + 12)));
+      }
+
+      blockNo = Util.byte2int(bucket, 0);
+      if (blockNo == 0)
+        return list;
+    }
   }
 
   private int keyHashCode(byte[] key) {

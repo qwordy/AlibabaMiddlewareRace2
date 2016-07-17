@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race;
 
+import com.alibaba.middleware.race.kvDealer.BuyerKvDealer;
 import com.alibaba.middleware.race.kvDealer.GoodKvDealer;
 import com.alibaba.middleware.race.kvDealer.IKvDealer;
 import com.alibaba.middleware.race.kvDealer.OrderKvDealer;
@@ -15,9 +16,9 @@ import java.util.List;
  */
 public class Database {
 
-  private List<String> orderFilesList, goodFilesList;
+  private List<String> orderFilesList, goodFilesList, buyerFilesList;
 
-  private HashTable orderHashTable, goodHashTable;
+  private HashTable orderHashTable, goodHashTable, buyerHashTable;
 
   private HashTable buyer2OrderHashTable;
 
@@ -28,6 +29,7 @@ public class Database {
                   Collection<String> buyerFiles,
                   Collection<String> goodFiles,
                   Collection<String> storeFolders) {
+
     orderFilesList = new ArrayList<>();
     for (String file : orderFiles)
       orderFilesList.add(file);
@@ -35,11 +37,16 @@ public class Database {
     goodFilesList = new ArrayList<>();
     for (String file : goodFiles)
       goodFilesList.add(file);
+
+    buyerFilesList = new ArrayList<>();
+    for (String file : buyerFiles)
+      buyerFilesList.add(file);
   }
 
   public void construct() throws Exception {
     buildOrder2OrderHash();
     buildGood2GoodHash();
+    buildBuyer2BuyerHash();
   }
 
   private void buildOrder2OrderHash() throws Exception {
@@ -58,6 +65,16 @@ public class Database {
     for (int i = 0; i < goodFilesList.size(); i++) {
       dealer.setFileId(i);
       readDataFile(goodFilesList.get(i), dealer);
+    }
+  }
+
+  private void buildBuyer2BuyerHash() throws Exception {
+    buyerHashTable = new HashTable(buyerFilesList, "buyer.hash", 100, 0, false, 0);
+    HashTable.buyerHashTable = buyerHashTable;
+    BuyerKvDealer dealer = new BuyerKvDealer(buyerHashTable);
+    for (int i = 0; i < buyerFilesList.size(); i++) {
+      dealer.setFileId(i);
+      readDataFile(buyerFilesList.get(i), dealer);
     }
   }
 
