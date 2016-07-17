@@ -15,6 +15,9 @@ public abstract class AbstractKvDealer implements IKvDealer {
   protected final static byte[] buyeridBytes =
       new byte[]{'b', 'u', 'y', 'e', 'r', 'i', 'd'};
 
+  protected final static byte[] createtimeBytes =
+      new byte[]{'c', 'r', 'e', 'a', 't', 'e', 't', 'i', 'm', 'e'};
+
   protected int fileId;
 
   public void setFileId(int fileId) {
