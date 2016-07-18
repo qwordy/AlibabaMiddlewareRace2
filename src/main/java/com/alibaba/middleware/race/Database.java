@@ -22,12 +22,15 @@ public class Database {
 
   private static TupleCreatetimeComparator tupleCreatetimeComparator;
 
+  private static TupleOrderidComparator tupleOrderidComparator;
+
   public Database(Collection<String> orderFiles,
                   Collection<String> buyerFiles,
                   Collection<String> goodFiles,
                   Collection<String> storeFolders) {
 
     tupleCreatetimeComparator = new TupleCreatetimeComparator();
+    tupleOrderidComparator = new TupleOrderidComparator();
 
     orderFilesList = new ArrayList<>();
     for (String file : orderFiles)
@@ -54,7 +57,7 @@ public class Database {
     buyer2OrderHashTable =
         new HashTable(orderFilesList, "buyer2Order.hash", 100, 0, true, 8);
     good2OrderHashTable =
-        new HashTable(orderFilesList, "good2Order.hash", 100, 0, true, 0);
+        new HashTable(orderFilesList, "good2Order.hash", 100, 0, true, 8);
     OrderKvDealer dealer = new OrderKvDealer(
         orderHashTable, buyer2OrderHashTable, good2OrderHashTable);
     for (int i = 0; i < orderFilesList.size(); i++) {
@@ -155,17 +158,27 @@ public class Database {
     List<Tuple> tupleList =  buyer2OrderHashTable.getMulti(buyerid.getBytes(), filter);
     Collections.sort(tupleList, tupleCreatetimeComparator);
     List<OrderSystem.Result> resultList = new ArrayList<>();
-    for (Tuple tuple : tupleList) {
-      ResultImpl result = new ResultImpl(tuple, null);
-      resultList.add(result);
-    }
+    for (Tuple tuple : tupleList)
+      resultList.add(new ResultImpl(tuple, null));
     return resultList.iterator();
   }
 
   public Iterator<OrderSystem.Result> queryOrdersBySaler(
-      String goodid, Collection<String> keys) {
+      String goodid, Collection<String> keys) throws Exception {
 
+    List<Tuple> tupleList = good2OrderHashTable.getMulti(goodid.getBytes(), null);
+    Collections.sort(tupleList, tupleOrderidComparator);
+    List<OrderSystem.Result> resultList = new ArrayList<>();
+    for (Tuple tuple : tupleList)
+      resultList.add(new ResultImpl(tuple, keys));
+    return resultList.iterator();
+  }
 
+  public OrderSystem.KeyValue sumOrdersByGood(
+      String goodid, String key) throws Exception {
+
+    List<Tuple> tupleList = good2OrderHashTable.getMulti(goodid.getBytes(), null);
+    return null;
   }
 
 //  private void readOrderFile(String filename, int fileId) throws Exception {

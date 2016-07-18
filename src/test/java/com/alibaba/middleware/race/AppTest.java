@@ -1,11 +1,12 @@
 package com.alibaba.middleware.race;
 
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import java.io.RandomAccessFile;
 import java.util.Arrays;
 import java.util.Iterator;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by yfy on 7/11/16.
@@ -14,7 +15,15 @@ import java.util.Iterator;
 public class AppTest {
 
   @Test
-  public void testMidium() throws Exception {
+  public void constructMedium() throws Exception {
+    OrderSystem os = new OrderSystemImpl();
+    os.construct(Arrays.asList("order_records.txt"),
+        Arrays.asList("buyer_records.txt"),
+        Arrays.asList("good_records.txt"), null);
+  }
+
+  @Test
+  public void testMedium() throws Exception {
     OrderSystem os = new OrderSystemImpl();
     os.construct(Arrays.asList("order_records.txt"),
         Arrays.asList("buyer_records.txt"),
@@ -68,8 +77,24 @@ public class AppTest {
       System.out.println(result.orderId() + " " + result.get("createtime").valueAsLong());
       count++;
     }
-    System.out.println(count);
     assertEquals(21, count);
+
+    iter = os.queryOrdersBySaler("", "good_e3111b68-638b-4a5b-89ef-15f522171b9f", null);
+    count = 0;
+    while (iter.hasNext()) {
+      result = iter.next();
+      System.out.println(result.orderId());
+      count++;
+      if (count == 1) {
+        assertEquals(2982453, result.orderId());
+        assertEquals(4.21, result.get("offprice").valueAsDouble(), 1e-6);
+      }
+      if (count == 22) {
+        assertEquals(3009294, result.orderId());
+        assertEquals("云集", result.get("buyername").valueAsString());
+      }
+    }
+    assertEquals(22, count);
   }
 
   @Test

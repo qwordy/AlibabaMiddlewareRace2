@@ -18,7 +18,7 @@ public class Cache implements IDiskManager {
 
   private final int MASK = 0xfff;
 
-  private final int CACHE_SIZE = 1000;
+  private final int CACHE_SIZE = 10000;
 
   // blockId, block
   private Map<BlockId, Node> blockMap;

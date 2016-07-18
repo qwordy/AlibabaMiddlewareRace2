@@ -15,7 +15,8 @@ public class OrderSystemImpl implements OrderSystem {
 
   private List<String> orderFilesList;
 
-  public OrderSystemImpl() {}
+  public OrderSystemImpl() {
+  }
 
   public void construct(Collection<String> orderFiles,
                         Collection<String> buyerFiles,
@@ -52,10 +53,20 @@ public class OrderSystemImpl implements OrderSystem {
 
   public Iterator<Result> queryOrdersBySaler(
       String salerid, String goodid, Collection<String> keys) {
-    return db.queryOrdersBySaler(goodid, keys);
+    try {
+      return db.queryOrdersBySaler(goodid, keys);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
   }
 
   public KeyValue sumOrdersByGood(String goodid, String key) {
-    return null;
+    try {
+      return db.sumOrdersByGood(goodid, key);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
   }
 }
