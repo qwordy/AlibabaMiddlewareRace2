@@ -131,10 +131,10 @@ public class Database {
 
   private void print(byte[] key, int keyLen, byte[] value, int valueLen) {
     for (int i = 0; i < keyLen; i++)
-      System.out.print((char)key[i]);
+      System.out.print((char) key[i]);
     System.out.print(':');
     for (int i = 0; i < valueLen; i++)
-      System.out.print((char)value[i]);
+      System.out.print((char) value[i]);
     System.out.print('\t');
   }
 
@@ -155,7 +155,7 @@ public class Database {
       long startTime, long endTime, String buyerid) throws Exception {
 
     TupleFilter filter = new TupleFilter(startTime, endTime);
-    List<Tuple> tupleList =  buyer2OrderHashTable.getMulti(buyerid.getBytes(), filter);
+    List<Tuple> tupleList = buyer2OrderHashTable.getMulti(buyerid.getBytes(), filter);
     Collections.sort(tupleList, tupleCreatetimeComparator);
     List<OrderSystem.Result> resultList = new ArrayList<>();
     for (Tuple tuple : tupleList)
@@ -177,12 +177,35 @@ public class Database {
   public OrderSystem.KeyValue sumOrdersByGood(
       String goodid, String key) throws Exception {
 
+    boolean asLong = true, asDouble = true;
+    long sumLong = 0;
+    double sumDouble = 0;
+
     List<String> keys = Collections.singletonList(key);
     List<Tuple> tupleList = good2OrderHashTable.getMulti(goodid.getBytes(), null);
     for (Tuple tuple : tupleList) {
+      long valueLong = 0;
+      double valueDouble = 0;
       OrderSystem.KeyValue kv = new ResultImpl(tuple, keys).get(key);
-      kv.valueAsLong();
-      kv.valueAsDouble();
+
+      if (asLong) {
+        try {
+          valueLong = kv.valueAsLong();
+        } catch (OrderSystem.TypeException e) {
+          asLong = false;
+        }
+      }
+      sumLong += valueLong;
+
+      if (asDouble) {
+        try {
+          valueDouble = kv.valueAsDouble();
+        } catch (OrderSystem.TypeException e) {
+          asDouble = false;
+        }
+      }
+      sumDouble += valueDouble;
+
 
     }
     return null;
