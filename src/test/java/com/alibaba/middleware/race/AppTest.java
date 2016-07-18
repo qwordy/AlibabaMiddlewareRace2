@@ -98,7 +98,12 @@ public class AppTest {
 
     OrderSystem.KeyValue kv = os.sumOrdersByGood(
         "aliyun_6371c5b3-29e0-48f1-9e1f-602b034122a6", "amount");
-    assertEquals(, kv.valueAsLong());
+    assertEquals(8494, kv.valueAsLong());
+    assertEquals(8494, kv.valueAsDouble(), 1e-6);
+
+    kv = os.sumOrdersByGood(
+        "aliyun_6371c5b3-29e0-48f1-9e1f-602b034122a6", "price");
+    assertEquals(398.08, kv.valueAsDouble(), 1e-6);
   }
 
   @Test

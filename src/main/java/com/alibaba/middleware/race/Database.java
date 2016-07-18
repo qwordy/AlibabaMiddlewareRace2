@@ -196,26 +196,29 @@ public class Database {
       if (asLong) {
         try {
           valueLong = kv.valueAsLong();
+          sumLong += valueLong;
         } catch (OrderSystem.TypeException e) {
           asLong = false;
         }
       }
-      sumLong += valueLong;
 
       if (asDouble) {
         try {
           valueDouble = kv.valueAsDouble();
+          sumDouble += valueDouble;
         } catch (OrderSystem.TypeException e) {
           asDouble = false;
         }
       }
-      sumDouble += valueDouble;
 
       if (!asLong && !asDouble)
         return null;
-
     }
-    return null;
+
+    if (!hasKey)
+      return null;
+
+    return new KeyValueSimple(key, sumLong, sumDouble);
   }
 
 //  private void readOrderFile(String filename, int fileId) throws Exception {
