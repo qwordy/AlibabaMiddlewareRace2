@@ -177,7 +177,7 @@ public class Database {
   public OrderSystem.KeyValue sumOrdersByGood(
       String goodid, String key) throws Exception {
 
-    boolean asLong = true, asDouble = true;
+    boolean asLong = true, asDouble = true, hasKey = false;
     long sumLong = 0;
     double sumDouble = 0;
 
@@ -187,6 +187,11 @@ public class Database {
       long valueLong = 0;
       double valueDouble = 0;
       OrderSystem.KeyValue kv = new ResultImpl(tuple, keys).get(key);
+
+      if (kv == null)
+        continue;
+      else
+        hasKey = true;
 
       if (asLong) {
         try {
@@ -206,6 +211,8 @@ public class Database {
       }
       sumDouble += valueDouble;
 
+      if (!asLong && !asDouble)
+        return null;
 
     }
     return null;
