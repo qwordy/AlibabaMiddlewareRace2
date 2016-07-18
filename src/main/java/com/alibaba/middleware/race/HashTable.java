@@ -4,7 +4,6 @@ import com.alibaba.middleware.race.cache.Cache;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -28,7 +27,7 @@ import java.util.List;
  * 2. variable-size key
  * 2B,    keySize,  4B,    8B
  * keySize, key, fileId, offset
- *
+ * <p>
  * If multivalue
  * entry:
  * (keysize), key, blockNo
@@ -36,7 +35,7 @@ import java.util.List;
  * next bucket, size, entrys
  * entry:
  * fileId, fileOffset, (extraInfo)
- *
+ * <p>
  * order -> order
  * buyer -> order
  * good -> order
@@ -71,11 +70,10 @@ public class HashTable {
   public static HashTable goodHashTable, buyerHashTable;
 
   /**
-   *
    * @param dataFiles
    * @param indexFile
-   * @param size number of buckets
-   * @param keySize 0 when not fixed
+   * @param size      number of buckets
+   * @param keySize   0 when not fixed
    */
   public HashTable(List<String> dataFiles, String indexFile,
                    int size, int keySize, boolean multiValue, int extraSize) {
@@ -100,6 +98,7 @@ public class HashTable {
 
   /**
    * no replicated key
+   *
    * @param key
    * @param fileId
    * @param fileOffset
@@ -177,10 +176,11 @@ public class HashTable {
 
   /**
    * allow one key maps to multiple value
+   *
    * @param key
    * @param fileId
    * @param fileOffset
-   * @param extra extra information
+   * @param extra      extra information
    */
   public void addMulti(byte[] key, int fileId, long fileOffset, byte[] extra) throws Exception {
     if (!multiValue)
@@ -254,7 +254,8 @@ public class HashTable {
 
         addValueMulti(bucket, blockNo, fileId, fileOffset, extra);
 
-      } else {}
+      } else {
+      }
     }
   }
 
@@ -363,7 +364,7 @@ public class HashTable {
     return new Tuple(dataFiles.get(fileId), fileOffset);
   }
 
-  public List<Tuple> getMulti(byte[] key) throws Exception {
+  public List<Tuple> getMulti(byte[] key, TupleFilter filter) throws Exception {
     if (!multiValue)
       throw new Exception();
 
@@ -384,8 +385,16 @@ public class HashTable {
         long fileOffset = Util.byte2long(bucket, off + 4);
         if (EXTRA_SIZE == 0)
           list.add(new Tuple(dataFiles.get(fileId), fileOffset));
-        else if (EXTRA_SIZE == 8)
-          list.add(new Tuple(dataFiles.get(fileId), fileOffset, Util.byte2long(bucket, off + 12)));
+        else if (EXTRA_SIZE == 8) {
+          if (filter == null) {
+            list.add(new Tuple(dataFiles.get(fileId), fileOffset,
+                Util.byte2long(bucket, off + 12)));
+          } else {
+            long time = Util.byte2long(bucket, off + 12);
+            if (filter.test(time))
+              list.add(new Tuple(dataFiles.get(fileId), fileOffset, time));
+          }
+        }
       }
 
       blockNo = Util.byte2int(bucket, 0);

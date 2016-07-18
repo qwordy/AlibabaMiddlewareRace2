@@ -60,14 +60,15 @@ public class AppTest {
     }
     assertEquals(33, count);
 
-    iter = os.queryOrdersByBuyer(1408867965, 1508867965,
+    iter = os.queryOrdersByBuyer(1466441697, 1470031858,
         "tb_7a1f9032-e715-4c84-abaa-2405e7579408");
     count = 0;
     while (iter.hasNext()) {
-      iter.next();
+      result = iter.next();
+      System.out.println(result.orderId() + " " + result.get("createtime").valueAsLong());
       count++;
     }
-    assertEquals(43, count);
+    System.out.println(count);
 
   }
 

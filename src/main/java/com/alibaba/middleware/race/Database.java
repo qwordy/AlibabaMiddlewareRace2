@@ -6,10 +6,7 @@ import com.alibaba.middleware.race.kvDealer.IKvDealer;
 import com.alibaba.middleware.race.kvDealer.OrderKvDealer;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by yfy on 7/13/16.
@@ -148,7 +145,14 @@ public class Database {
   public Iterator<OrderSystem.Result> queryOrdersByBuyer(
       long startTime, long endTime, String buyerid) throws Exception {
 
-    List<Tuple> tupleList =  buyer2OrderHashTable.getMulti(buyerid.getBytes());
+    TupleFilter filter = new TupleFilter(startTime, endTime);
+    List<Tuple> tupleList =  buyer2OrderHashTable.getMulti(buyerid.getBytes(), filter);
+    Collections.sort(tupleList, new Comparator<Tuple>() {
+      @Override
+      public int compare(Tuple o1, Tuple o2) {
+        return 0;
+      }
+    })
     List<OrderSystem.Result> resultList = new ArrayList<>();
     for (Tuple tuple : tupleList) {
       ResultImpl result = new ResultImpl(tuple, null);
