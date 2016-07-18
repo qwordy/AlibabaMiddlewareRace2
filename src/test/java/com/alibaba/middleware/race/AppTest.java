@@ -95,6 +95,10 @@ public class AppTest {
       }
     }
     assertEquals(22, count);
+
+    OrderSystem.KeyValue kv = os.sumOrdersByGood(
+        "aliyun_6371c5b3-29e0-48f1-9e1f-602b034122a6", "amount");
+    assertEquals(, kv.valueAsLong());
   }
 
   @Test

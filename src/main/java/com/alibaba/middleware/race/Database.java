@@ -177,7 +177,14 @@ public class Database {
   public OrderSystem.KeyValue sumOrdersByGood(
       String goodid, String key) throws Exception {
 
+    List<String> keys = Collections.singletonList(key);
     List<Tuple> tupleList = good2OrderHashTable.getMulti(goodid.getBytes(), null);
+    for (Tuple tuple : tupleList) {
+      OrderSystem.KeyValue kv = new ResultImpl(tuple, keys).get(key);
+      kv.valueAsLong();
+      kv.valueAsDouble();
+
+    }
     return null;
   }
 
