@@ -52,7 +52,7 @@ public class OrderSystemImpl implements OrderSystem {
 
   public Iterator<Result> queryOrdersBySaler(
       String salerid, String goodid, Collection<String> keys) {
-    return null;
+    return db.queryOrdersBySaler(goodid, keys);
   }
 
   public KeyValue sumOrdersByGood(String goodid, String key) {

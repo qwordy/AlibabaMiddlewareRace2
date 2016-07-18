@@ -60,4 +60,8 @@ public class Tuple {
     valid = false;
   }
 
+  public long getExtra() {
+    return extra;
+  }
+
 }

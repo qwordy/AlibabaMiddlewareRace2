@@ -18,15 +18,16 @@ public class Database {
 
   private HashTable orderHashTable, goodHashTable, buyerHashTable;
 
-  private HashTable buyer2OrderHashTable;
+  private HashTable buyer2OrderHashTable, good2OrderHashTable;
 
-  private final static byte[] orderidBytes =
-      new byte[]{'o', 'r', 'd', 'e', 'r', 'i', 'd'};
+  private static TupleCreatetimeComparator tupleCreatetimeComparator;
 
   public Database(Collection<String> orderFiles,
                   Collection<String> buyerFiles,
                   Collection<String> goodFiles,
                   Collection<String> storeFolders) {
+
+    tupleCreatetimeComparator = new TupleCreatetimeComparator();
 
     orderFilesList = new ArrayList<>();
     for (String file : orderFiles)
@@ -48,9 +49,14 @@ public class Database {
   }
 
   private void buildOrder2OrderHash() throws Exception {
-    orderHashTable = new HashTable(orderFilesList, "order.hash", 100, 8, false, 0);
-    buyer2OrderHashTable = new HashTable(orderFilesList, "buyer2Order.hash", 100, 0, true, 8);
-    OrderKvDealer dealer = new OrderKvDealer(orderHashTable, buyer2OrderHashTable);
+    orderHashTable =
+        new HashTable(orderFilesList, "order.hash", 100, 8, false, 0);
+    buyer2OrderHashTable =
+        new HashTable(orderFilesList, "buyer2Order.hash", 100, 0, true, 8);
+    good2OrderHashTable =
+        new HashTable(orderFilesList, "good2Order.hash", 100, 0, true, 0);
+    OrderKvDealer dealer = new OrderKvDealer(
+        orderHashTable, buyer2OrderHashTable, good2OrderHashTable);
     for (int i = 0; i < orderFilesList.size(); i++) {
       dealer.setFileId(i);
       readDataFile(orderFilesList.get(i), dealer);
@@ -147,18 +153,19 @@ public class Database {
 
     TupleFilter filter = new TupleFilter(startTime, endTime);
     List<Tuple> tupleList =  buyer2OrderHashTable.getMulti(buyerid.getBytes(), filter);
-    Collections.sort(tupleList, new Comparator<Tuple>() {
-      @Override
-      public int compare(Tuple o1, Tuple o2) {
-        return 0;
-      }
-    })
+    Collections.sort(tupleList, tupleCreatetimeComparator);
     List<OrderSystem.Result> resultList = new ArrayList<>();
     for (Tuple tuple : tupleList) {
       ResultImpl result = new ResultImpl(tuple, null);
       resultList.add(result);
     }
     return resultList.iterator();
+  }
+
+  public Iterator<OrderSystem.Result> queryOrdersBySaler(
+      String goodid, Collection<String> keys) {
+
+
   }
 
 //  private void readOrderFile(String filename, int fileId) throws Exception {

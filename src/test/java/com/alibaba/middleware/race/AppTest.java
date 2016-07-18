@@ -69,7 +69,7 @@ public class AppTest {
       count++;
     }
     System.out.println(count);
-
+    assertEquals(21, count);
   }
 
   @Test

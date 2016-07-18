@@ -11,7 +11,7 @@ import java.util.Arrays;
  */
 public class OrderKvDealer extends AbstractKvDealer {
 
-  private HashTable orderHashTable, buyer2OrderHashTable;
+  private HashTable orderHashTable, buyer2OrderHashTable, good2OrderHashTable;
 
   private int keyCount;
 
@@ -19,9 +19,12 @@ public class OrderKvDealer extends AbstractKvDealer {
 
   private byte[] buyeridValue, createtimeValue;
 
-  public OrderKvDealer(HashTable orderHashTable, HashTable buyer2OrderHashTable) {
+  public OrderKvDealer(HashTable orderHashTable,
+                       HashTable buyer2OrderHashTable,
+                       HashTable good2OrderHashTable) {
     this.orderHashTable = orderHashTable;
     this.buyer2OrderHashTable = buyer2OrderHashTable;
+    this.good2OrderHashTable = good2OrderHashTable;
     keyCount = 0;
     oldOffset = -1;
   }
