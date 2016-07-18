@@ -53,6 +53,22 @@ public class AppTest {
 
     Iterator<OrderSystem.Result> iter = os.queryOrdersByBuyer(1408867965, 1508867965,
         "ap_855a4497-5614-401f-97be-45a6c6e8936c");
+    int count = 0;
+    while (iter.hasNext()) {
+      iter.next();
+      count++;
+    }
+    assertEquals(33, count);
+
+    iter = os.queryOrdersByBuyer(1408867965, 1508867965,
+        "tb_7a1f9032-e715-4c84-abaa-2405e7579408");
+    count = 0;
+    while (iter.hasNext()) {
+      iter.next();
+      count++;
+    }
+    assertEquals(43, count);
+
   }
 
   @Test

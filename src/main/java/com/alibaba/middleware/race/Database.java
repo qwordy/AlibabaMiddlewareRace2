@@ -53,7 +53,7 @@ public class Database {
   private void buildOrder2OrderHash() throws Exception {
     orderHashTable = new HashTable(orderFilesList, "order.hash", 100, 8, false, 0);
     buyer2OrderHashTable = new HashTable(orderFilesList, "buyer2Order.hash", 100, 0, true, 8);
-    OrderKvDealer dealer = new OrderKvDealer(orderHashTable);
+    OrderKvDealer dealer = new OrderKvDealer(orderHashTable, buyer2OrderHashTable);
     for (int i = 0; i < orderFilesList.size(); i++) {
       dealer.setFileId(i);
       readDataFile(orderFilesList.get(i), dealer);
@@ -146,8 +146,15 @@ public class Database {
   }
 
   public Iterator<OrderSystem.Result> queryOrdersByBuyer(
-      long startTime, long endTime, String buyerid) {
+      long startTime, long endTime, String buyerid) throws Exception {
 
+    List<Tuple> tupleList =  buyer2OrderHashTable.getMulti(buyerid.getBytes());
+    List<OrderSystem.Result> resultList = new ArrayList<>();
+    for (Tuple tuple : tupleList) {
+      ResultImpl result = new ResultImpl(tuple, null);
+      resultList.add(result);
+    }
+    return resultList.iterator();
   }
 
 //  private void readOrderFile(String filename, int fileId) throws Exception {

@@ -42,7 +42,12 @@ public class OrderSystemImpl implements OrderSystem {
 
   public Iterator<Result> queryOrdersByBuyer(
       long startTime, long endTime, String buyerid) {
-    return db.queryOrdersByBuyer(startTime, endTime, buyerid);
+    try {
+      return db.queryOrdersByBuyer(startTime, endTime, buyerid);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
   }
 
   public Iterator<Result> queryOrdersBySaler(

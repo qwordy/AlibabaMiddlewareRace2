@@ -4,6 +4,7 @@ import com.alibaba.middleware.race.cache.Cache;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -302,11 +303,12 @@ public class HashTable {
   }
 
   private static class InnerAddr {
-    public byte[] bucket;
-    public int blockNo;
-    public int off;  // start position of value
-    public boolean find;  // find the key
-    public InnerAddr(byte[] bucket, int blockNo, int off, boolean find) {
+    byte[] bucket;
+    int blockNo;
+    int off;  // start position of value
+    boolean find;  // find the key
+
+    InnerAddr(byte[] bucket, int blockNo, int off, boolean find) {
       this.bucket = bucket;
       this.blockNo = blockNo;
       this.off = off;
