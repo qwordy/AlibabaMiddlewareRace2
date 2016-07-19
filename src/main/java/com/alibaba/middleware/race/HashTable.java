@@ -375,14 +375,15 @@ public class HashTable {
     if (!multiValue)
       throw new Exception();
 
+    List<Tuple> list = new ArrayList<>();
+
     InnerAddr addr = innerGet(key);
     if (!addr.find)
-      return null;
+      return list;
 
     int blockNo = Util.byte2int(addr.bucket, addr.off);
     byte[] bucket = addr.bucket;
 
-    List<Tuple> list = new ArrayList<>();
     while (true) {
       cache.readBlock(indexFile, blockNo, bucket);
       int size = Util.byte2int(bucket, 4);

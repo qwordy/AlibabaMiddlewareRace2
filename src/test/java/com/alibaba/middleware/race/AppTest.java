@@ -18,12 +18,17 @@ public class AppTest {
   public void queryBig() throws Exception {
     OrderSystem os = constructBig();
 
+    // queryOrder
     OrderSystem.Result result = os.queryOrder(606092157, Arrays.asList("buyername"));
     assertEquals("晋恿吾", result.get("buyername").valueAsString());
 
     result = os.queryOrder(604911336, Arrays.asList("buyerid"));
     assertEquals("tp-9d00-3b1cf5d41ff5", result.get("buyerid").valueAsString());
 
+    // queryOrdersByBuyer
+    os.queryOrdersByBuyer(1471183448, 1483854721, "ap-9cfb-1009514ce5f1");
+
+    // queryOrdersBySaler
     Iterator<OrderSystem.Result> iter = os.queryOrdersBySaler(
         "ay-9f78-e1fe3f5fb5ce",
         "al-814a-e3bba7062bdd",
@@ -32,6 +37,7 @@ public class AppTest {
     OrderSystem.KeyValue kv = os.sumOrdersByGood("al-950f-5924be431212", "a_g_10839");
     assertEquals(null, kv);
 
+    // sumOrdersByGood
     kv = os.sumOrdersByGood("dd-8ad6-8de99e8d7dad", "amount");
     assertEquals(735, kv.valueAsLong());
 
