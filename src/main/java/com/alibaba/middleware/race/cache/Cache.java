@@ -18,7 +18,7 @@ public class Cache {
 
   private final int MASK = 0xfff;
 
-  private final int CACHE_SIZE = 100000;
+  private final int CACHE_SIZE = 300000;
 
   // blockId, block
   private Map<BlockId, Node> blockMap;
