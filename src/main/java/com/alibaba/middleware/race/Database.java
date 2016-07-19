@@ -14,7 +14,7 @@ import java.util.*;
  */
 public class Database {
 
-  private List<String> orderFilesList, goodFilesList, buyerFilesList;
+  private List<String> orderFilesList, goodFilesList, buyerFilesList, storeFoldersList;
 
   private HashTable orderHashTable, goodHashTable, buyerHashTable;
 
@@ -43,6 +43,10 @@ public class Database {
     buyerFilesList = new ArrayList<>();
     for (String file : buyerFiles)
       buyerFilesList.add(file);
+
+    storeFoldersList = new ArrayList<>();
+    for (String folder : storeFolders)
+      storeFoldersList.add(folder);
   }
 
   public void construct() throws Exception {
@@ -53,11 +57,11 @@ public class Database {
 
   private void buildOrder2OrderHash() throws Exception {
     orderHashTable =
-        new HashTable(orderFilesList, "order.hash", 100, 8, false, 0);
+        new HashTable(orderFilesList, fullname("order.hash"), 100, 8, false, 0);
     buyer2OrderHashTable =
-        new HashTable(orderFilesList, "buyer2Order.hash", 100, 0, true, 8);
+        new HashTable(orderFilesList, fullname("buyer2Order.hash"), 100, 0, true, 8);
     good2OrderHashTable =
-        new HashTable(orderFilesList, "good2Order.hash", 100, 0, true, 8);
+        new HashTable(orderFilesList, fullname("good2Order.hash"), 100, 0, true, 8);
     OrderKvDealer dealer = new OrderKvDealer(
         orderHashTable, buyer2OrderHashTable, good2OrderHashTable);
     for (int i = 0; i < orderFilesList.size(); i++) {
@@ -67,7 +71,7 @@ public class Database {
   }
 
   private void buildGood2GoodHash() throws Exception {
-    goodHashTable = new HashTable(goodFilesList, "good.hash", 100, 0, false, 0);
+    goodHashTable = new HashTable(goodFilesList, fullname("good.hash"), 100, 0, false, 0);
     HashTable.goodHashTable = goodHashTable;
     GoodKvDealer dealer = new GoodKvDealer(goodHashTable);
     for (int i = 0; i < goodFilesList.size(); i++) {
@@ -77,13 +81,18 @@ public class Database {
   }
 
   private void buildBuyer2BuyerHash() throws Exception {
-    buyerHashTable = new HashTable(buyerFilesList, "buyer.hash", 100, 0, false, 0);
+    buyerHashTable = new HashTable(buyerFilesList, fullname("buyer.hash"), 100, 0, false, 0);
     HashTable.buyerHashTable = buyerHashTable;
     BuyerKvDealer dealer = new BuyerKvDealer(buyerHashTable);
     for (int i = 0; i < buyerFilesList.size(); i++) {
       dealer.setFileId(i);
       readDataFile(buyerFilesList.get(i), dealer);
     }
+  }
+
+  // storeFolder/filename
+  private String fullname(String filename) {
+    return storeFoldersList.get(0) + '/' + filename;
   }
 
   private void readDataFile(String filename, IKvDealer dealer) throws Exception {

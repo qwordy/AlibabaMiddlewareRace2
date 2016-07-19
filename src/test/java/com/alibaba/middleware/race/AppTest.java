@@ -27,7 +27,8 @@ public class AppTest {
     OrderSystem os = new OrderSystemImpl();
     os.construct(Arrays.asList("order_records.txt"),
         Arrays.asList("buyer_records.txt"),
-        Arrays.asList("good_records.txt"), null);
+        Arrays.asList("good_records.txt"),
+        Arrays.asList("/home/yfy/middleware/race2"));
 
     OrderSystem.Result result;
 
