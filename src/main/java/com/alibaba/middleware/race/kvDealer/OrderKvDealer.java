@@ -70,7 +70,10 @@ public class OrderKvDealer extends AbstractKvDealer {
     if (keyCount == 4) {
       orderHashTable.add(orderidValue, fileId, curOffset);
       buyer2OrderHashTable.addMulti(buyeridValue, fileId, curOffset, createtimeValue);
-      good2OrderHashTable.addMulti(goodidValue, fileId, curOffset, orderidValue);
+      if (Util.bytesEqual(goodidValue, 0, "al-814a-e3bba7062bdd".getBytes(), 0, 20))
+        good2OrderHashTable.addMulti(goodidValue, fileId, curOffset, orderidValue);
+      else
+        good2OrderHashTable.addMulti(goodidValue, fileId, curOffset, orderidValue);
       if (Util.bytesEqual(goodidValue, 0, "al-814a-e3bba7062bdd".getBytes(), 0, 20)) {
         System.out.println(++count + " " +
             good2OrderHashTable.getMulti(goodidValue, null).size());
