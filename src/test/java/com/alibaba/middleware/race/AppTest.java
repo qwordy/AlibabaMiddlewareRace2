@@ -15,6 +15,12 @@ import static org.junit.Assert.assertEquals;
 public class AppTest {
 
   @Test
+  public void constructBig() throws Exception {
+    OrderSystem os = new OrderSystemImpl();
+    
+  }
+
+  @Test
   public void constructMedium() throws Exception {
     OrderSystem os = new OrderSystemImpl();
     os.construct(Arrays.asList("order_records.txt"),
