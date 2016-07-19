@@ -74,7 +74,7 @@ public class AppTest {
     count = 0;
     while (iter.hasNext()) {
       result = iter.next();
-      System.out.println(result.orderId() + " " + result.get("createtime").valueAsLong());
+      //System.out.println(result.orderId() + " " + result.get("createtime").valueAsLong());
       count++;
     }
     assertEquals(21, count);
@@ -83,7 +83,7 @@ public class AppTest {
     count = 0;
     while (iter.hasNext()) {
       result = iter.next();
-      System.out.println(result.orderId());
+      //System.out.println(result.orderId());
       count++;
       if (count == 1) {
         assertEquals(2982453, result.orderId());

@@ -9,7 +9,7 @@ import java.util.Map;
  * Created by yfy on 7/11/16.
  * Cache
  */
-public class Cache implements IDiskManager {
+public class Cache {
 
   private final int BLOCK_SIZE = 4096;
 
@@ -43,7 +43,6 @@ public class Cache implements IDiskManager {
     return cache;
   }
 
-  @Override
   public void read(String filename, long offset, int length, byte[] buf) throws Exception {
     // end offset in file
     long endOffset = offset + length - 1;
@@ -79,7 +78,6 @@ public class Cache implements IDiskManager {
     }
   }
 
-  @Override
   public void write(String filename, long offset, int length, byte[] buf) throws Exception {
     // end offset in file
     long endOffset = offset + length - 1;
@@ -111,12 +109,9 @@ public class Cache implements IDiskManager {
     }
   }
 
-  public void readByte(String filename, long offset) {
-
-  }
 
   // copy entire block to buf
-  public void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
+  public synchronized void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
     byte[] block = readBlock(new BlockId(filename, blockNo));
     System.arraycopy(block, 0, buf, 0, BLOCK_SIZE);
   }
@@ -159,7 +154,7 @@ public class Cache implements IDiskManager {
   }
 
   // write the entire block
-  public void writeBlock(String filename, int blockNo, byte[] buf) throws Exception {
+  public synchronized void writeBlock(String filename, int blockNo, byte[] buf) throws Exception {
     writeBlock(new BlockId(filename, blockNo), 0, buf, 0, BLOCK_SIZE);
   }
 
