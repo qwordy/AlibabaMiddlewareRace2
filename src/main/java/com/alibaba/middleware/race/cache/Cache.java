@@ -28,7 +28,7 @@ public class Cache {
   // filename, fd
   private Map<String, RandomAccessFile> fileMap;
 
-  private static volatile Cache cache;
+  private static Cache cache;
 
   private Cache() {
     blockMap = new HashMap<>();
@@ -37,14 +37,20 @@ public class Cache {
   }
 
   public static Cache getInstance() {
-    if (cache == null) {
-      synchronized (Cache.class) {
-        if (cache == null)
-          cache = new Cache();
-      }
-    }
+    if (cache == null)
+      cache = new Cache();
     return cache;
   }
+
+//  public static Cache getInstance() {
+//    if (cache == null) {
+//      synchronized (Cache.class) {
+//        if (cache == null)
+//          cache = new Cache();
+//      }
+//    }
+//    return cache;
+//  }
 
   public void read(String filename, long offset, int length, byte[] buf) throws Exception {
     // end offset in file
@@ -261,9 +267,9 @@ public class Cache {
   /**
    * newest <--------> oldest
    * head  next  next  tail
-   *    .   ->  . ->   .
-   *        <-    <-
-   *       prev  prev
+   * .   ->  . ->   .
+   * <-    <-
+   * prev  prev
    */
   private static class Node {
 
@@ -285,7 +291,7 @@ public class Cache {
       byte[] buf = new byte[4096];
 
       for (int i = 0; i < 20; i++) {
-        Arrays.fill(buf, (byte)i);
+        Arrays.fill(buf, (byte) i);
         f.write(buf);
       }
 
