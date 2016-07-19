@@ -200,7 +200,14 @@ public class HashTable {
     int blockNo = addr.blockNo;
     if (addr.find) {
       blockNo = Util.byte2int(bucket, addr.off);
-      cache.readBlock(indexFile, blockNo, bucket);
+      // find the last block in the chain
+      while (true) {
+        cache.readBlock(indexFile, blockNo, bucket);
+        int nextBlockNo = Util.byte2int(bucket, 0);
+        if (nextBlockNo == 0)
+          break;
+        blockNo = nextBlockNo;
+      }
       addValueMulti(bucket, blockNo, fileId, fileOffset, extra);
     } else {
       // the next position in block to add entry
