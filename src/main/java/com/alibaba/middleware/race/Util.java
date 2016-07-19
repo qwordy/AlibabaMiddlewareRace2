@@ -1,5 +1,7 @@
 package com.alibaba.middleware.race;
 
+import java.util.Collection;
+
 /**
  * Created by yfy on 7/14/16.
  * Util
@@ -75,6 +77,15 @@ public class Util {
       if (a[aPos + i] != b[bPos + i])
         return false;
     return true;
+  }
+
+  public static String keysStr(Collection<String> keys) {
+    if (keys == null)
+      return "null";
+    StringBuilder sb = new StringBuilder();
+    for (String key : keys)
+      sb.append(key).append(' ');
+    return sb.toString();
   }
 
 }

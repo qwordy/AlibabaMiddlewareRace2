@@ -15,9 +15,28 @@ import static org.junit.Assert.assertEquals;
 public class AppTest {
 
   @Test
-  public void constructBig() throws Exception {
+  public void queryBig() throws Exception {
+    OrderSystem os = constructBig();
+
+    OrderSystem.Result result = os.queryOrder(606092157, Arrays.asList("buyername"));
+    assertEquals("晋恿吾", result.get("buyername").valueAsString());
+
+    result = os.queryOrder(627892507, null);
+
+  }
+
+  private OrderSystem constructBig() throws Exception {
     OrderSystem os = new OrderSystemImpl();
-    
+    os.construct(
+        Arrays.asList(fn("order.0.0"), fn("order.0.3"), fn("order.1.1"), fn("order.2.2")),
+        Arrays.asList(fn("buyer.0.0"), fn("buyer.1.1")),
+        Arrays.asList(fn("good.0.0"), fn("good.1.1"), fn("good.2.2")),
+        Arrays.asList("/home/yfy/middleware/prerun_data"));
+    return os;
+  }
+
+  private String fn(String file) {
+    return "/home/yfy/middleware/prerun_data/" + file;
   }
 
   @Test
