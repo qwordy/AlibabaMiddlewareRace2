@@ -21,6 +21,9 @@ public class AppTest {
     OrderSystem.Result result = os.queryOrder(606092157, Arrays.asList("buyername"));
     assertEquals("晋恿吾", result.get("buyername").valueAsString());
 
+    result = os.queryOrder(604911336, Arrays.asList("buyerid"));
+    assertEquals("tp-9d00-3b1cf5d41ff5", result.get("buyerid").valueAsString());
+
     OrderSystem.KeyValue kv = os.sumOrdersByGood("al-950f-5924be431212", "a_g_10839");
     assertEquals(null, kv);
 

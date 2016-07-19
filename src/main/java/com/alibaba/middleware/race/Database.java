@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race;
 
+import com.alibaba.middleware.race.cache.Cache;
 import com.alibaba.middleware.race.kvDealer.BuyerKvDealer;
 import com.alibaba.middleware.race.kvDealer.GoodKvDealer;
 import com.alibaba.middleware.race.kvDealer.IKvDealer;
@@ -27,22 +28,30 @@ public class Database {
   public Database(Collection<String> orderFiles,
                   Collection<String> buyerFiles,
                   Collection<String> goodFiles,
-                  Collection<String> storeFolders) {
+                  Collection<String> storeFolders) throws Exception {
 
     tupleCreatetimeComparator = new TupleCreatetimeComparator();
     tupleOrderidComparator = new TupleOrderidComparator();
 
+    Cache cache = Cache.getInstance();
+
     orderFilesList = new ArrayList<>();
-    for (String file : orderFiles)
+    for (String file : orderFiles) {
       orderFilesList.add(file);
+      cache.addFd(file, true);
+    }
 
     goodFilesList = new ArrayList<>();
-    for (String file : goodFiles)
+    for (String file : goodFiles) {
       goodFilesList.add(file);
+      cache.addFd(file, true);
+    }
 
     buyerFilesList = new ArrayList<>();
-    for (String file : buyerFiles)
+    for (String file : buyerFiles) {
       buyerFilesList.add(file);
+      cache.addFd(file, true);
+    }
 
     storeFoldersList = new ArrayList<>();
     for (String folder : storeFolders)

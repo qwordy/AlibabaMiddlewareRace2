@@ -28,7 +28,7 @@ public class Cache {
   // filename, fd
   private Map<String, RandomAccessFile> fileMap;
 
-  private static Cache cache;
+  private static volatile Cache cache;
 
   private Cache() {
     blockMap = new HashMap<>();
@@ -38,7 +38,10 @@ public class Cache {
 
   public static Cache getInstance() {
     if (cache == null) {
-      cache = new Cache();
+      synchronized (Cache.class) {
+        if (cache == null)
+          cache = new Cache();
+      }
     }
     return cache;
   }
@@ -200,7 +203,12 @@ public class Cache {
     f.write(node.block, 0, BLOCK_SIZE);
   }
 
-  private RandomAccessFile getFd(String filename) throws Exception {
+  public void addFd(String filename, boolean readOnly) throws Exception {
+    String mode = readOnly ? "r" : "rw";
+    fileMap.put(filename, new RandomAccessFile(filename, mode));
+  }
+
+  private synchronized RandomAccessFile getFd(String filename) throws Exception {
     RandomAccessFile f = fileMap.get(filename);
     if (f == null) {
       f = new RandomAccessFile(filename, "rw");
@@ -242,13 +250,13 @@ public class Cache {
     }
   }
 
-  protected void finalize() {
-    try {
-      flush();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
+//  protected void finalize() {
+//    try {
+//      flush();
+//    } catch (Exception e) {
+//      e.printStackTrace();
+//    }
+//  }
 
   /**
    * newest <--------> oldest
