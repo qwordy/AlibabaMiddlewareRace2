@@ -34,15 +34,21 @@ public class AppTest {
         "al-814a-e3bba7062bdd",
         Arrays.asList("good_name", "a_o_12490", "a_o_4082", "buyerid", "a_o_9238"));
 
+    // sumOrdersByGood
     OrderSystem.KeyValue kv = os.sumOrdersByGood("al-950f-5924be431212", "a_g_10839");
     assertEquals(null, kv);
 
-    // sumOrdersByGood
     kv = os.sumOrdersByGood("dd-8ad6-8de99e8d7dad", "amount");
     assertEquals(735, kv.valueAsLong());
 
     kv = os.sumOrdersByGood("dd-b9e1-77c52c63fffa", "price");
     assertEquals(455880.3135284825, kv.valueAsDouble(), 1e-6);
+
+    kv = os.sumOrdersByGood("al-8162-0492cff4394c", "amount");
+    assertEquals(552, kv.valueAsLong());
+
+    kv = os.sumOrdersByGood("dd-a665-acd638b44e92", "price");
+    assertEquals(117811.2897340, kv.valueAsDouble(), 1e-6);
 
   }
 
