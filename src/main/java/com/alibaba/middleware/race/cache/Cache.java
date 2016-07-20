@@ -18,7 +18,7 @@ public class Cache {
 
   private final int MASK = 0xfff;
 
-  private final int CACHE_SIZE = 300000;
+  private final int CACHE_SIZE = 3000;
 
   // blockId, block
   private Map<BlockId, Node> blockMap;
@@ -204,6 +204,7 @@ public class Cache {
 
   // write to disk immediately
   private void writeBlockToDisk(Node node) throws Exception {
+    //if (node.)
     RandomAccessFile f = getFd(node.blockId.filename);
     f.seek(((long) node.blockId.no) << BIT);
     f.write(node.block, 0, BLOCK_SIZE);
@@ -248,13 +249,13 @@ public class Cache {
     }
   }
 
-  private void flush() throws Exception {
-    Node p = this.head;
-    while (p != null) {
-      writeBlockToDisk(p);
-      p = p.next;
-    }
-  }
+//  private void flush() throws Exception {
+//    Node p = this.head;
+//    while (p != null) {
+//      writeBlockToDisk(p);
+//      p = p.next;
+//    }
+//  }
 
 //  protected void finalize() {
 //    try {
