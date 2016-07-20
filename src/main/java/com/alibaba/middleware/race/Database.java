@@ -201,6 +201,7 @@ public class Database {
 
     List<String> keys = Collections.singletonList(key);
     List<Tuple> tupleList = good2OrderHashTable.getMulti(goodid.getBytes(), null);
+    System.out.println(tupleList.size());
     for (Tuple tuple : tupleList) {
       long valueLong = 0;
       double valueDouble = 0;

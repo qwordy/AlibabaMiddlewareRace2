@@ -18,7 +18,7 @@ public class Cache {
 
   private final int MASK = 0xfff;
 
-  private final int CACHE_SIZE = 100000;
+  private final int CACHE_SIZE = 10000;
 
   // blockId, block
   private Map<BlockId, Node> blockMap;
@@ -52,85 +52,84 @@ public class Cache {
 //    return cache;
 //  }
 
-  public void read(String filename, long offset, int length, byte[] buf) throws Exception {
-    // end offset in file
-    long endOffset = offset + length - 1;
+//  public void read(String filename, long offset, int length, byte[] buf) throws Exception {
+//    // end offset in file
+//    long endOffset = offset + length - 1;
+//
+//    int beginBlockNo = (int) (offset >>> BIT);
+//    int endBlockNo = (int) (endOffset >>> BIT);
+//
+//    if (beginBlockNo == endBlockNo) {  // in one block
+//      // offset in block
+//      int beginOff = (int) (offset & MASK);
+//      byte[] block = readBlock(new BlockId(filename, beginBlockNo));
+//      System.arraycopy(block, beginOff, buf, 0, length);
+//
+//    } else {  // multiple blocks
+//      // first block
+//      int beginOff = (int) (offset & MASK);  // offset in the block
+//      byte[] block = readBlock(new BlockId(filename, beginBlockNo));
+//      int readLen = BLOCK_SIZE - beginOff;
+//      System.arraycopy(block, beginOff, buf, 0, readLen);
+//      int destPos = readLen;  // next position in buf
+//
+//      // middle blocks
+//      for (int blockNo = beginBlockNo + 1; blockNo < endBlockNo; blockNo++) {
+//        block = readBlock(new BlockId(filename, blockNo));
+//        System.arraycopy(block, 0, buf, destPos, BLOCK_SIZE);
+//        destPos += BLOCK_SIZE;
+//      }
+//
+//      // last block
+//      int endOff = (int) (endOffset & MASK);
+//      block = readBlock(new BlockId(filename, endBlockNo));
+//      System.arraycopy(block, 0, buf, destPos, endOff + 1);
+//    }
+//  }
+//
+//  public void write(String filename, long offset, int length, byte[] buf) throws Exception {
+//    // end offset in file
+//    long endOffset = offset + length - 1;
+//
+//    int beginBlockNo = (int) (offset >>> BIT);
+//    int endBlockNo = (int) (endOffset >>> BIT);
+//
+//    if (beginBlockNo == endBlockNo) {  // in one block
+//      // offset in block
+//      int beginOff = (int) (offset & MASK);
+//      writeBlock(new BlockId(filename, beginBlockNo), beginOff, buf, 0, length);
+//
+//    } else {  // multiple blocks
+//      // first block
+//      int beginOff = (int) (offset & MASK);  // offset in the block
+//      int writeLen = BLOCK_SIZE - beginOff;
+//      writeBlock(new BlockId(filename, beginBlockNo), beginOff, buf, 0, writeLen);
+//      int srcPos = writeLen;  // next position in buf
+//
+//      // middle blocks
+//      for (int blockNo = beginBlockNo + 1; blockNo < endBlockNo; blockNo++) {
+//        writeBlock(new BlockId(filename, blockNo), 0, buf, srcPos, BLOCK_SIZE);
+//        srcPos += BLOCK_SIZE;
+//      }
+//
+//      // last block
+//      int endOff = (int) (endOffset & MASK);
+//      writeBlock(new BlockId(filename, endBlockNo), 0, buf, srcPos, endOff + 1);
+//    }
+//  }
 
-    int beginBlockNo = (int) (offset >>> BIT);
-    int endBlockNo = (int) (endOffset >>> BIT);
-
-    if (beginBlockNo == endBlockNo) {  // in one block
-      // offset in block
-      int beginOff = (int) (offset & MASK);
-      byte[] block = readBlock(new BlockId(filename, beginBlockNo));
-      System.arraycopy(block, beginOff, buf, 0, length);
-
-    } else {  // multiple blocks
-      // first block
-      int beginOff = (int) (offset & MASK);  // offset in the block
-      byte[] block = readBlock(new BlockId(filename, beginBlockNo));
-      int readLen = BLOCK_SIZE - beginOff;
-      System.arraycopy(block, beginOff, buf, 0, readLen);
-      int destPos = readLen;  // next position in buf
-
-      // middle blocks
-      for (int blockNo = beginBlockNo + 1; blockNo < endBlockNo; blockNo++) {
-        block = readBlock(new BlockId(filename, blockNo));
-        System.arraycopy(block, 0, buf, destPos, BLOCK_SIZE);
-        destPos += BLOCK_SIZE;
-      }
-
-      // last block
-      int endOff = (int) (endOffset & MASK);
-      block = readBlock(new BlockId(filename, endBlockNo));
-      System.arraycopy(block, 0, buf, destPos, endOff + 1);
-    }
-  }
-
-  public void write(String filename, long offset, int length, byte[] buf) throws Exception {
-    // end offset in file
-    long endOffset = offset + length - 1;
-
-    int beginBlockNo = (int) (offset >>> BIT);
-    int endBlockNo = (int) (endOffset >>> BIT);
-
-    if (beginBlockNo == endBlockNo) {  // in one block
-      // offset in block
-      int beginOff = (int) (offset & MASK);
-      writeBlock(new BlockId(filename, beginBlockNo), beginOff, buf, 0, length);
-
-    } else {  // multiple blocks
-      // first block
-      int beginOff = (int) (offset & MASK);  // offset in the block
-      int writeLen = BLOCK_SIZE - beginOff;
-      writeBlock(new BlockId(filename, beginBlockNo), beginOff, buf, 0, writeLen);
-      int srcPos = writeLen;  // next position in buf
-
-      // middle blocks
-      for (int blockNo = beginBlockNo + 1; blockNo < endBlockNo; blockNo++) {
-        writeBlock(new BlockId(filename, blockNo), 0, buf, srcPos, BLOCK_SIZE);
-        srcPos += BLOCK_SIZE;
-      }
-
-      // last block
-      int endOff = (int) (endOffset & MASK);
-      writeBlock(new BlockId(filename, endBlockNo), 0, buf, srcPos, endOff + 1);
-    }
-  }
-
+  // read from offset in filename to the end of block
+//  public void readPartBlock(String filename, long offset, byte[] buf) throws Exception {
+//    int blockNo = (int) (offset >>> BIT);
+//    int blockOff = (int) (offset & MASK);
+//    byte[] block = readBlock(new BlockId(filename, blockNo));
+//    System.arraycopy(block, blockOff, buf, 0, BLOCK_SIZE - blockOff);
+//  }
 
   // copy entire block to buf
   public synchronized void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
     byte[] block = readBlock(new BlockId(filename, blockNo));
     System.arraycopy(block, 0, buf, 0, BLOCK_SIZE);
-  }
-
-  // read from offset in filename to the end of block
-  public void readPartBlock(String filename, long offset, byte[] buf) throws Exception {
-    int blockNo = (int) (offset >>> BIT);
-    int blockOff = (int) (offset & MASK);
-    byte[] block = readBlock(new BlockId(filename, blockNo));
-    System.arraycopy(block, blockOff, buf, 0, BLOCK_SIZE - blockOff);
   }
 
   // do not modify the return block
@@ -218,7 +217,7 @@ public class Cache {
   private synchronized RandomAccessFile getFd(String filename) throws Exception {
     RandomAccessFile f = fileMap.get(filename);
     if (f == null) {
-      f = new RandomAccessFile(filename, "rw");
+      f = new RandomAccessFile(filename, "rwd");
       fileMap.put(filename, f);
     }
     return f;
