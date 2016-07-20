@@ -34,10 +34,10 @@ public class AppTest {
         "al-814a-e3bba7062bdd",
         Arrays.asList("good_name", "a_o_12490", "a_o_4082", "buyerid", "a_o_9238"));
 
+    // sumOrdersByGood
     OrderSystem.KeyValue kv = os.sumOrdersByGood("al-950f-5924be431212", "a_g_10839");
     assertEquals(null, kv);
 
-    // sumOrdersByGood
     kv = os.sumOrdersByGood("dd-8ad6-8de99e8d7dad", "amount");
     assertEquals(735, kv.valueAsLong());
 
