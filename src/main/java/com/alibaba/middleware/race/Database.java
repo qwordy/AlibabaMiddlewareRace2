@@ -69,9 +69,9 @@ public class Database {
     orderHashTable =
         new HashTable(orderFilesList, fullname("order.hash"), 1000, 8, false, 0);
     buyer2OrderHashTable =
-        new HashTable(orderFilesList, fullname("buyer2Order.hash"), 1000, 0, true, 8);
+        new HashTable(orderFilesList, fullname("buyer2Order.hash"), 100, 0, true, 8);
     good2OrderHashTable =
-        new HashTable(orderFilesList, fullname("good2Order.hash"), 1000, 0, true, 8);
+        new HashTable(orderFilesList, fullname("good2Order.hash"), 100, 0, true, 8);
     OrderKvDealer dealer = new OrderKvDealer(
         orderHashTable, buyer2OrderHashTable, good2OrderHashTable);
     for (int i = 0; i < orderFilesList.size(); i++) {
