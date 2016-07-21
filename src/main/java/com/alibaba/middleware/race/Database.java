@@ -148,14 +148,14 @@ public class Database {
     dealer.deal(key, keyLen, value, valueLen, offset);
   }
 
-  private void print(byte[] key, int keyLen, byte[] value, int valueLen) {
-    for (int i = 0; i < keyLen; i++)
-      System.out.print((char) key[i]);
-    System.out.print(':');
-    for (int i = 0; i < valueLen; i++)
-      System.out.print((char) value[i]);
-    System.out.print('\t');
-  }
+//  private void print(byte[] key, int keyLen, byte[] value, int valueLen) {
+//    for (int i = 0; i < keyLen; i++)
+//      System.out.print((char) key[i]);
+//    System.out.print(':');
+//    for (int i = 0; i < valueLen; i++)
+//      System.out.print((char) value[i]);
+//    System.out.print('\t');
+//  }
 
   public ResultImpl queryOrder(long orderId, Collection<String> keys)
       throws Exception {

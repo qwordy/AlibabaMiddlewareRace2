@@ -179,11 +179,11 @@ public class ResultImpl implements OrderSystem.Result {
     return id;
   }
 
-  public void printOrderTuple() throws Exception {
-    int b;
-    orderTuple.reset();
-    while ((b = orderTuple.next()) != -1)
-      System.out.print((char) b);
-    System.out.println();
-  }
+//  public void printOrderTuple() throws Exception {
+//    int b;
+//    orderTuple.reset();
+//    while ((b = orderTuple.next()) != -1)
+//      System.out.print((char) b);
+//    System.out.println();
+//  }
 }
