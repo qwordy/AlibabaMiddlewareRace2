@@ -88,4 +88,12 @@ public class Util {
     return sb.toString();
   }
 
+  public static int bytesHash(byte[] key) {
+    int h = 0;
+    for (byte b : key) {
+      h = 31 * h + b;
+    }
+    return h;
+  }
+
 }

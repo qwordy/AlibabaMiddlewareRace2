@@ -6,7 +6,8 @@ import com.alibaba.middleware.race.kvDealer.GoodKvDealer;
 import com.alibaba.middleware.race.kvDealer.IKvDealer;
 import com.alibaba.middleware.race.kvDealer.OrderKvDealer;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.util.*;
 
 /**
@@ -66,11 +67,11 @@ public class Database {
 
   private void buildOrder2OrderHash() throws Exception {
     orderHashTable =
-        new HashTable(orderFilesList, fullname("order.hash"), 100, 8, false, 0);
+        new HashTable(orderFilesList, fullname("order.hash"), 1000, 8, false, 0);
     buyer2OrderHashTable =
-        new HashTable(orderFilesList, fullname("buyer2Order.hash"), 100, 0, true, 8);
+        new HashTable(orderFilesList, fullname("buyer2Order.hash"), 1000, 0, true, 8);
     good2OrderHashTable =
-        new HashTable(orderFilesList, fullname("good2Order.hash"), 100, 0, true, 8);
+        new HashTable(orderFilesList, fullname("good2Order.hash"), 1000, 0, true, 8);
     OrderKvDealer dealer = new OrderKvDealer(
         orderHashTable, buyer2OrderHashTable, good2OrderHashTable);
     for (int i = 0; i < orderFilesList.size(); i++) {
@@ -201,7 +202,7 @@ public class Database {
 
     List<String> keys = Collections.singletonList(key);
     List<Tuple> tupleList = good2OrderHashTable.getMulti(goodid.getBytes(), null);
-    System.out.println(tupleList.size());
+//    System.out.println(tupleList.size());
     for (Tuple tuple : tupleList) {
       long valueLong = 0;
       double valueDouble = 0;

@@ -1,7 +1,6 @@
 package com.alibaba.middleware.race.cache;
 
 import java.io.RandomAccessFile;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,7 +41,175 @@ public class Cache {
     return cache;
   }
 
-//  public static Cache getInstance() {
+  // copy entire block to buf
+  public synchronized void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
+    byte[] block = readBlock(new BlockId(filename, blockNo));
+    System.arraycopy(block, 0, buf, 0, BLOCK_SIZE);
+  }
+
+  // do not modify the return block
+  private byte[] readBlock(BlockId blockId) throws Exception {
+    Node node = blockMap.get(blockId);
+    if (node == null) {  // not in cache
+      // read from disk
+      byte[] block = new byte[BLOCK_SIZE];
+      RandomAccessFile f = getFd(blockId.filename);
+      f.seek(((long) blockId.no) << BIT);
+      f.read(block, 0, BLOCK_SIZE);
+
+      node = new Node(blockId, block);
+
+      // remove the lru cache
+      if (blockMap.size() >= CACHE_SIZE) {
+        writeTailNodeToDisk();
+        Node rn = blockMap.remove(tail.blockId);
+        remove(tail);
+        if (rn == null)
+          throw new Exception("remove fail");
+      }
+      // add a new node into cache
+      addHead(node);
+      blockMap.put(blockId, node);
+
+    } else {  // in cache
+      remove(node);
+      addHead(node);
+    }
+    return node.block;
+  }
+
+  // write the entire block
+  public synchronized void writeBlock(String filename, int blockNo, byte[] buf) throws Exception {
+    BlockId blockId = new BlockId(filename, blockNo);
+    Node node = blockMap.get(blockId);
+    if (node == null) {  // not in cache
+      // new a block, write data
+      byte[] block = new byte[BLOCK_SIZE];
+      System.arraycopy(buf, 0, block, 0, BLOCK_SIZE);
+
+      node = new Node(blockId, block);
+      node.modified = true;
+
+      // remove the lru cache
+      if (blockMap.size() >= CACHE_SIZE) {
+        writeTailNodeToDisk();
+        Node rn = blockMap.remove(tail.blockId);
+        remove(tail);
+        if (rn == null)
+          throw new Exception("remove fail");
+      }
+      // add new node into cache
+      addHead(node);
+      blockMap.put(blockId, node);
+
+    } else {  // in cache
+      System.arraycopy(buf, 0, node.block, 0, BLOCK_SIZE);
+      node.modified = true;
+      remove(node);
+      addHead(node);
+    }
+  }
+
+  private void writeTailNodeToDisk() throws Exception {
+    if (tail.modified) {
+      RandomAccessFile f = getFd(tail.blockId.filename);
+      f.seek(((long) tail.blockId.no) << BIT);
+      f.write(tail.block, 0, BLOCK_SIZE);
+    }
+  }
+
+  public void addFd(String filename, boolean readOnly) throws Exception {
+    String mode = readOnly ? "r" : "rw";
+    fileMap.put(filename, new RandomAccessFile(filename, mode));
+  }
+
+  private RandomAccessFile getFd(String filename) throws Exception {
+    RandomAccessFile f = fileMap.get(filename);
+    if (f == null) {
+      f = new RandomAccessFile(filename, "rw");
+      fileMap.put(filename, f);
+    }
+    return f;
+  }
+
+  // remove node in linked list
+  private void remove(Node node) {
+    if (node.prev == null)
+      head = node.next;
+    else
+      node.prev.next = node.next;
+
+    if (node.next == null)
+      tail = node.prev;
+    else
+      node.next.prev = node.prev;
+  }
+
+  // add node in the head
+  private void addHead(Node node) {
+    if (head == null)
+      head = tail = node;
+    else {
+      node.prev = null;
+      node.next = head;
+      head.prev = node;
+      head = node;
+    }
+  }
+
+  /**
+   * newest <--------> oldest
+   * head  next  next  tail
+   * .   ->  . ->   .
+   * <-    <-
+   * prev  prev
+   */
+  private static class Node {
+
+    final BlockId blockId;
+
+    final byte[] block;
+
+    Node prev, next;
+
+    // if block is modified
+    boolean modified;
+
+    Node(BlockId blockId, byte[] block) {
+      this.blockId = blockId;
+      this.block = block;
+      modified = false;
+    }
+  }
+
+//  public static void main(String[] args) {
+//    try {
+//      RandomAccessFile f = new RandomAccessFile("test", "rwd");
+//      byte[] buf = new byte[4096];
+//
+//      for (int i = 0; i < 20; i++) {
+//        Arrays.fill(buf, (byte) i);
+//        f.write(buf);
+//      }
+//
+//      Cache cache = new Cache();
+//      for (int i = 0; i < 20; i++) {
+//        buf = cache.readBlock(new BlockId("test", i));
+//        System.out.println(buf[0]);
+//      }
+//
+//      f.seek(999999);
+//      f.write(5);
+//      System.out.println();
+//
+//      buf = cache.readBlock(new BlockId("test", 99));
+//      System.out.println(Arrays.toString(buf));
+//    } catch (Exception e) {
+//      e.printStackTrace();
+//    }
+//  }
+
+  //  public static Cache getInstance() {
 //    if (cache == null) {
 //      synchronized (Cache.class) {
 //        if (cache == null)
@@ -126,129 +293,44 @@ public class Cache {
 //    System.arraycopy(block, blockOff, buf, 0, BLOCK_SIZE - blockOff);
 //  }
 
-  // copy entire block to buf
-  public synchronized void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
-    byte[] block = readBlock(new BlockId(filename, blockNo));
-    System.arraycopy(block, 0, buf, 0, BLOCK_SIZE);
-  }
-
-  // do not modify the return block
-  private byte[] readBlock(BlockId blockId) throws Exception {
-    Node node = blockMap.get(blockId);
-    if (node == null) {  // not in cache
-      // read from disk
-      byte[] block = new byte[BLOCK_SIZE];
-      RandomAccessFile f = getFd(blockId.filename);
-      f.seek(((long) blockId.no) << BIT);
-      f.read(block, 0, BLOCK_SIZE);
-
-      node = new Node(blockId, block);
-
-      // remove the lru cache
-      if (blockMap.size() >= CACHE_SIZE) {
-        writeBlockToDisk(tail);
-        remove(tail);
-        blockMap.remove(tail.blockId);
-      }
-      // add a new node into cache
-      addHead(node);
-      blockMap.put(blockId, node);
-
-    } else {  // in cache
-      remove(node);
-      addHead(node);
-    }
-    return node.block;
-  }
-
-  // write the entire block
-  public synchronized void writeBlock(String filename, int blockNo, byte[] buf) throws Exception {
-    writeBlock(new BlockId(filename, blockNo), 0, buf, 0, BLOCK_SIZE);
-  }
-
   // write len bytes of buf at bufOff into block at blockOff
-  private void writeBlock(BlockId blockId, int blockOff, byte[] buf, int bufOff, int len) throws Exception {
-    Node node = blockMap.get(blockId);
-    if (node == null) {  // not in cache
-      // new a block, write data
-      byte[] block = new byte[BLOCK_SIZE];
+//  private void writeBlock(BlockId blockId, int blockOff, byte[] buf, int bufOff, int len) throws Exception {
+//    Node node = blockMap.get(blockId);
+//    if (node == null) {  // not in cache
+//      // new a block, write data
+//      byte[] block = new byte[BLOCK_SIZE];
+//
+//      if (blockOff == 0 && len == BLOCK_SIZE) {  // write to cache directly
+//        System.arraycopy(buf, bufOff, block, 0, BLOCK_SIZE);
+//      } else {  // read from disk first
+//        RandomAccessFile f = getFd(blockId.filename);
+//        f.seek(((long) blockId.no) << BIT);
+//        f.read(block, 0, BLOCK_SIZE);
+//
+//        System.arraycopy(buf, bufOff, block, blockOff, len);
+//      }
+//
+//      node = new Node(blockId, block);
+//
+//      // add a new node into cache
+//      if (blockMap.size() >= CACHE_SIZE) {  // remove the lru cache
+//        writeTailNodeToDisk();
+//        remove(tail);
+//        Node rn = blockMap.remove(tail.blockId);
+//        if (rn == null)
+//          throw new Exception("remove fail");
+//      }
+//      addHead(node);
+//      blockMap.put(blockId, node);
+//
+//    } else {  // in cache
+//      System.arraycopy(buf, bufOff, node.block, blockOff, len);
+//      remove(node);
+//      addHead(node);
+//    }
+//  }
 
-      if (blockOff == 0 && len == BLOCK_SIZE) {  // write to cache directly
-        System.arraycopy(buf, bufOff, block, 0, BLOCK_SIZE);
-      } else {  // read from disk first
-        RandomAccessFile f = getFd(blockId.filename);
-        f.seek(((long) blockId.no) << BIT);
-        f.read(block, 0, BLOCK_SIZE);
-
-        System.arraycopy(buf, bufOff, block, blockOff, len);
-      }
-
-      node = new Node(blockId, block);
-
-      // add a new node into cache
-      if (blockMap.size() >= CACHE_SIZE) {  // remove the lru cache
-        writeBlockToDisk(tail);
-        remove(tail);
-        blockMap.remove(tail.blockId);
-      }
-      addHead(node);
-      blockMap.put(blockId, node);
-
-    } else {  // in cache
-      System.arraycopy(buf, bufOff, node.block, blockOff, len);
-      remove(node);
-      addHead(node);
-    }
-  }
-
-  // write to disk immediately
-  private void writeBlockToDisk(Node node) throws Exception {
-    //if (node.)
-    RandomAccessFile f = getFd(node.blockId.filename);
-    f.seek(((long) node.blockId.no) << BIT);
-    f.write(node.block, 0, BLOCK_SIZE);
-  }
-
-  public void addFd(String filename, boolean readOnly) throws Exception {
-    String mode = readOnly ? "r" : "rw";
-    fileMap.put(filename, new RandomAccessFile(filename, mode));
-  }
-
-  private synchronized RandomAccessFile getFd(String filename) throws Exception {
-    RandomAccessFile f = fileMap.get(filename);
-    if (f == null) {
-      f = new RandomAccessFile(filename, "rwd");
-      fileMap.put(filename, f);
-    }
-    return f;
-  }
-
-  // remove node in linked list
-  private void remove(Node node) {
-    if (node.prev == null)
-      head = node.next;
-    else
-      node.prev.next = node.next;
-
-    if (node.next == null)
-      tail = node.prev;
-    else
-      node.next.prev = node.prev;
-  }
-
-  // add node in the head
-  private void addHead(Node node) {
-    if (head == null)
-      head = tail = node;
-    else {
-      node.prev = null;
-      node.next = head;
-      head.prev = node;
-      head = node;
-    }
-  }
-
-//  private void flush() throws Exception {
+  //  private void flush() throws Exception {
 //    Node p = this.head;
 //    while (p != null) {
 //      writeBlockToDisk(p);
@@ -263,53 +345,5 @@ public class Cache {
 //      e.printStackTrace();
 //    }
 //  }
-
-  /**
-   * newest <--------> oldest
-   * head  next  next  tail
-   * .   ->  . ->   .
-   * <-    <-
-   * prev  prev
-   */
-  private static class Node {
-
-    BlockId blockId;
-
-    byte[] block;
-
-    Node prev, next;
-
-    Node(BlockId blockId, byte[] block) {
-      this.blockId = blockId;
-      this.block = block;
-    }
-  }
-
-  public static void main(String[] args) {
-    try {
-      RandomAccessFile f = new RandomAccessFile("test", "rwd");
-      byte[] buf = new byte[4096];
-
-      for (int i = 0; i < 20; i++) {
-        Arrays.fill(buf, (byte) i);
-        f.write(buf);
-      }
-
-      Cache cache = new Cache();
-      for (int i = 0; i < 20; i++) {
-        buf = cache.readBlock(new BlockId("test", i));
-        System.out.println(buf[0]);
-      }
-
-      f.seek(999999);
-      f.write(5);
-      System.out.println();
-
-      buf = cache.readBlock(new BlockId("test", 99));
-      System.out.println(Arrays.toString(buf));
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
 
 }

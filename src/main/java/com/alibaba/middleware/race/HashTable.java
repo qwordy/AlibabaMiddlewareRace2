@@ -180,7 +180,7 @@ public class HashTable {
    * @param key
    * @param fileId
    * @param fileOffset
-   * @param extra extra information
+   * @param extra      extra information
    */
   public void addMulti(byte[] key, int fileId, long fileOffset, byte[] extra) throws Exception {
     if (!multiValue)
