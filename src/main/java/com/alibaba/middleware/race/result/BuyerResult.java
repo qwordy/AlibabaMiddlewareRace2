@@ -4,6 +4,7 @@ import com.alibaba.middleware.race.HashTable;
 import com.alibaba.middleware.race.OrderSystem;
 import com.alibaba.middleware.race.Tuple;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,12 +40,25 @@ public class BuyerResult extends AbstractResult implements OrderSystem.Result {
 
   @Override
   public OrderSystem.KeyValue[] getAll() {
-    return new OrderSystem.KeyValue[0];
+    int len = resultMap.size() + buyerResultMap.size() - 1;
+    OrderSystem.KeyValue[] kvArray = new OrderSystem.KeyValue[len];
+    int count = 0;
+    for (OrderSystem.KeyValue kv : resultMap.values())
+      kvArray[++count] = kv;
+    buyerResultMap.remove("buyerid");
+    for (OrderSystem.KeyValue kv : buyerResultMap.values())
+      kvArray[++count] = kv;
+    return kvArray;
   }
 
   @Override
   public long orderId() {
-    return 0;
+    try {
+      return resultMap.get("orderid").valueAsLong();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return 0;
+    }
   }
 
   @Override

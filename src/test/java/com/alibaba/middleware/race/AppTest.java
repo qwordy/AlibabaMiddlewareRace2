@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.io.RandomAccessFile;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 
 import static org.junit.Assert.assertEquals;
@@ -26,7 +27,7 @@ public class AppTest {
     assertEquals("tp-9d00-3b1cf5d41ff5", result.get("buyerid").valueAsString());
 
     // queryOrdersByBuyer
-    os.queryOrdersByBuyer(1471183448, 1483854721, "ap-9cfb-1009514ce5f1");
+    os.queryOrdersByBuyer(1470611363, 1484693606, "ap-ab95-3e7e0ed47717");
 
     // queryOrdersBySaler
     Iterator<OrderSystem.Result> iter = os.queryOrdersBySaler(
@@ -228,5 +229,16 @@ public class AppTest {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  @Test
+  public void col() {
+    for (String s : getCol())
+      s.length();
+  }
+
+  private Collection<String> getCol() {
+    System.out.println(1);
+    return Arrays.asList("aa", "bb");
   }
 }
