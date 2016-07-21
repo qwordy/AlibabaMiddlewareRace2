@@ -184,7 +184,6 @@ public class Database {
     SimpleResult buyerResult = new SimpleResult(buyerTuple, null);
 
     Collections.sort(tupleList, tupleCreatetimeComparator);
-
     List<OrderSystem.Result> resultList = new ArrayList<>();
     for (Tuple tuple : tupleList)
       resultList.add(new BuyerResult(tuple, buyerResult));
@@ -195,6 +194,12 @@ public class Database {
       String goodid, Collection<String> keys) throws Exception {
 
     List<Tuple> tupleList = good2OrderHashTable.getMulti(goodid.getBytes(), null);
+    if (tupleList.isEmpty())
+      return new ArrayList<OrderSystem.Result>().iterator();
+
+    Tuple goodTuple = goodHashTable.get(goodid.getBytes());
+    SimpleResult goodResult = new SimpleResult(goodTuple, keys);
+
     Collections.sort(tupleList, tupleOrderidComparator);
     List<OrderSystem.Result> resultList = new ArrayList<>();
     for (Tuple tuple : tupleList)
