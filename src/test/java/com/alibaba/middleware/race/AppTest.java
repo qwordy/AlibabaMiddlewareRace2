@@ -44,10 +44,12 @@ public class AppTest {
     kv = os.sumOrdersByGood("dd-b9e1-77c52c63fffa", "price");
     assertEquals(455880.3135284825, kv.valueAsDouble(), 1e-6);
 
-    // to check
     kv = os.sumOrdersByGood("al-8162-0492cff4394c", "amount");
     assertEquals(552, kv.valueAsLong());
 
+    kv = os.sumOrdersByGood("dd-a665-acd638b44e92", "price");
+    assertEquals(117811.2897340, kv.valueAsDouble(), 1e-6);
+    
   }
 
   private OrderSystem constructBig() throws Exception {
