@@ -175,7 +175,14 @@ public class Database {
 
     TupleFilter filter = new TupleFilter(startTime, endTime);
     List<Tuple> tupleList = buyer2OrderHashTable.getMulti(buyerid.getBytes(), filter);
+    if (tupleList.isEmpty())
+      return new ArrayList<OrderSystem.Result>().iterator();
+
+    Tuple buyerTuple = buyerHashTable.get(buyerid.getBytes());
+
+
     Collections.sort(tupleList, tupleCreatetimeComparator);
+
     List<OrderSystem.Result> resultList = new ArrayList<>();
     for (Tuple tuple : tupleList)
       resultList.add(new ResultImpl(tuple, null));
