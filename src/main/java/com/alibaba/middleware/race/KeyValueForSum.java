@@ -2,9 +2,9 @@ package com.alibaba.middleware.race;
 
 /**
  * Created by yfy on 7/18/16.
- * KeyValueSimple
+ * KeyValueForSum
  */
-public class KeyValueSimple implements OrderSystem.KeyValue{
+public class KeyValueForSum implements OrderSystem.KeyValue{
 
   private String key;
 
@@ -12,7 +12,7 @@ public class KeyValueSimple implements OrderSystem.KeyValue{
 
   private double sumDouble;
 
-  public KeyValueSimple(String key, long sumLong, double sumDouble) {
+  public KeyValueForSum(String key, long sumLong, double sumDouble) {
     this.key = key;
     this.sumLong = sumLong;
     this.sumDouble = sumDouble;

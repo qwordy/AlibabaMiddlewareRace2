@@ -181,7 +181,7 @@ public class Database {
       return new ArrayList<OrderSystem.Result>().iterator();
 
     Tuple buyerTuple = buyerHashTable.get(buyerid.getBytes());
-    SimpleResult buyerResult = new SimpleResult(buyerTuple);
+    SimpleResult buyerResult = new SimpleResult(buyerTuple, null);
 
     Collections.sort(tupleList, tupleCreatetimeComparator);
 
@@ -209,13 +209,35 @@ public class Database {
     long sumLong = 0;
     double sumDouble = 0;
 
-    List<String> keys = Collections.singletonList(key);
-    List<Tuple> tupleList = good2OrderHashTable.getMulti(goodid.getBytes(), null);
-//    System.out.println(tupleList.size());
-    for (Tuple tuple : tupleList) {
+    Collection<String> keys = Collections.singleton(key);
+    List<Tuple> orderTupleList = good2OrderHashTable.getMulti(goodid.getBytes(), null);
+
+    Tuple goodTuple = goodHashTable.get(goodid.getBytes());
+    SimpleResult goodResult = new SimpleResult(goodTuple, keys);
+    OrderSystem.KeyValue kv = goodResult.get(key);
+    if (kv != null) {
+      long vl = 0;
+      double vd = 0;
+      try {
+        vl = kv.valueAsLong();
+      } catch (Exception e) {
+        asLong = false;
+      }
+      try {
+        vd = kv.valueAsDouble();
+      } catch (Exception e) {
+        asDouble = false;
+      }
+      if (!asLong && !asDouble)
+        return null;
+      int size = orderTupleList.size();
+      return new KeyValueForSum(key, vl * size, vd * size);
+    }
+
+    for (Tuple tuple : orderTupleList) {
       long valueLong = 0;
       double valueDouble = 0;
-      OrderSystem.KeyValue kv = new ResultImpl(tuple, keys).get(key);
+      kv = new ResultImpl(tuple, keys).get(key);
 
       if (kv == null)
         continue;
@@ -247,7 +269,7 @@ public class Database {
     if (!hasKey)
       return null;
 
-    return new KeyValueSimple(key, sumLong, sumDouble);
+    return new KeyValueForSum(key, sumLong, sumDouble);
   }
 
 //  private void readOrderFile(String filename, int fileId) throws Exception {

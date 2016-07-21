@@ -3,6 +3,7 @@ package com.alibaba.middleware.race.result;
 import com.alibaba.middleware.race.OrderSystem;
 import com.alibaba.middleware.race.Tuple;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,8 +15,16 @@ public class SimpleResult extends AbstractResult {
 
   private Map<String, OrderSystem.KeyValue> resultMap;
 
-  public SimpleResult(Tuple tuple) throws Exception {
+  private Collection<String> keys;
+
+  /**
+   * @param tuple
+   * @param keys null means all
+   * @throws Exception
+   */
+  public SimpleResult(Tuple tuple, Collection<String> keys) throws Exception {
     resultMap = new HashMap<>();
+    this.keys = keys;
     scan(tuple, resultMap);
   }
 
@@ -23,8 +32,12 @@ public class SimpleResult extends AbstractResult {
     return resultMap;
   }
 
+  public OrderSystem.KeyValue get(String key) {
+    return resultMap.get(key);
+  }
+
   @Override
   protected boolean needKey(byte[] key, int keyLen) {
-    return true;
+    return keys == null || keys.contains(new String(key, 0, keyLen));
   }
 }

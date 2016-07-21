@@ -4,13 +4,12 @@ import com.alibaba.middleware.race.HashTable;
 import com.alibaba.middleware.race.OrderSystem;
 import com.alibaba.middleware.race.Tuple;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by yfy on 7/21/16.
- * BuyerResult
+ * BuyerResult. queryOrdersByBuyer
  */
 public class BuyerResult extends AbstractResult implements OrderSystem.Result {
 
