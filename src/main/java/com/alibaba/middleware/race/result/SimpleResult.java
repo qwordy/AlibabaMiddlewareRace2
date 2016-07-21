@@ -10,12 +10,21 @@ import java.util.Map;
  * Created by yfy on 7/21/16.
  * SimpleResult
  */
-public class SimpleResult {
+public class SimpleResult extends AbstractResult {
 
   private Map<String, OrderSystem.KeyValue> resultMap;
 
-  public SimpleResult(Tuple tuple) {
+  public SimpleResult(Tuple tuple) throws Exception {
     resultMap = new HashMap<>();
+    scan(tuple, resultMap);
   }
 
+  public Map<String, OrderSystem.KeyValue> getResultMap() {
+    return resultMap;
+  }
+
+  @Override
+  protected boolean needKey(byte[] key, int keyLen) {
+    return true;
+  }
 }

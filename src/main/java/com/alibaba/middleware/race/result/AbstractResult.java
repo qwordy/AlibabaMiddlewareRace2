@@ -1,23 +1,57 @@
 package com.alibaba.middleware.race.result;
 
+import com.alibaba.middleware.race.KeyValueImpl;
 import com.alibaba.middleware.race.OrderSystem;
 import com.alibaba.middleware.race.Tuple;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * Created by yfy on 7/21/16.
  * AbstractResult
  */
-public abstract class AbstractResult implements OrderSystem.Result {
+public abstract class AbstractResult {
 
-  private Collection<String> keys;
+  protected void scan(Tuple tuple, Map<String, OrderSystem.KeyValue> resultMap)
+      throws Exception {
 
-  private Set<String> keySet;
+    int b, keyLen = 0, valueLen = 0;
+    // 0 for read key, 1 for read value
+    int status = 0;
+    byte[] key = new byte[256];
+    byte[] value = new byte[65536];
+    while ((b = tuple.next()) != -1) {
+      if (status == 0) {
+        if (b == ':') {
+          valueLen = 0;
+          status = 1;
+        } else {
+          key[keyLen++] = (byte) b;
+        }
+      } else {  // 1
+        if (b == '\t') {
+          if (needKey(key, keyLen)) {
+            String keyStr = new String(key, 0, keyLen);
+            String valueStr = new String(value, 0, valueLen);
+            resultMap.put(keyStr, new KeyValueImpl(keyStr, valueStr));
+          }
+          keyLen = 0;
+          status = 0;
+        } else {
+          value[valueLen++] = (byte) b;
+        }
+      }
+    }
 
-  public AbstractResult(Collection<String> keys) {
-
+    if (needKey(key, keyLen)) {
+      String keyStr = new String(key, 0, keyLen);
+      String valueStr = new String(value, 0, valueLen);
+      resultMap.put(keyStr, new KeyValueImpl(keyStr, valueStr));
+    }
   }
+
+  protected abstract boolean needKey(byte[] key, int keyLen);
 
 }

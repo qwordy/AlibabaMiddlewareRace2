@@ -5,6 +5,8 @@ import com.alibaba.middleware.race.kvDealer.BuyerKvDealer;
 import com.alibaba.middleware.race.kvDealer.GoodKvDealer;
 import com.alibaba.middleware.race.kvDealer.IKvDealer;
 import com.alibaba.middleware.race.kvDealer.OrderKvDealer;
+import com.alibaba.middleware.race.result.BuyerResult;
+import com.alibaba.middleware.race.result.SimpleResult;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -179,13 +181,13 @@ public class Database {
       return new ArrayList<OrderSystem.Result>().iterator();
 
     Tuple buyerTuple = buyerHashTable.get(buyerid.getBytes());
-
+    SimpleResult buyerResult = new SimpleResult(buyerTuple);
 
     Collections.sort(tupleList, tupleCreatetimeComparator);
 
     List<OrderSystem.Result> resultList = new ArrayList<>();
     for (Tuple tuple : tupleList)
-      resultList.add(new ResultImpl(tuple, null));
+      resultList.add(new BuyerResult(tuple, buyerResult));
     return resultList.iterator();
   }
 
