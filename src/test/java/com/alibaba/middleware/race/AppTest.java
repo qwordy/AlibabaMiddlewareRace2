@@ -1,5 +1,7 @@
 package com.alibaba.middleware.race;
 
+import com.alibaba.middleware.race.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import com.alibaba.middleware.race.concurrentlinkedhashmap.EvictionListener;
 import org.junit.Test;
 
 import java.io.RandomAccessFile;
@@ -244,5 +246,26 @@ public class AppTest {
   private Collection<String> getCol() {
     System.out.println(1);
     return Arrays.asList("aa", "bb");
+  }
+
+  @Test
+  public void clhm() {
+    EvictionListener<Integer, Integer> listener = new EvictionListener<Integer, Integer>() {
+      @Override
+      public void onEviction(Integer key, Integer value) {
+        System.out.println(key + " " + value);
+      }
+    };
+
+    ConcurrentLinkedHashMap<Integer, Integer> cache =
+        new ConcurrentLinkedHashMap.Builder<Integer, Integer>()
+            .maximumWeightedCapacity(5)
+            .listener(listener)
+            .build();
+    for (int i = 0; i < 20; i++)
+      cache.put(i, i);
+
+    for (int key : cache.keySet())
+      System.out.println(key);
   }
 }

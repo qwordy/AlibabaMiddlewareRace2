@@ -29,6 +29,8 @@ public class Cache {
 
   private static Cache cache;
 
+  //private long totalCount, missCount;
+
   private Cache() {
     blockMap = new HashMap<>();
     fileMap = new HashMap<>();
@@ -42,7 +44,9 @@ public class Cache {
   }
 
   // copy entire block to buf
-  public synchronized void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
+  public synchronized void readBlock(String filename, int blockNo, byte[] buf)
+      throws Exception {
+
     byte[] block = readBlock(new BlockId(filename, blockNo));
     System.arraycopy(block, 0, buf, 0, BLOCK_SIZE);
   }
@@ -181,7 +185,7 @@ public class Cache {
       modified = false;
     }
   }
-  
+
   private static class BlockId {
 
     final String filename;
