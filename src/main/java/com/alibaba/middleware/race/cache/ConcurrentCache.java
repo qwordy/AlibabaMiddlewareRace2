@@ -53,7 +53,7 @@ public class ConcurrentCache implements ICache {
   }
 
   @Override
-  public void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
+  public synchronized void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
     BlockId blockId = new BlockId(filename, blockNo);
     Node node = blockMap.get(blockId);
     if (node == null) { // not in cache
