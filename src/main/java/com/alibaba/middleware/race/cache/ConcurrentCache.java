@@ -23,7 +23,7 @@ public class ConcurrentCache implements ICache {
   private ConcurrentLinkedHashMap<BlockId, Node> blockMap;
 
   // filename, fd
-  private final Map<String, FdPool> fileMap;
+  private final Map<String, RandomAccessFile> fileMap;
 
   private static ConcurrentCache cache;
 
@@ -59,11 +59,11 @@ public class ConcurrentCache implements ICache {
       //System.out.println("[yfy] miss " + filename + ' ' + blockNo);
       // read from disk
       byte[] block = new byte[BLOCK_SIZE];
-      FdPool fdPool = getFd(filename);
-      RandomAccessFile f = fdPool.get();
-      f.seek(((long) blockId.no) << BIT);
-      f.read(block, 0, BLOCK_SIZE);
-      fdPool.put(f);
+      RandomAccessFile f = getFd(filename);
+      synchronized (f) {
+        f.seek(((long) blockId.no) << BIT);
+        f.read(block, 0, BLOCK_SIZE);
+      }
 
       node = new Node(block);
       blockMap.putIfAbsent(blockId, node);
@@ -89,30 +89,30 @@ public class ConcurrentCache implements ICache {
 
   public void addFd(String filename, boolean readOnly) throws Exception {
     String mode = readOnly ? "r" : "rw";
-    fileMap.put(filename, new FdPool(filename, mode));
+    fileMap.put(filename, new RandomAccessFile(filename, mode));
   }
 
-  private FdPool getFd(String filename) throws Exception {
-    FdPool fdPool= fileMap.get(filename);
-    if (fdPool == null) {
+  private RandomAccessFile getFd(String filename) throws Exception {
+    RandomAccessFile f = fileMap.get(filename);
+    if (f == null) {
       synchronized (fileMap) {
-        fdPool = fileMap.get(filename);
-        if (fdPool == null) {
-          fdPool = new FdPool(filename, "rw");
-          fileMap.put(filename, fdPool);
+        f = fileMap.get(filename);
+        if (f == null) {
+          f = new RandomAccessFile(filename, "rw");
+          fileMap.put(filename, f);
         }
       }
     }
-    return fdPool;
+    return f;
   }
 
   private void writeNodeToDisk(BlockId blockId, Node node) throws Exception {
     if (node.modified) {
-      FdPool fdPool = getFd(blockId.filename);
-      RandomAccessFile f = fdPool.get();
-      f.seek(((long) blockId.no) << BIT);
-      f.write(node.block, 0, BLOCK_SIZE);
-      fdPool.put(f);
+      RandomAccessFile f = getFd(blockId.filename);
+      synchronized (f) {
+        f.seek(((long) blockId.no) << BIT);
+        f.write(node.block, 0, BLOCK_SIZE);
+      }
     }
   }
 
