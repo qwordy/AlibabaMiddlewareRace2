@@ -181,6 +181,33 @@ public class Cache {
       modified = false;
     }
   }
+  
+  private static class BlockId {
+
+    final String filename;
+
+    // the no-th block in file
+    final int no;
+
+    BlockId(String filename, int no) {
+      this.filename = filename;
+      this.no = no;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj instanceof BlockId) {
+        BlockId bi = (BlockId) obj;
+        return filename.equals(bi.filename) && no == bi.no;
+      }
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      return filename.hashCode() + no;
+    }
+  }
 
 //  public static void main(String[] args) {
 //    try {
