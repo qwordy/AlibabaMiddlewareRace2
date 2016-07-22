@@ -49,6 +49,15 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
 
   @Override
   public OrderSystem.KeyValue get(String key) {
+    if (keys == null) {
+      OrderSystem.KeyValue kv = resultMap.get(key);
+      if (kv != null)
+        return kv;
+
+      kv = goodResultMap.get(key);
+      return kv;
+    }
+    
     if (key.equals("orderid") || key.equals("buyerid")) {
       if (keys.contains(key))
         return resultMap.get(key);
