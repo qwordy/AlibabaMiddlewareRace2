@@ -32,6 +32,8 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
       targetSize = keys.size();
       if (!keys.contains("orderid"))
         targetSize++;
+      if (!keys.contains("buyerid"))
+        targetSize++;
     }
 
     resultMap = new HashMap<>();
@@ -47,7 +49,7 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
 
   @Override
   public OrderSystem.KeyValue get(String key) {
-    if (key.equals("orderid")) {
+    if (key.equals("orderid") || key.equals("buyerid")) {
       if (keys.contains(key))
         return resultMap.get(key);
       return null;
@@ -77,9 +79,17 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
 
     OrderSystem.KeyValue[] kvArray = new OrderSystem.KeyValue[keys.size()];
     int count = 0;
-    for (OrderSystem.KeyValue kv : resultMap.values())
-      if (!kv.key().equals("orderid") || keys.contains("orderid"))
+    for (OrderSystem.KeyValue kv : resultMap.values()) {
+      if (kv.key().equals("orderid")) {
+        if (keys.contains("orderid"))
+          kvArray[++count] = kv;
+      } else if (kv.key().equals("buyerid")) {
+        if (keys.contains("buyerid"))
+          kvArray[++count] = kv;
+      } else {
         kvArray[++count] = kv;
+      }
+    }
     goodResultMap.remove("goodid");
     for (OrderSystem.KeyValue kv : goodResultMap.values())
       kvArray[++count] = kv;
@@ -98,8 +108,10 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
 
   @Override
   protected boolean needKey(byte[] key, int keyLen) {
+    String keyStr = new String(key, 0, keyLen);
     return keys == null ||
-        keys.contains(new String(key, 0, keyLen)) ||
-        new String(key, 0, keyLen).equals("orderid");
+        keys.contains(keyStr) ||
+        keyStr.equals("orderid") ||
+        keyStr.equals("buyerid");
   }
 }

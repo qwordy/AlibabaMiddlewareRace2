@@ -1,6 +1,9 @@
 package com.alibaba.middleware.race.result;
 
 import com.alibaba.middleware.race.OrderSystem;
+import com.alibaba.middleware.race.Tuple;
+
+import java.util.Collection;
 
 /**
  * Created by yfy on 7/22/16.
@@ -8,8 +11,10 @@ import com.alibaba.middleware.race.OrderSystem;
  */
 public class OrderResult extends AbstractResult implements OrderSystem.Result {
 
-  public OrderResult() {
+  private Collection<String> keys;
 
+  public OrderResult(Tuple orderTuple, Collection<String> keys) {
+    this.keys = keys;
   }
 
   @Override
