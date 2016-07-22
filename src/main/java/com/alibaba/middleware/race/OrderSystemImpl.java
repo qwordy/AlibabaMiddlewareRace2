@@ -33,7 +33,7 @@ public class OrderSystemImpl implements OrderSystem {
   }
 
   public Result queryOrder(long orderId, Collection<String> keys) {
-    //System.out.println("[yfy] queryOrder " + orderId + ' ' + Util.keysStr(keys));
+    System.out.println("[yfy] queryOrder " + orderId + ' ' + Util.keysStr(keys));
     try {
       return db.queryOrder(orderId, keys);
     } catch (Exception e) {
@@ -45,7 +45,7 @@ public class OrderSystemImpl implements OrderSystem {
   public Iterator<Result> queryOrdersByBuyer(
       long startTime, long endTime, String buyerid) {
 
-    //System.out.printf("[yfy] queryOrderByBuyer %d %d %s\n", startTime, endTime, buyerid);
+    System.out.printf("[yfy] queryOrderByBuyer %d %d %s\n", startTime, endTime, buyerid);
     try {
       return db.queryOrdersByBuyer(startTime, endTime, buyerid);
     } catch (Exception e) {
@@ -57,7 +57,7 @@ public class OrderSystemImpl implements OrderSystem {
   public Iterator<Result> queryOrdersBySaler(
       String salerid, String goodid, Collection<String> keys) {
 
-    //System.out.printf("[yfy] queryOrdersBySaler %s %s %s\n", salerid, goodid, Util.keysStr(keys));
+    System.out.printf("[yfy] queryOrdersBySaler %s %s %s\n", salerid, goodid, Util.keysStr(keys));
     try {
       return db.queryOrdersBySaler(goodid, keys);
     } catch (Exception e) {
@@ -67,7 +67,7 @@ public class OrderSystemImpl implements OrderSystem {
   }
 
   public KeyValue sumOrdersByGood(String goodid, String key) {
-    //System.out.println("[yfy] sumOrdersByGood " + goodid + ' ' + key);
+    System.out.println("[yfy] sumOrdersByGood " + goodid + ' ' + key);
     try {
       return db.sumOrdersByGood(goodid, key);
     } catch (Exception e) {
