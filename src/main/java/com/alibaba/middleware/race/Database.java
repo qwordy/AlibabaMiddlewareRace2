@@ -6,6 +6,7 @@ import com.alibaba.middleware.race.kvDealer.GoodKvDealer;
 import com.alibaba.middleware.race.kvDealer.IKvDealer;
 import com.alibaba.middleware.race.kvDealer.OrderKvDealer;
 import com.alibaba.middleware.race.result.BuyerResult;
+import com.alibaba.middleware.race.result.GoodResult;
 import com.alibaba.middleware.race.result.SimpleResult;
 
 import java.io.BufferedInputStream;
@@ -203,7 +204,7 @@ public class Database {
     Collections.sort(tupleList, tupleOrderidComparator);
     List<OrderSystem.Result> resultList = new ArrayList<>();
     for (Tuple tuple : tupleList)
-      resultList.add(new ResultImpl(tuple, keys));
+      resultList.add(new GoodResult(tuple, goodResult, keys));
     return resultList.iterator();
   }
 
