@@ -8,7 +8,7 @@ import java.util.Map;
  * Created by yfy on 7/11/16.
  * Cache
  */
-public class Cache {
+public class Cache implements ICache {
 
   private final int BLOCK_SIZE = 4096;
 
@@ -43,7 +43,7 @@ public class Cache {
     return cache;
   }
 
-  // copy entire block to buf
+  @Override
   public synchronized void readBlock(String filename, int blockNo, byte[] buf)
       throws Exception {
 
@@ -82,7 +82,8 @@ public class Cache {
     return node.block;
   }
 
-  // write the entire block
+
+  @Override
   public synchronized void writeBlock(String filename, int blockNo, byte[] buf) throws Exception {
     BlockId blockId = new BlockId(filename, blockNo);
     Node node = blockMap.get(blockId);
