@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race;
 
 import com.alibaba.middleware.race.cache.Cache;
+import com.alibaba.middleware.race.cache.ConcurrentCache;
 import com.alibaba.middleware.race.kvDealer.BuyerKvDealer;
 import com.alibaba.middleware.race.kvDealer.GoodKvDealer;
 import com.alibaba.middleware.race.kvDealer.IKvDealer;
@@ -37,7 +38,7 @@ public class Database {
     tupleCreatetimeComparator = new TupleCreatetimeComparator();
     tupleOrderidComparator = new TupleOrderidComparator();
 
-    Cache cache = Cache.getInstance();
+    ConcurrentCache cache = ConcurrentCache.getInstance();
 
     orderFilesList = new ArrayList<>();
     for (String file : orderFiles) {

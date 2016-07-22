@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race;
 
 import com.alibaba.middleware.race.cache.Cache;
+import com.alibaba.middleware.race.cache.ConcurrentCache;
 
 /**
  * Created by yfy on 7/15/16.
@@ -14,7 +15,7 @@ public class Tuple {
 
   private byte[] buf;
 
-  private Cache cache;
+  private ConcurrentCache cache;
 
   // whether buf has more bytes to read
   private boolean valid;
@@ -33,7 +34,7 @@ public class Tuple {
     this.extra = extra;
     pos = offset;  // current pos
     buf = new byte[BLOCK_SIZE];
-    cache = Cache.getInstance();
+    cache = ConcurrentCache.getInstance();
     valid = false;
   }
 

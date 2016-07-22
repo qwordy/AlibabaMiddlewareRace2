@@ -264,8 +264,10 @@ public class AppTest {
             .build();
     for (int i = 0; i < 20; i++)
       cache.put(i, i);
+    cache.get(17);
+    cache.put(3, 3);
 
-    for (int key : cache.keySet())
+    for (int key : cache.ascendingKeySet())
       System.out.println(key);
   }
 }

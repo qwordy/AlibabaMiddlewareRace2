@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race;
 
 import com.alibaba.middleware.race.cache.Cache;
+import com.alibaba.middleware.race.cache.ConcurrentCache;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,7 +66,7 @@ public class HashTable {
 
   private String indexFile;
 
-  private Cache cache;
+  private ConcurrentCache cache;
 
   public static HashTable goodHashTable, buyerHashTable;
 
@@ -93,7 +94,7 @@ public class HashTable {
 
     this.multiValue = multiValue;
     EXTRA_SIZE = extraSize;
-    cache = Cache.getInstance();
+    cache = ConcurrentCache.getInstance();
   }
 
   /**
