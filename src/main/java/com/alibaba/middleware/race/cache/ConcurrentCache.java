@@ -57,19 +57,21 @@ public class ConcurrentCache implements ICache {
     BlockId blockId = new BlockId(filename, blockNo);
     Node node = blockMap.get(blockId);
     if (node == null) { // not in cache
-      synchronized (this) {
-        node = blockMap.get(blockId);
-        if (node == null) {
-          // read from disk
-          byte[] block = new byte[BLOCK_SIZE];
-          RandomAccessFile f = getFd(filename);
-          f.seek(((long) blockId.no) << BIT);
-          f.read(block, 0, BLOCK_SIZE);
+//      synchronized (this) {
+//        node = blockMap.get(blockId);
+//        if (node == null) {
 
-          node = new Node(block);
-          blockMap.put(blockId, node);
-        }
+      // read from disk
+      byte[] block = new byte[BLOCK_SIZE];
+      RandomAccessFile f = getFd(filename);
+      synchronized (f) {
+        f.seek(((long) blockId.no) << BIT);
+        f.read(block, 0, BLOCK_SIZE);
       }
+
+      node = new Node(block);
+      blockMap.putIfAbsent(blockId, node);
+
     }
     System.arraycopy(node.block, 0, buf, 0, BLOCK_SIZE);
   }
