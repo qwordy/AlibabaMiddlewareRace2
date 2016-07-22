@@ -18,6 +18,8 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
 
   private Collection<String> keys;
 
+  private long orderid;
+
   public GoodResult(Tuple orderTuple, SimpleResult goodResult, Collection<String> keys)
       throws Exception {
 
@@ -45,61 +47,35 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
         scan(buyerTuple, resultMap);
       }
     }
+
+    try {
+      orderid = resultMap.get("orderid").valueAsLong();
+    } catch (Exception e) {}
+
+    if (keys != null) {
+      if (!keys.contains("orderid"))
+        resultMap.remove("orderid");
+      if (!keys.contains("buyerid"))
+        resultMap.remove("buyerid");
+    }
+    goodResultMap.remove("goodid");
   }
 
   @Override
   public OrderSystem.KeyValue get(String key) {
-    if (keys == null) {
-      OrderSystem.KeyValue kv = resultMap.get(key);
-      if (kv != null)
-        return kv;
-
-      kv = goodResultMap.get(key);
-      return kv;
-    }
-    
-    if (key.equals("orderid") || key.equals("buyerid")) {
-      if (keys.contains(key))
-        return resultMap.get(key);
-      return null;
-    }
-
     OrderSystem.KeyValue kv = resultMap.get(key);
     if (kv != null)
       return kv;
-
     kv = goodResultMap.get(key);
     return kv;
   }
 
   @Override
   public OrderSystem.KeyValue[] getAll() {
-    if (keys == null) {
-      int len = resultMap.size() + goodResultMap.size() - 1;
-      OrderSystem.KeyValue[] kvArray = new OrderSystem.KeyValue[len];
-      int count = 0;
-      for (OrderSystem.KeyValue kv : resultMap.values())
-        kvArray[++count] = kv;
-      goodResultMap.remove("goodid");
-      for (OrderSystem.KeyValue kv : goodResultMap.values())
-        kvArray[++count] = kv;
-      return kvArray;
-    }
-
     OrderSystem.KeyValue[] kvArray = new OrderSystem.KeyValue[keys.size()];
     int count = 0;
-    for (OrderSystem.KeyValue kv : resultMap.values()) {
-      if (kv.key().equals("orderid")) {
-        if (keys.contains("orderid"))
-          kvArray[++count] = kv;
-      } else if (kv.key().equals("buyerid")) {
-        if (keys.contains("buyerid"))
-          kvArray[++count] = kv;
-      } else {
-        kvArray[++count] = kv;
-      }
-    }
-    goodResultMap.remove("goodid");
+    for (OrderSystem.KeyValue kv : resultMap.values())
+      kvArray[++count] = kv;
     for (OrderSystem.KeyValue kv : goodResultMap.values())
       kvArray[++count] = kv;
     return kvArray;
@@ -107,12 +83,7 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
 
   @Override
   public long orderId() {
-    try {
-      return resultMap.get("orderid").valueAsLong();
-    } catch (Exception e) {
-      e.printStackTrace();
-      return 0;
-    }
+    return orderid;
   }
 
   @Override
