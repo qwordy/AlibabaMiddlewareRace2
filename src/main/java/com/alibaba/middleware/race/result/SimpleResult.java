@@ -25,7 +25,8 @@ public class SimpleResult extends AbstractResult {
   public SimpleResult(Tuple tuple, Collection<String> keys) throws Exception {
     resultMap = new HashMap<>();
     this.keys = keys;
-    scan(tuple, resultMap);
+    if (tuple != null)
+      scan(tuple, resultMap);
   }
 
   public Map<String, OrderSystem.KeyValue> getResultMap() {

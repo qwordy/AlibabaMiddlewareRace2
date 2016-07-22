@@ -57,10 +57,7 @@ public class ConcurrentCache implements ICache {
     BlockId blockId = new BlockId(filename, blockNo);
     Node node = blockMap.get(blockId);
     if (node == null) { // not in cache
-//      synchronized (this) {
-//        node = blockMap.get(blockId);
-//        if (node == null) {
-
+      System.out.println("[yfy] miss " + filename + ' ' + blockNo);
       // read from disk
       byte[] block = new byte[BLOCK_SIZE];
       RandomAccessFile f = getFd(filename);
@@ -71,7 +68,6 @@ public class ConcurrentCache implements ICache {
 
       node = new Node(block);
       blockMap.putIfAbsent(blockId, node);
-
     }
     System.arraycopy(node.block, 0, buf, 0, BLOCK_SIZE);
   }
