@@ -41,6 +41,15 @@ public class AppTest {
         result.get("a_b_19123").valueAsString());
     assertEquals(587983792, result.orderId());
 
+    iter = os.queryOrdersBySaler(
+        "ay-bb53-b150818332f2",
+        "al-b702-2c34aeaa78cb",
+        Arrays.asList("a_b_19123", "a_o_12490", "a_b_26525", "description"));
+    result = iter.next();
+    assertEquals(587999455, result.orderId());
+    result = iter.next();
+    assertEquals(588610606, result.orderId());
+
     // sumOrdersByGood
     OrderSystem.KeyValue kv = os.sumOrdersByGood("al-950f-5924be431212", "a_g_10839");
     assertEquals(null, kv);
