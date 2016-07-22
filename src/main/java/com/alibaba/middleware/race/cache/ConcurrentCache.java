@@ -24,7 +24,7 @@ public class ConcurrentCache implements ICache {
   private ConcurrentLinkedHashMap<BlockId, Node> blockMap;
 
   // filename, fd
-  private Map<String, RandomAccessFile> fileMap;
+  private final Map<String, RandomAccessFile> fileMap;
 
   private static ConcurrentCache cache;
 
@@ -43,7 +43,7 @@ public class ConcurrentCache implements ICache {
         .maximumWeightedCapacity(CACHE_SIZE)
         .listener(listener)
         .build();
-    fileMap = new ConcurrentHashMap<>();
+    fileMap = new HashMap<>();
   }
 
   public static ConcurrentCache getInstance() {
@@ -53,7 +53,7 @@ public class ConcurrentCache implements ICache {
   }
 
   @Override
-  public synchronized void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
+  public void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
     BlockId blockId = new BlockId(filename, blockNo);
     Node node = blockMap.get(blockId);
     if (node == null) { // not in cache
@@ -70,7 +70,7 @@ public class ConcurrentCache implements ICache {
   }
 
   @Override
-  public synchronized void writeBlock(String filename, int blockNo, byte[] buf) throws Exception {
+  public void writeBlock(String filename, int blockNo, byte[] buf) throws Exception {
     BlockId blockId = new BlockId(filename, blockNo);
     Node node = blockMap.get(blockId);
     if (node == null) { // not in cache
@@ -93,13 +93,18 @@ public class ConcurrentCache implements ICache {
   private RandomAccessFile getFd(String filename) throws Exception {
     RandomAccessFile f = fileMap.get(filename);
     if (f == null) {
-      f = new RandomAccessFile(filename, "rw");
-      fileMap.put(filename, f);
+      synchronized (fileMap) {
+        f = fileMap.get(filename);
+        if (f == null) {
+          f = new RandomAccessFile(filename, "rw");
+          fileMap.put(filename, f);
+        }
+      }
     }
     return f;
   }
 
-  private void writeNodeToDisk(BlockId blockId, Node node) throws Exception {
+  private synchronized void writeNodeToDisk(BlockId blockId, Node node) throws Exception {
     if (node.modified) {
       RandomAccessFile f = getFd(blockId.filename);
       f.seek(((long) blockId.no) << BIT);
