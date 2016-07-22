@@ -104,11 +104,13 @@ public class ConcurrentCache implements ICache {
     return f;
   }
 
-  private synchronized void writeNodeToDisk(BlockId blockId, Node node) throws Exception {
+  private void writeNodeToDisk(BlockId blockId, Node node) throws Exception {
     if (node.modified) {
       RandomAccessFile f = getFd(blockId.filename);
-      f.seek(((long) blockId.no) << BIT);
-      f.write(node.block, 0, BLOCK_SIZE);
+      synchronized (f) {
+        f.seek(((long) blockId.no) << BIT);
+        f.write(node.block, 0, BLOCK_SIZE);
+      }
     }
   }
 
