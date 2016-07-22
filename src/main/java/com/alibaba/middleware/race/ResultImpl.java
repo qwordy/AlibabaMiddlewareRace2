@@ -140,17 +140,17 @@ public class ResultImpl implements OrderSystem.Result {
         return kv;
     }
 
-    if (!goodScaned) {
-      scanGood();
-      goodScaned = true;
+    if (!buyerScaned) {
+      scanBuyer();
+      buyerScaned = true;
       kv = resultMap.get(key);
       if (kv != null)
         return kv;
     }
 
-    if (!buyerScaned) {
-      scanBuyer();
-      allScaned = buyerScaned = true;
+    if (!goodScaned) {
+      scanGood();
+      allScaned = goodScaned = true;
       return resultMap.get(key);
     }
 
