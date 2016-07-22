@@ -53,18 +53,23 @@ public class ConcurrentCache implements ICache {
   }
 
   @Override
-  public synchronized void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
+  public void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
     BlockId blockId = new BlockId(filename, blockNo);
     Node node = blockMap.get(blockId);
     if (node == null) { // not in cache
-      // read from disk
-      byte[] block = new byte[BLOCK_SIZE];
-      RandomAccessFile f = getFd(filename);
-      f.seek(((long) blockId.no) << BIT);
-      f.read(block, 0, BLOCK_SIZE);
+      synchronized (this) {
+        node = blockMap.get(blockId);
+        if (node == null) {
+          // read from disk
+          byte[] block = new byte[BLOCK_SIZE];
+          RandomAccessFile f = getFd(filename);
+          f.seek(((long) blockId.no) << BIT);
+          f.read(block, 0, BLOCK_SIZE);
 
-      node = new Node(block);
-      blockMap.put(blockId, node);
+          node = new Node(block);
+          blockMap.put(blockId, node);
+        }
+      }
     }
     System.arraycopy(node.block, 0, buf, 0, BLOCK_SIZE);
   }
