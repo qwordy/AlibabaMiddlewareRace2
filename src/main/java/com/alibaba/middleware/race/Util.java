@@ -1,5 +1,7 @@
 package com.alibaba.middleware.race;
 
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.util.Collection;
 
 /**
@@ -105,6 +107,13 @@ public class Util {
       h = 31 * h + b;
     }
     return h;
+  }
+
+  public static byte[] serialize(Object obj) throws Exception {
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    ObjectOutputStream oos = new ObjectOutputStream(bos);
+    oos.writeObject(obj);
+    return bos.toByteArray();
   }
 
 }
