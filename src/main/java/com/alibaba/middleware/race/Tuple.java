@@ -33,7 +33,6 @@ public class Tuple {
     this.offset = offset;
     this.extra = extra;
     pos = offset;  // current pos
-    buf = new byte[BLOCK_SIZE];
     cache = ConcurrentCache.getInstance();
     valid = false;
   }
@@ -43,7 +42,7 @@ public class Tuple {
    */
   public int next() throws Exception {
     if (!valid) {
-      cache.readBlock(file, (int) (pos >>> BIT), buf);
+      buf = cache.readBlock(file, (int) (pos >>> BIT));
       valid = true;
     }
     int blockOff = (int) (pos & MASK);
