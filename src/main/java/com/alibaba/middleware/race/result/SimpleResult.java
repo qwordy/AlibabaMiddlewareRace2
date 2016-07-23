@@ -40,7 +40,7 @@ public class SimpleResult extends AbstractResult {
 
   @Override
   protected boolean needKey(byte[] key, int keyLen) {
-     return keys == null || keys.contains(new String(key, 0, keyLen));
-//    return Util.keysContainKey(keys, key, keyLen);
+//     return keys == null || keys.contains(new String(key, 0, keyLen));
+    return Util.keysContainKey(keys, key, keyLen);
   }
 }
