@@ -3,6 +3,8 @@ package com.alibaba.middleware.race.result;
 import com.alibaba.middleware.race.HashTable;
 import com.alibaba.middleware.race.OrderSystem;
 import com.alibaba.middleware.race.Tuple;
+import com.alibaba.middleware.race.Util;
+import com.alibaba.middleware.race.kvDealer.AbstractKvDealer;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -88,10 +90,13 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
 
   @Override
   protected boolean needKey(byte[] key, int keyLen) {
-    String keyStr = new String(key, 0, keyLen);
-    return keys == null ||
-        keys.contains(keyStr) ||
-        keyStr.equals("orderid") ||
-        keyStr.equals("buyerid");
+//    String keyStr = new String(key, 0, keyLen);
+//    return keys == null ||
+//        keys.contains(keyStr) ||
+//        keyStr.equals("orderid") ||
+//        keyStr.equals("buyerid");
+    return Util.keysContainKey(keys, key, keyLen) ||
+        Util.bytesEqual(key, 0, AbstractKvDealer.orderidBytes, 0, 7) ||
+        Util.bytesEqual(key, 0, AbstractKvDealer.buyeridBytes, 0, 7);
   }
 }

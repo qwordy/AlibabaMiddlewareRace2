@@ -6,16 +6,16 @@ package com.alibaba.middleware.race.kvDealer;
  */
 public abstract class AbstractKvDealer implements IKvDealer {
 
-  protected final static byte[] orderidBytes =
+  public final static byte[] orderidBytes =
       new byte[]{'o', 'r', 'd', 'e', 'r', 'i', 'd'};
 
-  protected final static byte[] goodidBytes =
+  public final static byte[] goodidBytes =
       new byte[]{'g', 'o', 'o', 'd', 'i', 'd'};
 
-  protected final static byte[] buyeridBytes =
+  public final static byte[] buyeridBytes =
       new byte[]{'b', 'u', 'y', 'e', 'r', 'i', 'd'};
 
-  protected final static byte[] createtimeBytes =
+  public final static byte[] createtimeBytes =
       new byte[]{'c', 'r', 'e', 'a', 't', 'e', 't', 'i', 'm', 'e'};
 
   protected int fileId;
