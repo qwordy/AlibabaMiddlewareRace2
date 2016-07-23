@@ -88,6 +88,17 @@ public class Util {
     return sb.toString();
   }
 
+  public static boolean keysContainKey(Collection<String> keys, byte[] key, int keyLen) {
+    if (keys == null)
+      return true;
+    for (String queryKey : keys) {
+      if (queryKey.length() == keyLen)
+        if (bytesEqual(key, 0, queryKey.getBytes(), 0, keyLen))
+          return true;
+    }
+    return false;
+  }
+
   public static int bytesHash(byte[] key) {
     int h = 0;
     for (byte b : key) {

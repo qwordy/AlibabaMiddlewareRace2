@@ -2,6 +2,7 @@ package com.alibaba.middleware.race.result;
 
 import com.alibaba.middleware.race.OrderSystem;
 import com.alibaba.middleware.race.Tuple;
+import com.alibaba.middleware.race.Util;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -39,6 +40,7 @@ public class SimpleResult extends AbstractResult {
 
   @Override
   protected boolean needKey(byte[] key, int keyLen) {
-    return keys == null || keys.contains(new String(key, 0, keyLen));
+    // return keys == null || keys.contains(new String(key, 0, keyLen));
+    return Util.keysContainKey(keys, key, keyLen);
   }
 }
