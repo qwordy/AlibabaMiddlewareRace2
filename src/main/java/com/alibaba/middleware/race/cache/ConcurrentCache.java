@@ -4,8 +4,7 @@ import com.alibaba.middleware.race.concurrentlinkedhashmap.ConcurrentLinkedHashM
 import com.alibaba.middleware.race.concurrentlinkedhashmap.EvictionListener;
 
 import java.io.RandomAccessFile;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by yfy on 7/22/16.
@@ -25,6 +24,8 @@ public class ConcurrentCache {
   // filename, fd
   private final Map<String, RandomAccessFile> fileMap;
 
+  private BlockIdPool blockIdPool;
+
   private static ConcurrentCache cache;
 
   private ConcurrentCache() {
@@ -43,6 +44,7 @@ public class ConcurrentCache {
         .listener(listener)
         .build();
     fileMap = new HashMap<>();
+    blockIdPool = new BlockIdPool(CACHE_SIZE);
   }
 
   public static ConcurrentCache getInstance() {
@@ -59,7 +61,7 @@ public class ConcurrentCache {
 
   // block itself
   public byte[] readBlock(String filename, int blockNo) throws Exception {
-    BlockId blockId = new BlockId(filename, blockNo);
+    BlockId blockId = blockIdPool.get(filename, blockNo);
     Node node = blockMap.get(blockId);
     if (node == null) { // not in cache
       //System.out.println("[yfy] miss " + filename + ' ' + blockNo);
@@ -75,23 +77,25 @@ public class ConcurrentCache {
           //}
 
           node = new Node(block);
-          blockMap.putIfAbsent(blockId, node);
+          blockMap.put(blockId, node);
+          return node.block;
         }
       }
     }
+    blockIdPool.put(blockId);
     return node.block;
   }
 
+  // buf should not be modified
   public void writeBlock(String filename, int blockNo, byte[] buf) throws Exception {
-    BlockId blockId = new BlockId(filename, blockNo);
+    BlockId blockId = blockIdPool.get(filename, blockNo);
     Node node = blockMap.get(blockId);
     if (node == null) { // not in cache
-//      byte[] block = new byte[BLOCK_SIZE];
-//      System.arraycopy(buf, 0, block, 0, BLOCK_SIZE);
       node = new Node(buf);
       node.modified = true;
       blockMap.put(blockId, node);
     } else { // in cache
+      blockIdPool.put(blockId);
       if (node.block != buf)
         System.arraycopy(buf, 0, node.block, 0, BLOCK_SIZE);
       node.modified = true;
@@ -139,12 +143,18 @@ public class ConcurrentCache {
     }
   }
 
+  private static class NodePool {
+
+    Vector<Node> vector;
+
+  }
+
   private static class BlockId {
 
-    final String filename;
+    String filename;
 
     // the no-th block in file
-    final int no;
+    int no;
 
     BlockId(String filename, int no) {
       this.filename = filename;
@@ -164,6 +174,29 @@ public class ConcurrentCache {
     public int hashCode() {
       return filename.hashCode() + no;
     }
+  }
+
+  private static class BlockIdPool {
+
+    List<BlockId> list;
+
+    public BlockIdPool(int size) {
+      list = new ArrayList<>(size);
+    }
+
+    public synchronized BlockId get(String filename, int no) {
+      if (list.isEmpty())
+        return new BlockId(filename, no);
+      BlockId blockId = list.remove(list.size() - 1);
+      blockId.filename = filename;
+      blockId.no = no;
+      return blockId;
+    }
+
+    public synchronized void put(BlockId blockId) {
+      list.add(blockId);
+    }
+
   }
 
 }

@@ -1,2 +1,6 @@
 order, g2o, b2o, good, buyer, cache, time
 3000, 3000, 3000, 1000, 1000, 300000, 6s, 4min
+
+good 4m
+buyer 8m
+order 400m
