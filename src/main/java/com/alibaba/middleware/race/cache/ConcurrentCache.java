@@ -11,7 +11,7 @@ import java.util.Map;
  * Created by yfy on 7/22/16.
  * ConcurrentCache
  */
-public class ConcurrentCache implements ICache {
+public class ConcurrentCache {
 
   private final int BLOCK_SIZE = 4096;
 
@@ -51,8 +51,14 @@ public class ConcurrentCache implements ICache {
     return cache;
   }
 
-  @Override
+  // copy to buf
   public void readBlock(String filename, int blockNo, byte[] buf) throws Exception {
+    byte[] block = readBlock(filename, blockNo);
+    System.arraycopy(block, 0, buf, 0, BLOCK_SIZE);
+  }
+
+  // block itself
+  public byte[] readBlock(String filename, int blockNo) throws Exception {
     BlockId blockId = new BlockId(filename, blockNo);
     Node node = blockMap.get(blockId);
     if (node == null) { // not in cache
@@ -60,7 +66,6 @@ public class ConcurrentCache implements ICache {
       synchronized (this) {
         node = blockMap.get(blockId);
         if (node == null) {
-
           // read from disk
           byte[] block = new byte[BLOCK_SIZE];
           RandomAccessFile f = getFd(filename);
@@ -71,12 +76,12 @@ public class ConcurrentCache implements ICache {
 
           node = new Node(block);
           blockMap.putIfAbsent(blockId, node);
-        }}
+        }
+      }
     }
-    System.arraycopy(node.block, 0, buf, 0, BLOCK_SIZE);
+    return node.block;
   }
 
-  @Override
   public void writeBlock(String filename, int blockNo, byte[] buf) throws Exception {
     BlockId blockId = new BlockId(filename, blockNo);
     Node node = blockMap.get(blockId);

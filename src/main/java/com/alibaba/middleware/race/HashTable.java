@@ -203,7 +203,7 @@ public class HashTable {
       blockNo = Util.byte2int(bucket, addr.off);
       // find the last block in the chain
       while (true) {
-        cache.readBlock(indexFile, blockNo, bucket);
+        bucket = cache.readBlock(indexFile, blockNo);
         int nextBlockNo = Util.byte2int(bucket, 0);
         if (nextBlockNo == 0)
           break;
@@ -226,7 +226,7 @@ public class HashTable {
 
           cache.writeBlock(indexFile, blockNo, bucket);
 
-          Arrays.fill(bucket, (byte) 0);
+          bucket = new byte[BLOCK_SIZE];
           System.arraycopy(Util.int2byte(8), 0, bucket, 4, 4);
           nextPos = 8;
 
@@ -255,7 +255,7 @@ public class HashTable {
         cache.writeBlock(indexFile, blockNo, bucket);
 
         // init new bucket
-        Arrays.fill(bucket, (byte) 0);
+        bucket = new byte[BLOCK_SIZE];
         System.arraycopy(Util.int2byte(8), 0, bucket, 4, 4);
         blockNo = blockNums;
         blockNums++;
@@ -274,13 +274,14 @@ public class HashTable {
 
     int nextPos = Util.byte2int(bucket, 4);
 
+    // block has no enough space
     if (nextPos + 12 + EXTRA_SIZE > BLOCK_SIZE) {
       byte[] blockNumsBytes = Util.int2byte(blockNums);
       System.arraycopy(blockNumsBytes, 0, bucket, 0, 4);
 
       cache.writeBlock(indexFile, blockNo, bucket);
 
-      Arrays.fill(bucket, (byte) 0);
+      bucket = new byte[BLOCK_SIZE];
       System.arraycopy(Util.int2byte(8), 0, bucket, 4, 4);
       nextPos = 8;
 
@@ -329,10 +330,10 @@ public class HashTable {
     if (keySizeFixed && key.length != KEY_SIZE)
       throw new Exception();
 
-    byte[] bucket = new byte[BLOCK_SIZE];
+    byte[] bucket;
     int blockNo = keyHashCode(key);  // current blockNo
     while (true) {
-      cache.readBlock(indexFile, blockNo, bucket);
+      bucket = cache.readBlock(indexFile, blockNo);
       int size = Util.byte2int(bucket, 4);
       if (size == 0) size = 8;
 
@@ -383,10 +384,10 @@ public class HashTable {
       return list;
 
     int blockNo = Util.byte2int(addr.bucket, addr.off);
-    byte[] bucket = addr.bucket;
+    byte[] bucket;
 
     while (true) {
-      cache.readBlock(indexFile, blockNo, bucket);
+      bucket = cache.readBlock(indexFile, blockNo);
       int size = Util.byte2int(bucket, 4);
 
       for (int off = 8; off + 12 + EXTRA_SIZE <= size; off += 12 + EXTRA_SIZE) {
