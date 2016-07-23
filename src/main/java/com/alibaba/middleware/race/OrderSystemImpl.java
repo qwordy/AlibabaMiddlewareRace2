@@ -13,8 +13,6 @@ public class OrderSystemImpl implements OrderSystem {
 
   private Database db;
 
-  private List<String> orderFilesList;
-
   public OrderSystemImpl() {
   }
 
