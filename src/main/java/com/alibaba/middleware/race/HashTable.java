@@ -112,10 +112,10 @@ public class HashTable {
       throw new Exception();
 
     // find the last block with the same hashcode in the chain
-    byte[] bucket = new byte[BLOCK_SIZE];
+    byte[] bucket;
     int blockNo = keyHashCode(key);  // current blockNo
     while (true) {
-      cache.readBlock(indexFile, blockNo, bucket);
+      bucket = cache.readBlock(indexFile, blockNo);
       int nextBlockNo = Util.byte2int(bucket, 0);
       if (nextBlockNo == 0)  // no next bucket
         break;
@@ -137,7 +137,7 @@ public class HashTable {
 
       cache.writeBlock(indexFile, blockNo, bucket);
 
-      Arrays.fill(bucket, (byte) 0);
+      bucket = new byte[BLOCK_SIZE];
       System.arraycopy(Util.int2byte(8), 0, bucket, 4, 4);
       nextPos = 8;
 

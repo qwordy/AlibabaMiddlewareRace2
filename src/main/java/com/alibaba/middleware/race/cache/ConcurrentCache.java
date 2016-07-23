@@ -86,13 +86,14 @@ public class ConcurrentCache {
     BlockId blockId = new BlockId(filename, blockNo);
     Node node = blockMap.get(blockId);
     if (node == null) { // not in cache
-      byte[] block = new byte[BLOCK_SIZE];
-      System.arraycopy(buf, 0, block, 0, BLOCK_SIZE);
-      node = new Node(block);
+//      byte[] block = new byte[BLOCK_SIZE];
+//      System.arraycopy(buf, 0, block, 0, BLOCK_SIZE);
+      node = new Node(buf);
       node.modified = true;
       blockMap.put(blockId, node);
     } else { // in cache
-      System.arraycopy(buf, 0, node.block, 0, BLOCK_SIZE);
+      if (node.block != buf)
+        System.arraycopy(buf, 0, node.block, 0, BLOCK_SIZE);
       node.modified = true;
     }
   }
