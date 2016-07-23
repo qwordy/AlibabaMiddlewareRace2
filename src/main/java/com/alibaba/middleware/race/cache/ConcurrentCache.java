@@ -18,7 +18,7 @@ public class ConcurrentCache {
   // 2 ^ BIT = BLOCK_SIZE
   private final int BIT = 12;
 
-  private final int CACHE_SIZE = 300000;
+  private final int CACHE_SIZE = 3000;
 
   private ConcurrentLinkedHashMap<BlockId, Node> blockMap;
 
