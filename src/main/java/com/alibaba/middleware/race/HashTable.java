@@ -88,6 +88,7 @@ public class HashTable {
   }
 
   public void add(byte[] data, int blockNo, int fileId, long fileOff) throws Exception {
+    int originBlockNo = blockNo;
     int nextPos = bucketSizes[blockNo];
     if (nextPos + ENTRY_SIZE > BLOCK_SIZE) {  // no enough space in bucket
       // find the last block in the chain
@@ -133,6 +134,8 @@ public class HashTable {
 
     // size of block
     System.arraycopy(Util.short2byte(nextPos), 0, buf, 4, 2);
+    if (originBlockNo == blockNo)
+      bucketSizes[blockNo] = (short) nextPos;
 
     fd.seek(blockNo << BIT);
     fd.write(buf);

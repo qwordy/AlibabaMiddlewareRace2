@@ -1,6 +1,8 @@
 package com.alibaba.middleware.race;
 
 import com.alibaba.middleware.race.cache.ConcurrentCache;
+import com.alibaba.middleware.race.index.BuyerIndex;
+import com.alibaba.middleware.race.index.GoodIndex;
 import com.alibaba.middleware.race.index.OrderIndex;
 import com.alibaba.middleware.race.kvDealer.BuyerKvDealer;
 import com.alibaba.middleware.race.kvDealer.GoodKvDealer;
@@ -22,15 +24,19 @@ public class Database {
 
   private List<String> orderFilesList, goodFilesList, buyerFilesList, storeFoldersList;
 
-  private HashTable orderHashTable, goodHashTable, buyerHashTable;
+  //private HashTable orderHashTable, goodHashTable, buyerHashTable;
 
-  private HashTable buyer2OrderHashTable, good2OrderHashTable;
+  //private HashTable buyer2OrderHashTable, good2OrderHashTable;
 
   private static TupleCreatetimeComparator tupleCreatetimeComparator;
 
   private static TupleOrderidComparator tupleOrderidComparator;
 
   private OrderIndex orderIndex;
+
+  private BuyerIndex buyerIndex;
+
+  private GoodIndex goodIndex;
 
   public Database(Collection<String> orderFiles,
                   Collection<String> buyerFiles,
@@ -72,10 +78,8 @@ public class Database {
   }
 
   private void buildOrder2OrderHash() throws Exception {
-    orderIndex = new OrderIndex(fullname0("order.idx"));
+    orderIndex = new OrderIndex(orderFilesList, fullname0("order.idx"));
 
-    orderHashTable =
-        new HashTable(orderFilesList, fullname("order.hash"), 10000, 8, false, 0);
     buyer2OrderHashTable =
         new HashTable(orderFilesList, fullname("buyer2Order.hash"), 1000, 0, true, 8);
     good2OrderHashTable =
@@ -112,9 +116,12 @@ public class Database {
     return storeFoldersList.get(0) + '/' + filename;
   }
 
-  // storeFolder/filename
-  private String fullname(String filename) {
-    return storeFoldersList.get(0) + '/' + filename;
+  private String fullname1(String filename) {
+    return storeFoldersList.get(1) + '/' + filename;
+  }
+
+  private String fullname2(String filename) {
+    return storeFoldersList.get(2) + '/' + filename;
   }
 
   private void readDataFile(String filename, IKvDealer dealer) throws Exception {
