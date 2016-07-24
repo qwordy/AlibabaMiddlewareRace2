@@ -79,6 +79,8 @@ public class Database {
 
   private void buildOrder2OrderHash() throws Exception {
     orderIndex = new OrderIndex(orderFilesList, fullname0("order.idx"));
+    buyerIndex = new BuyerIndex(orderFilesList, fullname1("b2o.idx"), buyerFilesList);
+    goodIndex = new GoodIndex();
 
     buyer2OrderHashTable =
         new HashTable(orderFilesList, fullname("buyer2Order.hash"), 1000, 0, true, 8);
