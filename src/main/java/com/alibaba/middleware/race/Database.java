@@ -82,10 +82,7 @@ public class Database {
     buyerIndex = new BuyerIndex(orderFilesList, fullname1("b2o.idx"), buyerFilesList);
     goodIndex = new GoodIndex();
 
-    buyer2OrderHashTable =
-        new HashTable(orderFilesList, fullname("buyer2Order.hash"), 1000, 0, true, 8);
-    good2OrderHashTable =
-        new HashTable(orderFilesList, fullname("good2Order.hash"), 1000, 0, true, 8);
+
     OrderKvDealer dealer = new OrderKvDealer(
         orderHashTable, buyer2OrderHashTable, good2OrderHashTable);
     for (int i = 0; i < orderFilesList.size(); i++) {

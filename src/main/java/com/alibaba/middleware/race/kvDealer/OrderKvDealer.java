@@ -2,6 +2,9 @@ package com.alibaba.middleware.race.kvDealer;
 
 import com.alibaba.middleware.race.HashTable;
 import com.alibaba.middleware.race.Util;
+import com.alibaba.middleware.race.index.BuyerIndex;
+import com.alibaba.middleware.race.index.GoodIndex;
+import com.alibaba.middleware.race.index.OrderIndex;
 
 import java.util.Arrays;
 
@@ -11,7 +14,11 @@ import java.util.Arrays;
  */
 public class OrderKvDealer extends AbstractKvDealer {
 
-  private HashTable orderHashTable, buyer2OrderHashTable, good2OrderHashTable;
+  private OrderIndex orderIndex;
+
+  private BuyerIndex buyerIndex;
+
+  private GoodIndex goodIndex;
 
   private int keyCount;
 
@@ -22,12 +29,10 @@ public class OrderKvDealer extends AbstractKvDealer {
   // for test
   private int count;
 
-  public OrderKvDealer(HashTable orderHashTable,
-                       HashTable buyer2OrderHashTable,
-                       HashTable good2OrderHashTable) {
-    this.orderHashTable = orderHashTable;
-    this.buyer2OrderHashTable = buyer2OrderHashTable;
-    this.good2OrderHashTable = good2OrderHashTable;
+  public OrderKvDealer(OrderIndex orderIndex, BuyerIndex buyerIndex, GoodIndex goodIndex) {
+    this.orderIndex = orderIndex;
+    this.buyerIndex = buyerIndex;
+    this.goodIndex = goodIndex;
     keyCount = 0;
     curOffset = -1;
   }
@@ -68,9 +73,9 @@ public class OrderKvDealer extends AbstractKvDealer {
   private int tryAdd() throws Exception {
     keyCount++;
     if (keyCount == 4) {
-      orderHashTable.add(orderidValue, fileId, curOffset);
-      buyer2OrderHashTable.addMulti(buyeridValue, fileId, curOffset, createtimeValue);
-      good2OrderHashTable.addMulti(goodidValue, fileId, curOffset, orderidValue);
+      orderIndex.add(orderidValue, fileId, curOffset);
+      buyerIndex.addOrder(buyeridValue, fileId, curOffset, createtimeValue);
+      
       return 2;
     }
     return 0;
