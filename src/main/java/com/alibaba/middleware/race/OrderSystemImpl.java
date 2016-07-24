@@ -23,6 +23,8 @@ public class OrderSystemImpl implements OrderSystem {
       throws IOException, InterruptedException {
 
     try {
+      System.out.println(orderFiles.size() + " " + buyerFiles.size() + " "
+          + goodFiles.size() + " " + storeFolders.size());
       db = new Database(orderFiles, buyerFiles, goodFiles, storeFolders);
       db.construct();
     } catch (Exception e) {
