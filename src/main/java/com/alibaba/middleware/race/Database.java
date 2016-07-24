@@ -1,7 +1,7 @@
 package com.alibaba.middleware.race;
 
-import com.alibaba.middleware.race.cache.Cache;
 import com.alibaba.middleware.race.cache.ConcurrentCache;
+import com.alibaba.middleware.race.index.OrderIndex;
 import com.alibaba.middleware.race.kvDealer.BuyerKvDealer;
 import com.alibaba.middleware.race.kvDealer.GoodKvDealer;
 import com.alibaba.middleware.race.kvDealer.IKvDealer;
@@ -29,6 +29,8 @@ public class Database {
   private static TupleCreatetimeComparator tupleCreatetimeComparator;
 
   private static TupleOrderidComparator tupleOrderidComparator;
+
+  private OrderIndex orderIndex;
 
   public Database(Collection<String> orderFiles,
                   Collection<String> buyerFiles,
@@ -70,6 +72,8 @@ public class Database {
   }
 
   private void buildOrder2OrderHash() throws Exception {
+    orderIndex = new OrderIndex(fullname0("order.idx"));
+
     orderHashTable =
         new HashTable(orderFilesList, fullname("order.hash"), 10000, 8, false, 0);
     buyer2OrderHashTable =
@@ -102,6 +106,10 @@ public class Database {
       dealer.setFileId(i);
       readDataFile(buyerFilesList.get(i), dealer);
     }
+  }
+
+  private String fullname0(String filename) {
+    return storeFoldersList.get(0) + '/' + filename;
   }
 
   // storeFolder/filename

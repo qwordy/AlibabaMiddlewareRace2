@@ -59,6 +59,15 @@ public class Util {
     return b;
   }
 
+  public static byte[] longTo4Byte(long n) {
+    byte[] b = new byte[4];
+    b[3] = (byte) (n >> 24);
+    b[2] = (byte) (n >> 16);
+    b[1] = (byte) (n >> 8);
+    b[0] = (byte) (n);
+    return b;
+  }
+
   public static long byte2long(byte[] b) {
     return byte2long(b, 0);
   }
@@ -114,6 +123,14 @@ public class Util {
     ObjectOutputStream oos = new ObjectOutputStream(bos);
     oos.writeObject(obj);
     return bos.toByteArray();
+  }
+
+  public static int getHashCode(byte[] key) {
+    int h = 0;
+    for (byte b : key) {
+      h = 31 * h + b;
+    }
+    return h;
   }
 
 }

@@ -233,13 +233,28 @@ public class AppTest {
   @Test
   public void disk() {
     try {
-      RandomAccessFile f = new RandomAccessFile("test", "rwd");
-      byte[] buf = new byte[4096];
+      RandomAccessFile f = new RandomAccessFile("test", "rw");
+      byte[] buf = new byte[8000];
 
       Arrays.fill(buf, (byte) 5);
+      buf[3] = 99;
+
+      int sum = 0;
+      for (int i = 0; i < 50000; i++) {
+        buf[i % 800] = (byte) (i);
+        f.read(buf);
+        sum += buf[5];
+      }
+      System.out.println(sum);
+
+      f.seek(50000);
+      System.out.println(f.read());
 
       System.out.println(System.currentTimeMillis());
+      f.seek(500);
       f.write(buf);
+      f.seek(500000);
+      f.read();
       System.out.println(System.currentTimeMillis());
     } catch (Exception e) {
       e.printStackTrace();
@@ -278,5 +293,11 @@ public class AppTest {
 
     for (int key : cache.ascendingKeySet())
       System.out.println(key);
+  }
+
+  @Test
+  public void fill() {
+    short[] b = new short[2000000];
+    Arrays.fill(b, (short)8);
   }
 }
