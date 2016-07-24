@@ -43,9 +43,6 @@ import java.util.List;
  */
 public class HashTable {
 
-  // number of buckets
-  //private final int SIZE;
-
   // also bucket size
   private static final int BLOCK_SIZE = 4096;
 
@@ -54,103 +51,75 @@ public class HashTable {
 
   private static final int ENTRY_SIZE = 14;
 
-//  private final boolean keySizeFixed, multiValue;
-//
-//  private final int KEY_SIZE;
-//
-//  private final int EXTRA_SIZE;
-
   // current number of blocks
   private int blockNums;
 
-  private short[] bucketSizes;
+  private Meta[] bucketMetas;
 
   private List<String> dataFiles;
 
-  private String indexFile;
+  //private String indexFile;
 
   private final RandomAccessFile fd;
 
-  private byte[] buf;
+  private byte[] entryBuf;
 
-  //private ConcurrentCache cache;
-
-  public static HashTable goodHashTable, buyerHashTable;
+  private WriteBuffer writeBuffer;
 
   public HashTable(List<String> dataFiles, String indexFile, int size) throws Exception {
     this.dataFiles = dataFiles;
-    this.indexFile = indexFile;
+    //this.indexFile = indexFile;
     fd = new RandomAccessFile(indexFile, "rw");
     blockNums = size;
-    bucketSizes = new short[size];
-    Arrays.fill(bucketSizes, (short) 6);
-    buf = new byte[BLOCK_SIZE];
+
+    bucketMetas = new Meta[size];
+//    for (int i = 0; i < size; i++)
+//      bucketMetas[i] = new Meta(0, 6);
+
+    entryBuf = new byte[ENTRY_SIZE];
+    writeBuffer = new WriteBuffer(fd, indexFile);
+    new Thread(writeBuffer).start();
   }
 
   public void add(byte[] data, int blockNo, int fileId, long fileOff) throws Exception {
-    int originBlockNo = blockNo;
-    int nextPos = bucketSizes[blockNo];
-    if (nextPos + ENTRY_SIZE > BLOCK_SIZE) {  // no enough space in bucket
-      // find the last block in the chain
-      while (true) {
-        fd.seek(blockNo << BIT);
-        fd.read(buf);
-        int nextBlockNo = Util.byte2int(buf);
-        if (nextBlockNo == 0)
-          break;
-        blockNo = nextBlockNo;
-      }
-
-      nextPos = Util.byte2short(buf, 4);
-      if (nextPos == 0) {
-        nextPos = 8;
-        System.arraycopy(Util.short2byte(8), 0, buf, 4, 2);
-      }
-
-      if (nextPos + ENTRY_SIZE > BLOCK_SIZE) {  // no enough space in bucket
-        System.arraycopy(Util.int2byte(blockNums), 0, buf, 0, 4);
-        fd.seek(blockNo << BIT);
-        fd.write(buf);
-
-        // new bucket
-        Arrays.fill(buf, (byte) 0);
-        System.arraycopy(Util.short2byte(8), 0, buf, 4, 2);
-        nextPos = 8;
-        blockNo = blockNums++;
-      }
+    Meta meta = bucketMetas[blockNo];
+    if (meta == null)
+      meta = bucketMetas[blockNo] = new Meta();
+    // find the last bucket in the chain
+    while (meta.next > 0) {
+      blockNo = meta.next;
+      meta = meta.nextMeta;
+    }
+    // no enough space in bucket
+    if (meta.size + ENTRY_SIZE > BLOCK_SIZE) {
+      meta.next = blockNums++;
+      meta.nextMeta = new Meta();
+      blockNo = meta.next;
+      meta = meta.nextMeta;
     }
 
     // data(key)
-    System.arraycopy(data, 0, buf, nextPos, 8);
-    nextPos += 8;
-
+    System.arraycopy(data, 0, entryBuf, 0, 8);
     // fileId
-    System.arraycopy(Util.short2byte(fileId), 0, buf, nextPos, 2);
-    nextPos += 2;
-
+    System.arraycopy(Util.short2byte(fileId), 0, entryBuf, 8, 2);
     // fildOff
-    System.arraycopy(Util.longTo4Byte(fileOff), 0, buf, nextPos, 4);
-    nextPos += 4;
+    System.arraycopy(Util.longTo4Byte(fileOff), 0, entryBuf, 10, 4);
 
-    // size of block
-    System.arraycopy(Util.short2byte(nextPos), 0, buf, 4, 2);
-    if (originBlockNo == blockNo)
-      bucketSizes[blockNo] = (short) nextPos;
-
-    fd.seek(blockNo << BIT);
-    fd.write(buf);
+    writeBuffer.add(new WriteRequest(entryBuf, (((long) blockNo) << BIT) + meta.size));
+    meta.size += ENTRY_SIZE;
   }
 
   public Tuple get(byte[] key, int blockNo) throws Exception {
     byte[] buf = new byte[BLOCK_SIZE];
+    Meta meta = bucketMetas[blockNo];
     while (true) {
       synchronized (fd) {
-        fd.seek(blockNo << BIT);
+        fd.seek(((long) blockNo) << BIT);
         fd.read(buf);
       }
-      int size = Util.byte2short(buf, 4);
-      if (size == 0) size = 8;
-      for (int off = 8; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
+      int size = meta.size;
+      
+      for (int off = 6; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
         if (Util.bytesEqual(buf, off, key, 0, 8)) {
           int fileId = Util.byte2short(buf, off + 8);
           long fileOff = Util.byte4ToLong(buf, off + 10);
@@ -168,12 +137,12 @@ public class HashTable {
     byte[] buf = new byte[BLOCK_SIZE];
     while (true) {
       synchronized (fd) {
-        fd.seek(blockNo << BIT);
+        fd.seek(((long) blockNo) << BIT);
         fd.read(buf);
       }
       int size = Util.byte2short(buf, 4);
-      if (size == 0) size = 8;
-      for (int off = 8; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
+      if (size == 0) size = 6;
+      for (int off = 6; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
         long data = Util.byte2long(buf, off);
         int fileId = Util.byte2short(buf, off + 8);
         long fileOff = Util.byte4ToLong(buf, off + 10);
@@ -183,6 +152,11 @@ public class HashTable {
       if (blockNo == 0)
         return list;
     }
+  }
+
+  private static class Meta {
+    int next, size = 6;
+    Meta nextMeta;
   }
 
 //  private InnerAddr innerGet(byte[] key) throws Exception {

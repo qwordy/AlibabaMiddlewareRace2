@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race.result;
 
+import com.alibaba.middleware.race.Database;
 import com.alibaba.middleware.race.HashTable;
 import com.alibaba.middleware.race.OrderSystem;
 import com.alibaba.middleware.race.Tuple;
@@ -22,7 +23,7 @@ public class BuyerResult extends AbstractResult implements OrderSystem.Result {
 
     OrderSystem.KeyValue goodKv = resultMap.get("goodid");
     if (goodKv != null) {
-      Tuple goodTuple = HashTable.goodHashTable.get(goodKv.valueAsString().getBytes());
+      Tuple goodTuple = Database.goodIndex.getBg(goodKv.valueAsString());
       scan(goodTuple, resultMap);
     }
   }

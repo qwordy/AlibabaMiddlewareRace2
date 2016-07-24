@@ -53,7 +53,7 @@ public class ResultImpl implements OrderSystem.Result {
     if (goodidKv == null)
       return;
     try {
-      Tuple goodTuple = HashTable.goodHashTable.get(goodidKv.valueAsString().getBytes());
+      Tuple goodTuple = Database.goodIndex.getBg(goodidKv.valueAsString());
       scan(goodTuple);
     } catch (Exception e) {
       e.printStackTrace();
@@ -65,7 +65,7 @@ public class ResultImpl implements OrderSystem.Result {
     if (buyeridKv == null)
       return;
     try {
-      Tuple buyerTuple = HashTable.buyerHashTable.get(buyeridKv.valueAsString().getBytes());
+      Tuple buyerTuple = Database.buyerIndex.getBg(buyeridKv.valueAsString());
       scan(buyerTuple);
     } catch (Exception e) {
       e.printStackTrace();

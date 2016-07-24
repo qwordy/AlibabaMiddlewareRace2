@@ -23,6 +23,7 @@ public class OrderIndex {
   }
 
   public void add(byte[] id, int fileId, long fileOff) throws Exception {
+    //System.out.println("order add");
     table.add(id, Util.getHashCode(id) & MASK, fileId, fileOff);
   }
 

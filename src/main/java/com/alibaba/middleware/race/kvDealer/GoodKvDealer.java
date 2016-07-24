@@ -1,6 +1,6 @@
 package com.alibaba.middleware.race.kvDealer;
 
-import com.alibaba.middleware.race.HashTable;
+import com.alibaba.middleware.race.index.BgIndex;
 
 /**
  * Created by yfy on 7/15/16.
@@ -8,18 +8,16 @@ import com.alibaba.middleware.race.HashTable;
  */
 public class GoodKvDealer extends AbstractKvDealer {
 
-  private HashTable table;
+  private BgIndex goodIndex;
 
-  public GoodKvDealer(HashTable table) {
-    this.table = table;
+  public GoodKvDealer(BgIndex goodIndex) {
+    this.goodIndex = goodIndex;
   }
 
   @Override
   public int deal(byte[] key, int keyLen, byte[] value, int valueLen, long offset) throws Exception {
     if (keyMatch(key, keyLen, goodidBytes)) {
-      byte[] vb = new byte[valueLen];
-      System.arraycopy(value, 0, vb, 0, valueLen);
-      table.add(vb, fileId, offset);
+      goodIndex.addBg(value, valueLen, fileId, offset);
       return 2;
     }
     return 0;

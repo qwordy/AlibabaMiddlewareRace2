@@ -1,8 +1,7 @@
 package com.alibaba.middleware.race;
 
 import com.alibaba.middleware.race.cache.ConcurrentCache;
-import com.alibaba.middleware.race.index.BuyerIndex;
-import com.alibaba.middleware.race.index.GoodIndex;
+import com.alibaba.middleware.race.index.BgIndex;
 import com.alibaba.middleware.race.index.OrderIndex;
 import com.alibaba.middleware.race.kvDealer.BuyerKvDealer;
 import com.alibaba.middleware.race.kvDealer.GoodKvDealer;
@@ -34,9 +33,7 @@ public class Database {
 
   private OrderIndex orderIndex;
 
-  private BuyerIndex buyerIndex;
-
-  private GoodIndex goodIndex;
+  public static BgIndex buyerIndex, goodIndex;
 
   public Database(Collection<String> orderFiles,
                   Collection<String> buyerFiles,
@@ -79,12 +76,10 @@ public class Database {
 
   private void buildOrder2OrderHash() throws Exception {
     orderIndex = new OrderIndex(orderFilesList, fullname0("order.idx"));
-    buyerIndex = new BuyerIndex(orderFilesList, fullname1("b2o.idx"), buyerFilesList);
-    goodIndex = new GoodIndex();
+    buyerIndex = new BgIndex(orderFilesList, fullname1("b2o.idx"), buyerFilesList, 10000000);
+    goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"), goodFilesList, 5000000);
 
-
-    OrderKvDealer dealer = new OrderKvDealer(
-        orderHashTable, buyer2OrderHashTable, good2OrderHashTable);
+    OrderKvDealer dealer = new OrderKvDealer(orderIndex, buyerIndex, goodIndex);
     for (int i = 0; i < orderFilesList.size(); i++) {
       dealer.setFileId(i);
       readDataFile(orderFilesList.get(i), dealer);
@@ -92,9 +87,7 @@ public class Database {
   }
 
   private void buildGood2GoodHash() throws Exception {
-    goodHashTable = new HashTable(goodFilesList, fullname("good.hash"), 1000, 0, false, 0);
-    HashTable.goodHashTable = goodHashTable;
-    GoodKvDealer dealer = new GoodKvDealer(goodHashTable);
+    GoodKvDealer dealer = new GoodKvDealer(goodIndex);
     for (int i = 0; i < goodFilesList.size(); i++) {
       dealer.setFileId(i);
       readDataFile(goodFilesList.get(i), dealer);
@@ -102,9 +95,7 @@ public class Database {
   }
 
   private void buildBuyer2BuyerHash() throws Exception {
-    buyerHashTable = new HashTable(buyerFilesList, fullname("buyer.hash"), 1000, 0, false, 0);
-    HashTable.buyerHashTable = buyerHashTable;
-    BuyerKvDealer dealer = new BuyerKvDealer(buyerHashTable);
+    BuyerKvDealer dealer = new BuyerKvDealer(buyerIndex);
     for (int i = 0; i < buyerFilesList.size(); i++) {
       dealer.setFileId(i);
       readDataFile(buyerFilesList.get(i), dealer);
@@ -178,42 +169,42 @@ public class Database {
   public ResultImpl queryOrder(long orderId, Collection<String> keys)
       throws Exception {
 
-    Tuple orderTuple = orderHashTable.get(Util.long2byte(orderId));
+    Tuple orderTuple = orderIndex.get(Util.long2byte(orderId));
     if (orderTuple == null)
       return null;
-
     ResultImpl result = new ResultImpl(orderTuple, keys);
     //result.printOrderTuple();
-
     return result;
   }
 
   public Iterator<OrderSystem.Result> queryOrdersByBuyer(
       long startTime, long endTime, String buyerid) throws Exception {
 
-    TupleFilter filter = new TupleFilter(startTime, endTime);
-    List<Tuple> tupleList = buyer2OrderHashTable.getMulti(buyerid.getBytes(), filter);
-    if (tupleList.isEmpty())
+    //TupleFilter filter = new TupleFilter(startTime, endTime);
+    List<Tuple> orderTupleList = buyerIndex.getOrder(buyerid); // filter
+    if (orderTupleList.isEmpty())
       return new ArrayList<OrderSystem.Result>().iterator();
 
-    Tuple buyerTuple = buyerHashTable.get(buyerid.getBytes());
+    Tuple buyerTuple = buyerIndex.getBg(buyerid);
     SimpleResult buyerResult = new SimpleResult(buyerTuple, null);
 
-    Collections.sort(tupleList, tupleCreatetimeComparator);
+    Collections.sort(orderTupleList, tupleCreatetimeComparator);
     List<OrderSystem.Result> resultList = new ArrayList<>();
-    for (Tuple tuple : tupleList)
-      resultList.add(new BuyerResult(tuple, buyerResult));
+    for (Tuple tuple : orderTupleList) {
+      if (tuple.getData() >= startTime && tuple.getData() <= endTime)
+        resultList.add(new BuyerResult(tuple, buyerResult));
+    }
     return resultList.iterator();
   }
 
   public Iterator<OrderSystem.Result> queryOrdersBySaler(
       String goodid, Collection<String> keys) throws Exception {
 
-    List<Tuple> tupleList = good2OrderHashTable.getMulti(goodid.getBytes(), null);
+    List<Tuple> tupleList = goodIndex.getOrder(goodid);
     if (tupleList.isEmpty())
       return new ArrayList<OrderSystem.Result>().iterator();
 
-    Tuple goodTuple = goodHashTable.get(goodid.getBytes());
+    Tuple goodTuple = goodIndex.getBg(goodid);
     SimpleResult goodResult = new SimpleResult(goodTuple, keys);
 
     Collections.sort(tupleList, tupleOrderidComparator);
@@ -231,9 +222,9 @@ public class Database {
     double sumDouble = 0;
 
     Collection<String> keys = Collections.singleton(key);
-    List<Tuple> orderTupleList = good2OrderHashTable.getMulti(goodid.getBytes(), null);
+    List<Tuple> orderTupleList = goodIndex.getOrder(goodid);
 
-    Tuple goodTuple = goodHashTable.get(goodid.getBytes());
+    Tuple goodTuple = goodIndex.getBg(goodid);
     SimpleResult goodResult = new SimpleResult(goodTuple, keys);
     OrderSystem.KeyValue kv = goodResult.get(key);
     if (kv != null) {

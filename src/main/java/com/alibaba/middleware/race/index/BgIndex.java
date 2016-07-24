@@ -10,9 +10,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by yfy on 7/24/16.
- * BuyerIndex
+ * Buyer or good index
  */
-public class BuyerIndex {
+public class BgIndex {
 
   private Map<String, Value> map;
 
@@ -20,20 +20,21 @@ public class BuyerIndex {
 
   private int count;
 
-  private List<String> buyerFiles;
+  private List<String> bgFiles;
 
-  public BuyerIndex(List<String> orderFiles, String b2oIndexFile, List<String> buyerFiles)
+  public BgIndex(List<String> orderFiles, String b2oIndexFile, List<String> bgFiles, int size)
       throws Exception {
 
-    this.buyerFiles = buyerFiles;
+    this.bgFiles = bgFiles;
     map = new ConcurrentHashMap<>();
-    table = new HashTable(orderFiles, b2oIndexFile, 8000000);
+    table = new HashTable(orderFiles, b2oIndexFile, size);
   }
 
-  public void addOrder(byte[] buyer, int fildId, long fildOff, byte[] time)
+  public void addOrder(byte[] bg, int fildId, long fildOff, byte[] data)
       throws Exception {
 
-    String buyerStr = new String(buyer);
+    //System.out.println("bg addOrder");
+    String buyerStr = new String(bg);
     Value value = map.get(buyerStr);
     int blockNo;
     if (value == null) {
@@ -43,11 +44,12 @@ public class BuyerIndex {
     } else {
       blockNo = value.blockNo;
     }
-    table.add(time, blockNo, fildId, fildOff);
+    table.add(data, blockNo, fildId, fildOff);
   }
 
-  public void addBuyer(byte[] buyer, int fileId, long fileOff) {
-    String buyerStr = new String(buyer);
+  public void addBg(byte[] bg, int len, int fileId, long fileOff) {
+    //System.out.println("bg addBg");
+    String buyerStr = new String(bg, 0, len);
     Value value = map.get(buyerStr);
     if (value == null)
       map.put(buyerStr, new Value((short) fileId, fileOff, 0));
@@ -57,23 +59,23 @@ public class BuyerIndex {
     }
   }
 
-  public List<Tuple> getOrder(String buyer) throws Exception {
-    Value value = map.get(buyer);
+  public List<Tuple> getOrder(String bg) throws Exception {
+    Value value = map.get(bg);
     if (value == null)
       return new ArrayList<>();
     return table.getAll(value.blockNo);
   }
 
-  public Tuple getBuyer(String buyer) {
-    Value value = map.get(buyer);
+  public Tuple getBg(String bg) {
+    Value value = map.get(bg);
     if (value == null)
       return null;
-    return new Tuple(buyerFiles.get(value.fileId), value.fileOff);
+    return new Tuple(bgFiles.get(value.fileId), value.fileOff);
   }
 
   private static class Value {
-    short fileId;  // buyer file id
-    long fileOff;  // buyer file off
+    short fileId;  // bg file id
+    long fileOff;  // bg file off
     int blockNo;
 
     public Value(short fileId, long fileOff, int blockNo) {

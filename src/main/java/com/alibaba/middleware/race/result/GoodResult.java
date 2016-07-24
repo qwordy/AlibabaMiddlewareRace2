@@ -1,9 +1,6 @@
 package com.alibaba.middleware.race.result;
 
-import com.alibaba.middleware.race.HashTable;
-import com.alibaba.middleware.race.OrderSystem;
-import com.alibaba.middleware.race.Tuple;
-import com.alibaba.middleware.race.Util;
+import com.alibaba.middleware.race.*;
 import com.alibaba.middleware.race.kvDealer.AbstractKvDealer;
 
 import java.util.Collection;
@@ -45,7 +42,7 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
     if (keys == null || resultMap.size() + goodResultMapSize < targetSize) {
       OrderSystem.KeyValue buyerKv = resultMap.get("buyerid");
       if (buyerKv != null) {
-        Tuple buyerTuple = HashTable.buyerHashTable.get(buyerKv.valueAsString().getBytes());
+        Tuple buyerTuple = Database.buyerIndex.getBg(buyerKv.valueAsString());
         scan(buyerTuple, resultMap);
       }
     }
