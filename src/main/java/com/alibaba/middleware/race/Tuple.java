@@ -1,6 +1,5 @@
 package com.alibaba.middleware.race;
 
-import com.alibaba.middleware.race.cache.Cache;
 import com.alibaba.middleware.race.cache.ConcurrentCache;
 
 /**
@@ -11,7 +10,7 @@ public class Tuple {
 
   private String file;
 
-  private long offset, extra, pos;
+  private long offset, data, pos;
 
   private byte[] buf;
 
@@ -28,10 +27,10 @@ public class Tuple {
     this(file, offset, 0);
   }
 
-  public Tuple(String file, long offset, long extra) {
+  public Tuple(String file, long offset, long data) {
     this.file = file;
     this.offset = offset;
-    this.extra = extra;
+    this.data = data;
     pos = offset;  // current pos
     cache = ConcurrentCache.getInstance();
     valid = false;
@@ -60,8 +59,8 @@ public class Tuple {
     valid = false;
   }
 
-  public long getExtra() {
-    return extra;
+  public long getData() {
+    return data;
   }
 
 }

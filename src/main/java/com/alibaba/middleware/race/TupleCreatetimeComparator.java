@@ -10,6 +10,6 @@ public class TupleCreatetimeComparator implements Comparator<Tuple> {
 
   @Override
   public int compare(Tuple t1, Tuple t2) {
-    return (int) (t2.getExtra() - t1.getExtra());
+    return (int) (t2.getData() - t1.getData());
   }
 }

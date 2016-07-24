@@ -10,6 +10,6 @@ public class TupleOrderidComparator implements Comparator<Tuple> {
 
   @Override
   public int compare(Tuple t1, Tuple t2) {
-    return (int) (t1.getExtra() - t2.getExtra());
+    return (int) (t1.getData() - t2.getData());
   }
 }
