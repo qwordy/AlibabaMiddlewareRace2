@@ -118,7 +118,6 @@ public class HashTable {
         fd.read(buf);
       }
       int size = meta.size;
-      
       for (int off = 6; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
         if (Util.bytesEqual(buf, off, key, 0, 8)) {
           int fileId = Util.byte2short(buf, off + 8);
@@ -126,9 +125,10 @@ public class HashTable {
           return new Tuple(dataFiles.get(fileId), fileOff);
         }
       }
-      blockNo = Util.byte2int(buf, 0);
+      blockNo = meta.next;
       if (blockNo == 0)
         return null;
+      meta = meta.nextMeta;
     }
   }
 
