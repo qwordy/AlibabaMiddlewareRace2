@@ -4,6 +4,7 @@ import com.alibaba.middleware.race.HashTable;
 import com.alibaba.middleware.race.Tuple;
 import com.alibaba.middleware.race.WriteBuffer;
 
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,13 +24,15 @@ public class BgIndex {
 
   private List<String> bgFiles;
 
-  public BgIndex(List<String> orderFiles, String b2oIndexFile,
+  public BgIndex(List<String> orderFiles, String bg2oIndexFile,
                  List<String> bgFiles, int size, WriteBuffer writeBuffer)
       throws Exception {
 
     this.bgFiles = bgFiles;
     map = new ConcurrentHashMap<>();
-    table = new HashTable(orderFiles, b2oIndexFile, size, writeBuffer);
+    RandomAccessFile fd = new RandomAccessFile(bg2oIndexFile, "rw");
+    writeBuffer.addQueue(fd);
+    table = new HashTable(orderFiles, 0, fd, size, writeBuffer);
   }
 
   public void addOrder(byte[] bg, int fildId, long fildOff, byte[] data)

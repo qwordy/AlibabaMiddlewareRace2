@@ -254,10 +254,11 @@ public class AppTest {
       long t0, t1, ts = 0;
 
       int sum = 0;
-      for (int i = 0; i < 500000; i++) {
+      for (int i = 0; i < 50000; i++) {
         t0 = System.currentTimeMillis();
         buf[i % 800] = (byte) (i);
-        f.read(buf);
+        //f.seek((int)(Math.random()*4000000000L));
+        f.write(buf);
         sum += buf[5];
         t1 = System.currentTimeMillis();
         ts += t1 - t0;

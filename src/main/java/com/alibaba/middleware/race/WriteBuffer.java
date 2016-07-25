@@ -1,6 +1,8 @@
 package com.alibaba.middleware.race;
 
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -10,15 +12,23 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class WriteBuffer implements Runnable {
 
-  private BlockingQueue<WriteRequest> queue;
+  private List<BlockingQueue<WriteRequest>> queueList;
+
+  private List<RandomAccessFile> fdList;
 
   public WriteBuffer() {
-    queue = new LinkedBlockingQueue<>(10000);
+    queueList = new ArrayList<>();
+    fdList = new ArrayList<>();
   }
 
-  public void add(WriteRequest req) {
+  public void addQueue(RandomAccessFile fd) throws Exception {
+    queueList.add(new LinkedBlockingQueue<WriteRequest>(10000));
+    fdList.add(fd);
+  }
+
+  public void add(int id, WriteRequest req) {
     try {
-      queue.put(req);
+      queueList.get(id).put(req);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -26,17 +36,25 @@ public class WriteBuffer implements Runnable {
 
   @Override
   public void run() {
-    while (true) {
-      try {
-        WriteRequest req = queue.take();
-        if (req.buf == null)
-          break;
-        //System.out.println(filename + " write buffer size " + queue.size());
-        req.fd.seek(req.offset);
-        req.fd.write(req.buf);
-      } catch (Exception e) {
-        e.printStackTrace();
+    try {
+      while (true) {
+        for (int i = 0; i < queueList.size(); i++) {
+          BlockingQueue<WriteRequest> queue = queueList.get(i);
+          RandomAccessFile fd = fdList.get(i);
+          //System.out.println("write buffer size " + queue.size());
+          WriteRequest req = queue.poll();
+          while (req != null) {
+            if (req.buf == null)
+              return;
+            fd.seek(req.offset);
+            fd.write(req.buf);
+            req = queue.poll();
+          }
+        }
+        //Thread.sleep(1);
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 }

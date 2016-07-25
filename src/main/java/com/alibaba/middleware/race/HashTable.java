@@ -58,19 +58,22 @@ public class HashTable {
 
   private List<String> dataFiles;
 
-  private final RandomAccessFile fd;
+  private int indexFileId;
+
+  private RandomAccessFile fd;
 
   private byte[] entryBuf;
 
   private WriteBuffer writeBuffer;
 
-  public HashTable(List<String> dataFiles, String indexFile,
+  public HashTable(List<String> dataFiles, int indexFileId, RandomAccessFile fd,
                    int size, WriteBuffer writeBuffer) throws Exception {
-    this.writeBuffer = writeBuffer;
-    this.dataFiles = dataFiles;
-    fd = new RandomAccessFile(indexFile, "w");
-    blockNums = size;
 
+    this.dataFiles = dataFiles;
+    this.indexFileId = indexFileId;
+    this.fd = fd;
+    blockNums = size;
+    this.writeBuffer = writeBuffer;
 
     bucketMetas = new Meta[size];
 //    for (int i = 0; i < size; i++)
@@ -103,7 +106,8 @@ public class HashTable {
     // fildOff
     System.arraycopy(Util.longTo4Byte(fileOff), 0, entryBuf, 10, 4);
 
-    writeBuffer.add(new WriteRequest(entryBuf, fd, (((long) blockNo) << BIT) + meta.size));
+    writeBuffer.add(indexFileId,
+        new WriteRequest(entryBuf, (((long) blockNo) << BIT) + meta.size));
     meta.size += ENTRY_SIZE;
   }
 
