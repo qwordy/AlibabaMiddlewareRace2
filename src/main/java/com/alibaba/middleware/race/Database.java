@@ -23,10 +23,6 @@ public class Database {
 
   private List<String> orderFilesList, goodFilesList, buyerFilesList, storeFoldersList;
 
-  //private HashTable orderHashTable, goodHashTable, buyerHashTable;
-
-  //private HashTable buyer2OrderHashTable, good2OrderHashTable;
-
   private static TupleCreatetimeComparator tupleCreatetimeComparator;
 
   private static TupleOrderidComparator tupleOrderidComparator;
@@ -34,6 +30,8 @@ public class Database {
   private OrderIndex orderIndex;
 
   public static BgIndex buyerIndex, goodIndex;
+
+  private Thread orderWriteBufferThread, buyerWriteBufferThread, goodWriteBufferThread;
 
   public Database(Collection<String> orderFiles,
                   Collection<String> buyerFiles,
@@ -72,9 +70,21 @@ public class Database {
     buildOrder2OrderHash();
     buildGood2GoodHash();
     buildBuyer2BuyerHash();
+    orderWriteBufferThread.join();
+    buyerWriteBufferThread.join();
+    goodWriteBufferThread.join();
   }
 
   private void buildOrder2OrderHash() throws Exception {
+    WriteBuffer orderWriteBuffer = new WriteBuffer();
+    WriteBuffer buyerWriteBuffer = new WriteBuffer();
+    WriteBuffer goodWriteBuffer = new WriteBuffer();
+    orderWriteBufferThread = new Thread(orderWriteBuffer);
+    buyerWriteBufferThread = new Thread(buyerWriteBuffer);
+    goodWriteBufferThread = new Thread(goodWriteBuffer);
+    orderWriteBufferThread.start();
+    buyerWriteBufferThread.start();
+    goodWriteBufferThread.start();
     orderIndex = new OrderIndex(orderFilesList, fullname0("order.idx"));
     buyerIndex = new BgIndex(orderFilesList, fullname1("b2o.idx"), buyerFilesList, 10000000);
     goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"), goodFilesList, 5000000);

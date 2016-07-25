@@ -254,10 +254,10 @@ public class AppTest {
       long t0, t1, ts = 0;
 
       int sum = 0;
-      for (int i = 0; i < 100000; i++) {
+      for (int i = 0; i < 500000; i++) {
         t0 = System.currentTimeMillis();
         buf[i % 800] = (byte) (i);
-        f.write(buf);
+        f.read(buf);
         sum += buf[5];
         t1 = System.currentTimeMillis();
         ts += t1 - t0;

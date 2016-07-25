@@ -12,14 +12,8 @@ public class WriteBuffer implements Runnable {
 
   private BlockingQueue<WriteRequest> queue;
 
-  private RandomAccessFile fd;
-
-  private String filename;
-
-  public WriteBuffer(RandomAccessFile fd, String filename) {
-    queue = new LinkedBlockingQueue<>(100000);
-    this.fd = fd;
-    this.filename = filename;
+  public WriteBuffer() {
+    queue = new LinkedBlockingQueue<>(10000);
   }
 
   public void add(WriteRequest req) {
@@ -35,9 +29,11 @@ public class WriteBuffer implements Runnable {
     while (true) {
       try {
         WriteRequest req = queue.take();
+        if (req.buf == null)
+          break;
         //System.out.println(filename + " write buffer size " + queue.size());
-        fd.seek(req.offset);
-        fd.write(req.buf);
+        req.fd.seek(req.offset);
+        req.fd.write(req.buf);
       } catch (Exception e) {
         e.printStackTrace();
       }

@@ -9,11 +9,11 @@ import java.util.Arrays;
  */
 public class WriteRequest {
   public byte[] buf;
-  //public RandomAccessFile fd;
+  public RandomAccessFile fd;
   public long offset;
-  public WriteRequest(byte[] buf, long offset) {
+  public WriteRequest(byte[] buf, RandomAccessFile fd, long offset) {
     this.buf = Arrays.copyOf(buf, buf.length);
-    //this.fd = fd;
+    this.fd = fd;
     this.offset = offset;
   }
 }

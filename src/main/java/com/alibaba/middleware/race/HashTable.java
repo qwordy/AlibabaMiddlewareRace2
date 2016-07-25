@@ -58,27 +58,25 @@ public class HashTable {
 
   private List<String> dataFiles;
 
-  //private String indexFile;
-
   private final RandomAccessFile fd;
 
   private byte[] entryBuf;
 
   private WriteBuffer writeBuffer;
 
-  public HashTable(List<String> dataFiles, String indexFile, int size) throws Exception {
+  public HashTable(List<String> dataFiles, String indexFile,
+                   int size, WriteBuffer writeBuffer) throws Exception {
+    this.writeBuffer = writeBuffer;
     this.dataFiles = dataFiles;
-    //this.indexFile = indexFile;
-    fd = new RandomAccessFile(indexFile, "rw");
+    fd = new RandomAccessFile(indexFile, "w");
     blockNums = size;
+
 
     bucketMetas = new Meta[size];
 //    for (int i = 0; i < size; i++)
 //      bucketMetas[i] = new Meta(0, 6);
 
     entryBuf = new byte[ENTRY_SIZE];
-    writeBuffer = new WriteBuffer(fd, indexFile);
-    new Thread(writeBuffer).start();
   }
 
   public void add(byte[] data, int blockNo, int fileId, long fileOff) throws Exception {
@@ -105,13 +103,15 @@ public class HashTable {
     // fildOff
     System.arraycopy(Util.longTo4Byte(fileOff), 0, entryBuf, 10, 4);
 
-    writeBuffer.add(new WriteRequest(entryBuf, (((long) blockNo) << BIT) + meta.size));
+    writeBuffer.add(new WriteRequest(entryBuf, fd, (((long) blockNo) << BIT) + meta.size));
     meta.size += ENTRY_SIZE;
   }
 
   public Tuple get(byte[] key, int blockNo) throws Exception {
     byte[] buf = new byte[BLOCK_SIZE];
     Meta meta = bucketMetas[blockNo];
+    if (meta == null)
+      meta = bucketMetas[blockNo] = new Meta();
     while (true) {
       synchronized (fd) {
         fd.seek(((long) blockNo) << BIT);
@@ -135,22 +135,25 @@ public class HashTable {
   public List<Tuple> getAll(int blockNo) throws Exception {
     List<Tuple> list = new ArrayList<>();
     byte[] buf = new byte[BLOCK_SIZE];
+    Meta meta = bucketMetas[blockNo];
+    if (meta == null)
+      meta = bucketMetas[blockNo] = new Meta();
     while (true) {
       synchronized (fd) {
         fd.seek(((long) blockNo) << BIT);
         fd.read(buf);
       }
-      int size = Util.byte2short(buf, 4);
-      if (size == 0) size = 6;
+      int size = meta.size;
       for (int off = 6; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
         long data = Util.byte2long(buf, off);
         int fileId = Util.byte2short(buf, off + 8);
         long fileOff = Util.byte4ToLong(buf, off + 10);
         list.add(new Tuple(dataFiles.get(fileId), fileOff, data));
       }
-      blockNo = Util.byte2int(buf, 0);
+      blockNo = meta.next;
       if (blockNo == 0)
         return list;
+      meta = meta.nextMeta;
     }
   }
 
