@@ -21,7 +21,8 @@ import java.util.*;
  */
 public class Database {
 
-  private List<String> orderFilesList, goodFilesList, buyerFilesList, storeFoldersList;
+  private List<String> orderFilesList, goodFilesList, buyerFilesList,
+      storeFoldersList;
 
   private static TupleCreatetimeComparator tupleCreatetimeComparator;
 
@@ -31,7 +32,8 @@ public class Database {
 
   public static BgIndex buyerIndex, goodIndex;
 
-  private Thread orderWriteBufferThread, buyerWriteBufferThread, goodWriteBufferThread;
+  private Thread orderWriteBufferThread, buyerWriteBufferThread,
+      goodWriteBufferThread;
 
   public Database(Collection<String> orderFiles,
                   Collection<String> buyerFiles,
@@ -85,9 +87,12 @@ public class Database {
     orderWriteBufferThread.start();
     buyerWriteBufferThread.start();
     goodWriteBufferThread.start();
-    orderIndex = new OrderIndex(orderFilesList, fullname0("order.idx"));
-    buyerIndex = new BgIndex(orderFilesList, fullname1("b2o.idx"), buyerFilesList, 10000000);
-    goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"), goodFilesList, 5000000);
+    orderIndex = new OrderIndex(orderFilesList, fullname0("order.idx"),
+        orderWriteBuffer);
+    buyerIndex = new BgIndex(orderFilesList, fullname1("b2o.idx"),
+        buyerFilesList, 10000000, buyerWriteBuffer);
+    goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"),
+        goodFilesList, 5000000, goodWriteBuffer);
 
     OrderKvDealer dealer = new OrderKvDealer(orderIndex, buyerIndex, goodIndex);
     for (int i = 0; i < orderFilesList.size(); i++) {
@@ -124,8 +129,11 @@ public class Database {
     return storeFoldersList.get(2) + '/' + filename;
   }
 
-  private void readDataFile(String filename, IKvDealer dealer) throws Exception {
-    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filename));
+  private void readDataFile(String filename, IKvDealer dealer)
+      throws Exception {
+
+    BufferedInputStream bis =
+        new BufferedInputStream(new FileInputStream(filename));
 
     int b, keyLen = 0, valueLen = 0;
     long offset = 0, count = 0;

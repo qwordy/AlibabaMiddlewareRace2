@@ -2,6 +2,7 @@ package com.alibaba.middleware.race.index;
 
 import com.alibaba.middleware.race.HashTable;
 import com.alibaba.middleware.race.Tuple;
+import com.alibaba.middleware.race.WriteBuffer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,12 +23,13 @@ public class BgIndex {
 
   private List<String> bgFiles;
 
-  public BgIndex(List<String> orderFiles, String b2oIndexFile, List<String> bgFiles, int size)
+  public BgIndex(List<String> orderFiles, String b2oIndexFile,
+                 List<String> bgFiles, int size, WriteBuffer writeBuffer)
       throws Exception {
 
     this.bgFiles = bgFiles;
     map = new ConcurrentHashMap<>();
-    table = new HashTable(orderFiles, b2oIndexFile, size);
+    table = new HashTable(orderFiles, b2oIndexFile, size, writeBuffer);
   }
 
   public void addOrder(byte[] bg, int fildId, long fildOff, byte[] data)
@@ -78,11 +80,10 @@ public class BgIndex {
     long fileOff;  // bg file off
     int blockNo;
 
-    public Value(short fileId, long fileOff, int blockNo) {
+    Value(short fileId, long fileOff, int blockNo) {
       this.fileId = fileId;
       this.fileOff = fileOff;
       this.blockNo = blockNo;
     }
   }
-
 }

@@ -27,12 +27,8 @@ public class OrderIndex {
   // 17
   private final int SMALL_MASK = 0x1ffff;
 
-  private WriteBuffer writeBuffer;
-
-  private Thread thread;
-
-  public OrderIndex(List<String> dataFiles, String indexFile) throws Exception {
-
+  public OrderIndex(List<String> dataFiles, String indexFile, WriteBuffer writeBuffer)
+      throws Exception {
 
     table = new HashTable[16];
     for (int i = 0; i < 16; i++)
