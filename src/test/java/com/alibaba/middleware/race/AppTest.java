@@ -240,6 +240,19 @@ public class AppTest {
   public void t() {
     System.out.println((long)0xfffffff << 6);
     System.out.println((int) (0xfffffffffL >> 4));
+    byte[][] bufs = new byte[10][];
+    System.out.println(bufs.length);
+    System.out.println(bufs[0].length);
+  }
+
+  @Test
+  public void fs() {
+    try {
+      RandomAccessFile f = new RandomAccessFile("test", "rw");
+      f.setLength(400000000);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @Test
@@ -253,16 +266,17 @@ public class AppTest {
 
       long t0, t1, ts = 0;
 
-      int sum = 0;
-      for (int i = 0; i < 50000; i++) {
+      int sum = 0, step = 4000;
+      for (long i = 0; i < 16000000000L; i += step) {
         t0 = System.currentTimeMillis();
-        buf[i % 800] = (byte) (i);
-        //f.seek((int)(Math.random()*4000000000L));
-        f.write(buf);
+        for (int j = 0; j < step; j++)
+          buf[j] = (byte) (Math.random()*1000);
+        f.seek(i + 1400);
+        f.write(buf, 0, 300);
         sum += buf[5];
         t1 = System.currentTimeMillis();
         ts += t1 - t0;
-        if (i % 500 == 0) {
+        if (i % 8000000 == 0) {
           System.out.println(ts + " ");
           ts = 0;
         }

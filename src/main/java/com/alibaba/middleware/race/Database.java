@@ -78,9 +78,9 @@ public class Database {
   }
 
   private void buildOrder2OrderHash() throws Exception {
-    WriteBuffer writeBuffer0 = new WriteBuffer();
-    WriteBuffer writeBuffer1 = new WriteBuffer();
-    WriteBuffer writeBuffer2 = new WriteBuffer();
+    WriteBuffer writeBuffer0 = new WriteBuffer(1 << 21, 500, 1 << 4, 17);
+    WriteBuffer writeBuffer1 = new WriteBuffer(0, 0, 0, 0);
+    WriteBuffer writeBuffer2 = new WriteBuffer(0, 0, 0, 0);
     writeBuffer0Thread = new Thread(writeBuffer0);
     writeBuffer1Thread = new Thread(writeBuffer1);
     writeBuffer2Thread = new Thread(writeBuffer2);
@@ -90,7 +90,7 @@ public class Database {
         buyerFilesList, 10000000, writeBuffer1);
     goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"),
         goodFilesList, 5000000, writeBuffer2);
-    //writeBuffer0Thread.start();
+    writeBuffer0Thread.start();
     writeBuffer1Thread.start();
     writeBuffer2Thread.start();
 
@@ -101,9 +101,9 @@ public class Database {
     }
 
     WriteRequest writeRequest = new WriteRequest();
-    writeBuffer0.add(0, writeRequest);
-    writeBuffer1.add(0, writeRequest);
-    writeBuffer2.add(0, writeRequest);
+//    writeBuffer0.add(0, writeRequest);
+//    writeBuffer1.add(0, writeRequest);
+//    writeBuffer2.add(0, writeRequest);
   }
 
   private void buildGood2GoodHash() throws Exception {

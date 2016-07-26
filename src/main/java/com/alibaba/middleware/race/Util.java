@@ -117,14 +117,6 @@ public class Util {
     return false;
   }
 
-  public static int bytesHash(byte[] key) {
-    int h = 0;
-    for (byte b : key) {
-      h = 31 * h + b;
-    }
-    return h;
-  }
-
   public static byte[] serialize(Object obj) throws Exception {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     ObjectOutputStream oos = new ObjectOutputStream(bos);
@@ -132,7 +124,7 @@ public class Util {
     return bos.toByteArray();
   }
 
-  public static int getHashCode(byte[] key) {
+  public static int bytesHash(byte[] key) {
     int h = 0;
     for (byte b : key) {
       h = 31 * h + b;

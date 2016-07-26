@@ -43,7 +43,7 @@ import java.util.List;
  */
 public class HashTable {
 
-  // also bucket size
+  // bucket size
   private static final int BLOCK_SIZE = 4096;
 
   // 2 ^ BIT = BLOCK_SIZE
@@ -66,8 +66,9 @@ public class HashTable {
 
   private WriteBuffer writeBuffer;
 
-  public HashTable(List<String> dataFiles, int indexFileId, RandomAccessFile fd,
-                   int size, WriteBuffer writeBuffer) throws Exception {
+  public HashTable(List<String> dataFiles, RandomAccessFile fd,
+                   int bucketNum, int bucketSize, WriteBuffer writeBuffer)
+      throws Exception {
 
     this.dataFiles = dataFiles;
     this.indexFileId = indexFileId;
@@ -106,8 +107,8 @@ public class HashTable {
     // fildOff
     System.arraycopy(Util.longTo4Byte(fileOff), 0, entryBuf, 10, 4);
 
-    writeBuffer.add(indexFileId,
-        new WriteRequest(entryBuf, (((long) blockNo) << BIT) + meta.size));
+//    writeBuffer.add(indexFileId,
+//        new WriteRequest(entryBuf, (((long) blockNo) << BIT) + meta.size));
     meta.size += ENTRY_SIZE;
   }
 

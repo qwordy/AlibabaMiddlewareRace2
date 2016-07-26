@@ -1,10 +1,6 @@
 package com.alibaba.middleware.race;
 
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by yfy on 7/24/16.
@@ -12,25 +8,36 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class WriteBuffer implements Runnable {
 
-  private List<BlockingQueue<WriteRequest>> queueList;
+  private int bufNum, bufSize, fdMoveBit;
 
-  private List<RandomAccessFile> fdList;
+  private byte[][] bufs;
 
-  public WriteBuffer() {
-    queueList = new ArrayList<>();
-    fdList = new ArrayList<>();
+  private int[] bufLens;
+
+  private RandomAccessFile fd;
+
+  public WriteBuffer(int bufNum, int bufSize, int fdNum, int fdMoveBit) {
+    this.bufNum = bufNum;
+    this.bufSize = bufSize;
+    this.fdMoveBit = fdMoveBit;
+    bufs = new byte[bufNum][];
+    bufLens = new int[bufNum];
+    fds = new RandomAccessFile[fdNum];
+    for (int i = 0; i < bufNum; i++) {
+      bufs[i] = new byte[bufSize];
+    }
+
   }
 
-  public void addQueue(RandomAccessFile fd) throws Exception {
-    queueList.add(new LinkedBlockingQueue<WriteRequest>(10000));
-    fdList.add(fd);
+  public void addFd(int id, RandomAccessFile fd) {
+    fds[id] = fd;
   }
 
-  public void add(int id, WriteRequest req) {
-    try {
-      queueList.get(id).put(req);
-    } catch (Exception e) {
-      e.printStackTrace();
+  public void add(int id, byte[] buf) throws Exception {
+    synchronized (bufs[id]) {
+      while (bufLens[id] + 14 > bufSize)
+        bufs[id].wait();
+
     }
   }
 
@@ -38,20 +45,12 @@ public class WriteBuffer implements Runnable {
   public void run() {
     try {
       while (true) {
-        for (int i = 0; i < queueList.size(); i++) {
-          BlockingQueue<WriteRequest> queue = queueList.get(i);
-          RandomAccessFile fd = fdList.get(i);
-          //System.out.println("write buffer size " + queue.size());
-          WriteRequest req = queue.poll();
-          while (req != null) {
-            if (req.buf == null)
-              return;
-            fd.seek(req.offset);
-            fd.write(req.buf);
-            req = queue.poll();
+        for (int i = 0; i < bufNum; i++) {
+          synchronized (bufs[i]) {
+            RandomAccessFile fd = fds[i >> fdMoveBit];
+
           }
         }
-        //Thread.sleep(1);
       }
     } catch (Exception e) {
       e.printStackTrace();

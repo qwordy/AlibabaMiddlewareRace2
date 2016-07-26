@@ -31,7 +31,7 @@ public class BgIndex {
     this.bgFiles = bgFiles;
     map = new ConcurrentHashMap<>();
     RandomAccessFile fd = new RandomAccessFile(bg2oIndexFile, "rw");
-    writeBuffer.addQueue(fd);
+    //writeBuffer.addQueue(fd);
     table = new HashTable(orderFiles, 0, fd, size, writeBuffer);
   }
 
