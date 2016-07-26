@@ -263,7 +263,7 @@ public class AppTest {
       BufferedInputStream bis =
           new BufferedInputStream(new FileInputStream("test"));
       int b;
-      //while ((b = bis.read()) != -1);
+//      while ((b = bis.read()) != -1);
       byte[] buf = new byte[8192];
       while (bis.read(buf) != -1);
     } catch (Exception e) {
@@ -285,12 +285,12 @@ public class AppTest {
       long t0, t1, ts = 0;
 
       int sum = 0, step = 4000;
-      for (long i = 0; i < 8000000000L; i += step) {
+      for (long i = 0; i < 4000000000L; i += step) {
         t0 = System.currentTimeMillis();
 //        for (int j = 0; j < step; j++)
 //          buf[j] = (byte) (Math.random()*1000);
         f.seek(i + 1400);
-        f.write(buf, 0, 2000);
+        f.read(buf, 0, 2000);
         sum += buf[5];
         t1 = System.currentTimeMillis();
         ts += t1 - t0;

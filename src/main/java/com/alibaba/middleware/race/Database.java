@@ -90,7 +90,7 @@ public class Database {
         buyerFilesList, 8500000, 1024, writeBuffer1);
     goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"),
         goodFilesList, 4500000, 2048, writeBuffer2);
-    writeBuffer0Thread.start();
+    //writeBuffer0Thread.start();
     //writeBuffer1Thread.start();
     //writeBuffer2Thread.start();
 
@@ -103,6 +103,7 @@ public class Database {
     writeBuffer0.finish();
     writeBuffer1.finish();
     writeBuffer2.finish();
+    
   }
 
   private void buildGood2GoodHash() throws Exception {
