@@ -25,14 +25,14 @@ public class BgIndex {
   private List<String> bgFiles;
 
   public BgIndex(List<String> orderFiles, String bg2oIndexFile,
-                 List<String> bgFiles, int size, WriteBuffer writeBuffer)
-      throws Exception {
+                 List<String> bgFiles, int size, int blockSize,
+                 WriteBuffer writeBuffer) throws Exception {
 
     this.bgFiles = bgFiles;
     map = new ConcurrentHashMap<>();
     RandomAccessFile fd = new RandomAccessFile(bg2oIndexFile, "rw");
-    //writeBuffer.addQueue(fd);
-    table = new HashTable(orderFiles, 0, fd, size, writeBuffer);
+    writeBuffer.setFd(fd);
+    table = new HashTable(orderFiles, fd, size, blockSize, writeBuffer);
   }
 
   public void addOrder(byte[] bg, int fildId, long fildOff, byte[] data)

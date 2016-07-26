@@ -70,8 +70,8 @@ public class OrderKvDealer extends AbstractKvDealer {
     keyCount++;
     if (keyCount == 4) {
       orderIndex.add(orderidValue, fileId, curOffset);
-      buyerIndex.addOrder(buyeridValue, fileId, curOffset, createtimeValue);
-      goodIndex.addOrder(goodidValue, fileId, curOffset, orderidValue);
+      //buyerIndex.addOrder(buyeridValue, fileId, curOffset, createtimeValue);
+      //goodIndex.addOrder(goodidValue, fileId, curOffset, orderidValue);
       return 2;
     }
     return 0;

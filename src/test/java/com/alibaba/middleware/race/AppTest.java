@@ -266,8 +266,8 @@ public class AppTest {
 
       long t0, t1, ts = 0;
 
-      int sum = 0, step = 4000;
-      for (long i = 0; i < 16000000000L; i += step) {
+      int sum = 0, step = 1000;
+      for (long i = 0; i < 4000000000L; i += step) {
         t0 = System.currentTimeMillis();
         for (int j = 0; j < step; j++)
           buf[j] = (byte) (Math.random()*1000);

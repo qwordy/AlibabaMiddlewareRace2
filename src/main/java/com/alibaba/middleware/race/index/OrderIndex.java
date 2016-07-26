@@ -21,44 +21,21 @@ public class OrderIndex {
   private HashTable table;
 
   public OrderIndex(List<String> dataFiles, String indexFile,
-                    int bucketNum, int bucketSize,
                     WriteBuffer writeBuffer) throws Exception {
 
     RandomAccessFile fd = new RandomAccessFile(indexFile, "rw");
-    table = new HashTable(dataFiles, fd, )
+    writeBuffer.setFd(fd);
+    table = new HashTable(dataFiles, fd, 1 << 21, 4096, writeBuffer);
   }
 
-  //private HashTable[] table;
+  public void add(byte[] id, int fileId, long fileOff) throws Exception {
+    //System.out.println("order add");
+    int hash = Util.bytesHash(id) & 0x1fffff;
+    table.add(id, hash, fileId, fileOff);
+  }
 
-  // each table bucket num
-  //private final int BUCKET_NUM = 1 << 17;
-
-  // 21
-  //private final int BIG_MASK = 0x1fffff;
-
-  // 17
-  //private final int SMALL_MASK = 0x1ffff;
-
-//  public OrderIndex(List<String> dataFiles, String indexFile,
-//                    WriteBuffer writeBuffer) throws Exception {
-//
-//    table = new HashTable[16];
-//    for (int i = 0; i < 16; i++) {
-//      RandomAccessFile fd = new RandomAccessFile(indexFile + i, "rw");
-//      fd.setLength(1 << 29);
-//      writeBuffer.addFd(i, fd);
-//      table[i] = new HashTable(dataFiles, i, fd, BUCKET_NUM, writeBuffer);
-//    }
-//  }
-//
-//  public void add(byte[] id, int fileId, long fileOff) throws Exception {
-//    //System.out.println("order add");
-//    int hash = Util.bytesHash(id) & BIG_MASK;
-//    table[hash >> 17].add(id, hash & SMALL_MASK, fileId, fileOff);
-//  }
-//
-//  public Tuple get(byte[] id) throws Exception {
-//    int hash = Util.bytesHash(id) & BIG_MASK;
-//    return table[hash >> 17].get(id, hash & SMALL_MASK);
-//  }
+  public Tuple get(byte[] id) throws Exception {
+    int hash = Util.bytesHash(id) & 0x1fffff;
+    return table.get(id, hash);
+  }
 }

@@ -2,7 +2,6 @@ package com.alibaba.middleware.race;
 
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -43,22 +42,21 @@ import java.util.List;
  */
 public class HashTable {
 
-  // bucket size
-  private static final int BLOCK_SIZE = 4096;
+  private final int SIZE;
 
-  // 2 ^ BIT = BLOCK_SIZE
-  private static final int BIT = 12;
+  private final int BLOCK_SIZE;
+
+  // 2 ^ BIT = BLOCK
+  private final int BIT;
 
   private static final int ENTRY_SIZE = 14;
 
   // current number of blocks
-  private int blockNums;
+  private int blockNum;
 
   private Meta[] bucketMetas;
 
   private List<String> dataFiles;
-
-  private int indexFileId;
 
   private RandomAccessFile fd;
 
@@ -67,23 +65,34 @@ public class HashTable {
   private WriteBuffer writeBuffer;
 
   public HashTable(List<String> dataFiles, RandomAccessFile fd,
-                   int bucketNum, int bucketSize, WriteBuffer writeBuffer)
+                   int size, int blockSize, WriteBuffer writeBuffer)
       throws Exception {
 
     this.dataFiles = dataFiles;
-    this.indexFileId = indexFileId;
     this.fd = fd;
-    blockNums = size;
+    SIZE = blockNum = size;
+    BLOCK_SIZE = blockSize;
     this.writeBuffer = writeBuffer;
+
+    if (blockSize == 4096)
+      BIT = 12;
+    else if (blockSize == 2048)
+      BIT = 11;
+    else if (blockSize == 1024)
+      BIT = 10;
+    else
+      throw new Exception();
 
     bucketMetas = new Meta[size];
 //    for (int i = 0; i < size; i++)
-//      bucketMetas[i] = new Meta(0, 6);
+//      bucketMetas[i] = new Meta();
 
     entryBuf = new byte[ENTRY_SIZE];
   }
 
-  public void add(byte[] data, int blockNo, int fileId, long fileOff) throws Exception {
+  public void add(byte[] data, int blockNo, int fileId, long fileOff)
+      throws Exception {
+
     Meta meta = bucketMetas[blockNo];
     if (meta == null)
       meta = bucketMetas[blockNo] = new Meta();
@@ -94,7 +103,7 @@ public class HashTable {
     }
     // no enough space in bucket
     if (meta.size + ENTRY_SIZE > BLOCK_SIZE) {
-      meta.next = blockNums++;
+      meta.next = blockNum++;
       meta.nextMeta = new Meta();
       blockNo = meta.next;
       meta = meta.nextMeta;
@@ -107,8 +116,7 @@ public class HashTable {
     // fildOff
     System.arraycopy(Util.longTo4Byte(fileOff), 0, entryBuf, 10, 4);
 
-//    writeBuffer.add(indexFileId,
-//        new WriteRequest(entryBuf, (((long) blockNo) << BIT) + meta.size));
+    writeBuffer.add(blockNo, entryBuf);
     meta.size += ENTRY_SIZE;
   }
 
@@ -123,7 +131,7 @@ public class HashTable {
         fd.read(buf);
       }
       int size = meta.size;
-      for (int off = 6; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
+      for (int off = 0; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
         if (Util.bytesEqual(buf, off, key, 0, 8)) {
           int fileId = Util.byte2short(buf, off + 8);
           long fileOff = Util.byte4ToLong(buf, off + 10);
@@ -149,7 +157,7 @@ public class HashTable {
         fd.read(buf);
       }
       int size = meta.size;
-      for (int off = 6; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
+      for (int off = 0; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
         long data = Util.byte2long(buf, off);
         int fileId = Util.byte2short(buf, off + 8);
         long fileOff = Util.byte4ToLong(buf, off + 10);
@@ -163,7 +171,7 @@ public class HashTable {
   }
 
   private static class Meta {
-    int next, size = 6;
+    int next, size;
     Meta nextMeta;
   }
 
@@ -273,7 +281,7 @@ public class HashTable {
 //    this.dataFiles = dataFiles;
 //    this.indexFile = indexFile;
 //
-//    SIZE = blockNums = size;
+//    SIZE = blockNum = size;
 //
 //    if (keySize == 0) {
 //      keySizeFixed = false;
@@ -327,7 +335,7 @@ public class HashTable {
 //      if (!keySizeFixed) {
 //        // no enough space in this bucket
 //        if (nextPos + 2 + key.length + 4 > BLOCK_SIZE) {
-//          byte[] blockNumsBytes = Util.int2byte(blockNums);
+//          byte[] blockNumsBytes = Util.int2byte(blockNum);
 //          System.arraycopy(blockNumsBytes, 0, bucket, 0, 4);
 //
 //          cache.writeBlock(indexFile, blockNo, bucket);
@@ -336,8 +344,8 @@ public class HashTable {
 //          System.arraycopy(Util.int2byte(8), 0, bucket, 4, 4);
 //          nextPos = 8;
 //
-//          blockNo = blockNums;
-//          blockNums++;
+//          blockNo = blockNum;
+//          blockNum++;
 //        }
 //
 //        // key size
@@ -350,7 +358,7 @@ public class HashTable {
 //        nextPos += key.length;
 //
 //        // point to a block which contains values of the same key
-//        byte[] blockNumsBytes = Util.int2byte(blockNums);
+//        byte[] blockNumsBytes = Util.int2byte(blockNum);
 //        System.arraycopy(blockNumsBytes, 0, bucket, nextPos, 4);
 //        nextPos += 4;
 //
@@ -363,8 +371,8 @@ public class HashTable {
 //        // init new bucket
 //        bucket = new byte[BLOCK_SIZE];
 //        System.arraycopy(Util.int2byte(8), 0, bucket, 4, 4);
-//        blockNo = blockNums;
-//        blockNums++;
+//        blockNo = blockNum;
+//        blockNum++;
 //
 //        addValueMulti(bucket, blockNo, fileId, fileOffset, extra);
 //
@@ -382,7 +390,7 @@ public class HashTable {
 //
 //    // block has no enough space
 //    if (nextPos + 12 + EXTRA_SIZE > BLOCK_SIZE) {
-//      byte[] blockNumsBytes = Util.int2byte(blockNums);
+//      byte[] blockNumsBytes = Util.int2byte(blockNum);
 //      System.arraycopy(blockNumsBytes, 0, bucket, 0, 4);
 //
 //      cache.writeBlock(indexFile, blockNo, bucket);
@@ -391,8 +399,8 @@ public class HashTable {
 //      System.arraycopy(Util.int2byte(8), 0, bucket, 4, 4);
 //      nextPos = 8;
 //
-//      blockNo = blockNums;
-//      blockNums++;
+//      blockNo = blockNum;
+//      blockNum++;
 //    }
 //
 //    // fileId

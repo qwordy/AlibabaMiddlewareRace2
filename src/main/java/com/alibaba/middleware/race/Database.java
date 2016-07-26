@@ -78,21 +78,21 @@ public class Database {
   }
 
   private void buildOrder2OrderHash() throws Exception {
-    WriteBuffer writeBuffer0 = new WriteBuffer(1 << 21, 500, 1 << 4, 17);
-    WriteBuffer writeBuffer1 = new WriteBuffer(0, 0, 0, 0);
-    WriteBuffer writeBuffer2 = new WriteBuffer(0, 0, 0, 0);
+    WriteBuffer writeBuffer0 = new WriteBuffer(1 << 21, 1000, 4096);
+    WriteBuffer writeBuffer1 = new WriteBuffer(85, 24, 1024);
+    WriteBuffer writeBuffer2 = new WriteBuffer(45, 24, 2048);
     writeBuffer0Thread = new Thread(writeBuffer0);
     writeBuffer1Thread = new Thread(writeBuffer1);
     writeBuffer2Thread = new Thread(writeBuffer2);
     orderIndex = new OrderIndex(orderFilesList, fullname0("order.idx"),
         writeBuffer0);
     buyerIndex = new BgIndex(orderFilesList, fullname1("b2o.idx"),
-        buyerFilesList, 10000000, writeBuffer1);
+        buyerFilesList, 8500000, 1024, writeBuffer1);
     goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"),
-        goodFilesList, 5000000, writeBuffer2);
+        goodFilesList, 4500000, 2048, writeBuffer2);
     writeBuffer0Thread.start();
-    writeBuffer1Thread.start();
-    writeBuffer2Thread.start();
+    //writeBuffer1Thread.start();
+    //writeBuffer2Thread.start();
 
     OrderKvDealer dealer = new OrderKvDealer(orderIndex, buyerIndex, goodIndex);
     for (int i = 0; i < orderFilesList.size(); i++) {
@@ -100,10 +100,9 @@ public class Database {
       readDataFile(orderFilesList.get(i), dealer);
     }
 
-    WriteRequest writeRequest = new WriteRequest();
-//    writeBuffer0.add(0, writeRequest);
-//    writeBuffer1.add(0, writeRequest);
-//    writeBuffer2.add(0, writeRequest);
+    writeBuffer0.finish();
+    writeBuffer1.finish();
+    writeBuffer2.finish();
   }
 
   private void buildGood2GoodHash() throws Exception {
