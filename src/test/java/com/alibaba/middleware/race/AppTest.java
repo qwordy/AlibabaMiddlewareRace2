@@ -4,6 +4,8 @@ import com.alibaba.middleware.race.concurrentlinkedhashmap.ConcurrentLinkedHashM
 import com.alibaba.middleware.race.concurrentlinkedhashmap.EvictionListener;
 import org.junit.Test;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
 import java.util.Collection;
@@ -256,23 +258,39 @@ public class AppTest {
   }
 
   @Test
+  public void read() {
+    try {
+      BufferedInputStream bis =
+          new BufferedInputStream(new FileInputStream("test"));
+      int b;
+      //while ((b = bis.read()) != -1);
+      byte[] buf = new byte[8192];
+      while (bis.read(buf) != -1);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Test
   public void disk() {
     try {
       RandomAccessFile f = new RandomAccessFile("test", "rw");
       byte[] buf = new byte[8000];
+      for (int i = 0; i < buf.length; i++)
+        buf[i] = (byte) (Math.random()*1000);
 
       Arrays.fill(buf, (byte) 5);
       buf[3] = 99;
 
       long t0, t1, ts = 0;
 
-      int sum = 0, step = 1000;
-      for (long i = 0; i < 4000000000L; i += step) {
+      int sum = 0, step = 4000;
+      for (long i = 0; i < 8000000000L; i += step) {
         t0 = System.currentTimeMillis();
-        for (int j = 0; j < step; j++)
-          buf[j] = (byte) (Math.random()*1000);
+//        for (int j = 0; j < step; j++)
+//          buf[j] = (byte) (Math.random()*1000);
         f.seek(i + 1400);
-        f.write(buf, 0, 300);
+        f.write(buf, 0, 2000);
         sum += buf[5];
         t1 = System.currentTimeMillis();
         ts += t1 - t0;
