@@ -82,9 +82,6 @@ public class Database {
     writeBuffer0Thread.join();
     writeBuffer1Thread.join();
     writeBuffer2Thread.join();
-    System.out.println("[yfy] order num: " + OrderKvDealer.count);
-    System.out.println("[yfy] orderid max: " + OrderKvDealer.maxOid);
-    System.out.println("[yfy] createtime max: " + OrderKvDealer.maxTime);
     System.out.println("[yfy] buyer num: " + BuyerKvDealer.count);
     System.out.println("[yfy] good num: " + GoodKvDealer.count);
     System.out.flush();
@@ -115,6 +112,9 @@ public class Database {
 
     }
     System.out.println(System.currentTimeMillis());
+    System.out.println("[yfy] order num: " + OrderKvDealer.count);
+    System.out.println("[yfy] orderid max: " + OrderKvDealer.maxOid);
+    System.out.println("[yfy] createtime max: " + OrderKvDealer.maxTime);
 
     writeBuffer0.finish();
     writeBuffer1.finish();
@@ -196,7 +196,7 @@ public class Database {
     // 0 for read key, 1 for read value, 2 for skip line
     int status = 0;
     byte[] key = new byte[256];
-    byte[] value = new byte[65536];
+    byte[] value = new byte[105536];
 
     while ((b = readBuffer.read()) != -1) {
       //System.out.print((char)b);

@@ -87,7 +87,7 @@ public class AppTest {
   @Test
   public void constructSim() throws Exception {
     OrderSystem os = new OrderSystemImpl();
-    os.construct(Arrays.asList("order_records.txt"),
+    os.construct(Arrays.asList("data/order"),
         Arrays.asList("data/buyer"),
         Arrays.asList("data/good"),
         Arrays.asList("data", "data", "data"));
@@ -337,8 +337,18 @@ public class AppTest {
       pw.print('\t');
       pw.print("createtime:");
       pw.print(String.valueOf((long) (Math.random() * 9999999999L)));
-      pw.print("\tbuyerid:tp-b7fe-861c6703989c\tgoodid:gd-9e43-678e940e0e32\tamount:12\tdone:true\ta_o_4699:-34842\ta_o_3337:227e8faf-defa-42ce-9725-28dca1bdb785\ta_o_22304:0.024\ta_o_12490:-1640\n");
+      pw.print("\tbuyerid:");
+      pw.print(randStr());
+      pw.print("\tgoodid:gd-9e43-678e940e0e32\tamount:12\tdone:true\ta_o_4699:-34842\ta_o_3337:227e8faf-defa-42ce-9725-28dca1bdb785\ta_o_22304:0.024\ta_o_12490:-1640\n");
     }
+  }
+
+  private String randStr() {
+    int len = (int)(Math.random() * 12) + 8;
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < len; i++)
+      sb.append((char)(Math.random() * 256));
+    return sb.toString();
   }
 
   @Test
