@@ -58,7 +58,7 @@ public class WriteBuffer implements Runnable {
 //    int a, b;
 //    a = b = 0;
     try {
-      Thread.sleep(5000);
+      Thread.sleep(2000);
       while (true) {
         boolean has = false;
         for (int i = 0; i < buffers.size(); i++) {
