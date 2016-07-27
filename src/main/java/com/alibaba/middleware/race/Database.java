@@ -12,8 +12,15 @@ import com.alibaba.middleware.race.result.GoodResult;
 import com.alibaba.middleware.race.result.SimpleResult;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.CompletionHandler;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.Future;
 
 /**
  * Created by yfy on 7/13/16.
@@ -80,10 +87,11 @@ public class Database {
     System.out.println("[yfy] createtime max: " + OrderKvDealer.maxTime);
     System.out.println("[yfy] buyer num: " + BuyerKvDealer.count);
     System.out.println("[yfy] good num: " + GoodKvDealer.count);
+    System.out.flush();
   }
 
   private void buildOrder2OrderHash() throws Exception {
-    WriteBuffer writeBuffer0 = new WriteBuffer(21, 200, 4096);
+    WriteBuffer writeBuffer0 = new WriteBuffer(21, 20, 4096);
     WriteBuffer writeBuffer1 = new WriteBuffer(85, 24, 1024);
     WriteBuffer writeBuffer2 = new WriteBuffer(45, 24, 2048);
     writeBuffer0Thread = new Thread(writeBuffer0);
@@ -99,11 +107,14 @@ public class Database {
     //writeBuffer1Thread.start();
     //writeBuffer2Thread.start();
 
+    System.out.println(System.currentTimeMillis());
     OrderKvDealer dealer = new OrderKvDealer(orderIndex, buyerIndex, goodIndex);
     for (int i = 0; i < orderFilesList.size(); i++) {
       dealer.setFileId(i);
       readDataFile(orderFilesList.get(i), dealer);
+
     }
+    System.out.println(System.currentTimeMillis());
 
     writeBuffer0.finish();
     writeBuffer1.finish();
@@ -139,11 +150,46 @@ public class Database {
     return storeFoldersList.get(2) + '/' + filename;
   }
 
+  private void readAio(String filename) throws Exception {
+    final int SIZE = 50;
+    Path path = Paths.get(filename);
+    final AsynchronousFileChannel channel = AsynchronousFileChannel.open(path);
+    final ByteBuffer buffer0 = ByteBuffer.allocate(SIZE);
+    final ByteBuffer buffer1 = ByteBuffer.allocate(SIZE);
+    CompletionHandler<Integer, Object> handler =
+        new CompletionHandler<Integer, Object>() {
+          public int offset;
+
+          @Override
+          public void completed(Integer result, Object att) {
+            System.out.println(new String(buffer0.array()));
+            offset += SIZE;
+            System.out.println(offset);
+            buffer0.clear();
+            channel.read(buffer0, offset, null, this);
+          }
+
+          @Override
+          public void failed(Throwable exc, Object att) {
+            System.out.println("fail");
+          }
+        };
+    channel.read(buffer0, 0, null, handler);
+
+    System.out.println("other");
+    Thread.sleep(3000);
+  }
+
   private void readDataFile(String filename, IKvDealer dealer)
       throws Exception {
 
-    BufferedInputStream bis =
-        new BufferedInputStream(new FileInputStream(filename));
+    //BufferedInputStream bis =
+    //    new BufferedInputStream(new FileInputStream(filename));
+
+    System.out.println("[yfy] filename: " + filename +
+        " size: " + new File(filename).length());
+    ReadBuffer readBuffer = new ReadBuffer(filename);
+    new Thread(readBuffer).start();
 
     int b, keyLen = 0, valueLen = 0;
     long offset = 0, count = 0;
@@ -152,7 +198,8 @@ public class Database {
     byte[] key = new byte[256];
     byte[] value = new byte[65536];
 
-    while ((b = bis.read()) != -1) {
+    while ((b = readBuffer.read()) != -1) {
+      //System.out.print((char)b);
       count++;
       if (status == 0) {
         if (b == ':') {

@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
 import java.util.Collection;
@@ -81,6 +82,15 @@ public class AppTest {
             "/home/yfy/middleware/prerun_data",
             "/home/yfy/middleware/prerun_data"));
     return os;
+  }
+
+  @Test
+  public void constructSim() throws Exception {
+    OrderSystem os = new OrderSystemImpl();
+    os.construct(Arrays.asList("data/order"),
+        Arrays.asList("data/buyer"),
+        Arrays.asList("data/good"),
+        Arrays.asList("data", "data", "data"));
   }
 
   private String fn(String file) {
@@ -240,7 +250,7 @@ public class AppTest {
 
   @Test
   public void t() {
-    System.out.println((long)0xfffffff << 6);
+    System.out.println((long) 0xfffffff << 6);
     System.out.println((int) (0xfffffffffL >> 4));
     byte[][] bufs = new byte[10][];
     System.out.println(bufs.length);
@@ -258,39 +268,42 @@ public class AppTest {
   }
 
   @Test
-  public void read() {
-    try {
-      BufferedInputStream bis =
-          new BufferedInputStream(new FileInputStream("test"));
-      int b;
+  public void read() throws Exception {
+
+    BufferedInputStream bis =
+        new BufferedInputStream(new FileInputStream("test"));
+    RandomAccessFile fd = new RandomAccessFile("test", "r");
+    int b;
 //      while ((b = bis.read()) != -1);
-      byte[] buf = new byte[8192];
-      while (bis.read(buf) != -1);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    byte[] buf = new byte[8192];
+    long count = 0;
+    while (bis.read(buf) != -1);// && count < 4000000000L)
+//      count += 8192;
+//    while (fd.read(buf) != -1);
+
   }
 
   @Test
   public void disk() {
     try {
       RandomAccessFile f = new RandomAccessFile("test", "rw");
+      f.setLength(8000000000L);
       byte[] buf = new byte[8000];
       for (int i = 0; i < buf.length; i++)
-        buf[i] = (byte) (Math.random()*1000);
+        buf[i] = (byte) (Math.random() * 1000);
 
       Arrays.fill(buf, (byte) 5);
       buf[3] = 99;
 
       long t0, t1, ts = 0;
 
-      int sum = 0, step = 4000;
-      for (long i = 0; i < 4000000000L; i += step) {
+      int sum = 0, step = 8192;
+      for (long i = 0; i < 8000000000L; i += step) {
         t0 = System.currentTimeMillis();
 //        for (int j = 0; j < step; j++)
 //          buf[j] = (byte) (Math.random()*1000);
         f.seek(i + 1400);
-        f.read(buf, 0, 2000);
+        f.write(buf, 0, 2000);
         sum += buf[5];
         t1 = System.currentTimeMillis();
         ts += t1 - t0;
@@ -312,6 +325,19 @@ public class AppTest {
 //      System.out.println(System.currentTimeMillis());
     } catch (Exception e) {
       e.printStackTrace();
+    }
+  }
+
+  @Test
+  public void buildData() throws Exception {
+    PrintWriter pw = new PrintWriter("data/order0");
+    for (int i = 0; i < 20000000; i++) {
+      pw.print("orderid:");
+      pw.print(String.valueOf((long) (Math.random() * 9999999999L)));
+      pw.print('\t');
+      pw.print("createtime:");
+      pw.print(String.valueOf((long) (Math.random() * 9999999999L)));
+      pw.print("\tbuyerid:tp-b7fe-861c6703989c\tgoodid:gd-9e43-678e940e0e32\tamount:12\tdone:true\ta_o_4699:-34842\ta_o_3337:227e8faf-defa-42ce-9725-28dca1bdb785\ta_o_22304:0.024\ta_o_12490:-1640\n");
     }
   }
 
@@ -352,6 +378,6 @@ public class AppTest {
   @Test
   public void fill() {
     short[] b = new short[2000000];
-    Arrays.fill(b, (short)8);
+    Arrays.fill(b, (short) 8);
   }
 }
