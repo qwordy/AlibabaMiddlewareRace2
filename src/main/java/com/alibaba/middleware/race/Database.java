@@ -75,10 +75,15 @@ public class Database {
     writeBuffer0Thread.join();
     writeBuffer1Thread.join();
     writeBuffer2Thread.join();
+    System.out.println("[yfy] order num: " + OrderKvDealer.count);
+    System.out.println("[yfy] orderid max: " + OrderKvDealer.maxOid);
+    System.out.println("[yfy] createtime max: " + OrderKvDealer.maxTime);
+    System.out.println("[yfy] buyer num: " + BuyerKvDealer.count);
+    System.out.println("[yfy] good num: " + GoodKvDealer.count);
   }
 
   private void buildOrder2OrderHash() throws Exception {
-    WriteBuffer writeBuffer0 = new WriteBuffer(1 << 21, 200, 4096);
+    WriteBuffer writeBuffer0 = new WriteBuffer(21, 200, 4096);
     WriteBuffer writeBuffer1 = new WriteBuffer(85, 24, 1024);
     WriteBuffer writeBuffer2 = new WriteBuffer(45, 24, 2048);
     writeBuffer0Thread = new Thread(writeBuffer0);
@@ -90,7 +95,7 @@ public class Database {
         buyerFilesList, 8500000, 1024, writeBuffer1);
     goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"),
         goodFilesList, 4500000, 2048, writeBuffer2);
-    writeBuffer0Thread.start();
+    //writeBuffer0Thread.start();
     //writeBuffer1Thread.start();
     //writeBuffer2Thread.start();
 

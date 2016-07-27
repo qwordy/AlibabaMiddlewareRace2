@@ -10,6 +10,8 @@ public class GoodKvDealer extends AbstractKvDealer {
 
   private BgIndex goodIndex;
 
+  public static int count;
+
   public GoodKvDealer(BgIndex goodIndex) {
     this.goodIndex = goodIndex;
   }
@@ -17,6 +19,7 @@ public class GoodKvDealer extends AbstractKvDealer {
   @Override
   public int deal(byte[] key, int keyLen, byte[] value, int valueLen, long offset) throws Exception {
     if (keyMatch(key, keyLen, goodidBytes)) {
+      count++;
       goodIndex.addBg(value, valueLen, fileId, offset);
       return 2;
     }

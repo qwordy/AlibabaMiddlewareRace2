@@ -10,6 +10,8 @@ public class BuyerKvDealer extends AbstractKvDealer {
 
   private BgIndex buyerIndex;
 
+  public static int count;
+
   public BuyerKvDealer(BgIndex buyerIndex) {
     this.buyerIndex = buyerIndex;
   }
@@ -17,6 +19,7 @@ public class BuyerKvDealer extends AbstractKvDealer {
   @Override
   public int deal(byte[] key, int keyLen, byte[] value, int valueLen, long offset) throws Exception {
     if (keyMatch(key, keyLen, buyeridBytes)) {
+      count++;
       buyerIndex.addBg(value, valueLen, fileId, offset);
       return 2;
     }

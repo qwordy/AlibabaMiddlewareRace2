@@ -23,7 +23,9 @@ public class OrderKvDealer extends AbstractKvDealer {
   private byte[] orderidValue, buyeridValue, goodidValue, createtimeValue;
 
   // for test
-  private int count;
+  public static int count;
+
+  public static long maxOid, maxTime;
 
   public OrderKvDealer(OrderIndex orderIndex, BgIndex buyerIndex, BgIndex goodIndex) {
     this.orderIndex = orderIndex;
@@ -37,7 +39,9 @@ public class OrderKvDealer extends AbstractKvDealer {
   public int deal(byte[] key, int keyLen, byte[] value, int valueLen, long offset) throws Exception {
     if (keyMatch(key, keyLen, orderidBytes)) {
       update(offset);
-      orderidValue = Util.long2byte(Long.parseLong(new String(value, 0, valueLen)));
+      long orderidLong = Long.parseLong(new String(value, 0, valueLen));
+      orderidValue = Util.long2byte(orderidLong);
+      if (orderidLong > maxOid) maxOid = orderidLong;
       return tryAdd();
 
     } else if (keyMatch(key, keyLen, buyeridBytes)) {
@@ -47,7 +51,9 @@ public class OrderKvDealer extends AbstractKvDealer {
 
     } else if (keyMatch(key, keyLen, createtimeBytes)) {
       update(offset);
-      createtimeValue = Util.long2byte(Long.parseLong(new String(value, 0, valueLen)));
+      long createtimeLong = Long.parseLong(new String(value, 0, valueLen));
+      createtimeValue = Util.long2byte(createtimeLong);
+      if (createtimeLong > maxTime) maxTime = createtimeLong;
       return tryAdd();
 
     } else if (keyMatch(key, keyLen, goodidBytes)) {
@@ -69,7 +75,8 @@ public class OrderKvDealer extends AbstractKvDealer {
   private int tryAdd() throws Exception {
     keyCount++;
     if (keyCount == 4) {
-      orderIndex.add(orderidValue, fileId, curOffset);
+      count++;
+      //orderIndex.add(orderidValue, fileId, curOffset);
       //buyerIndex.addOrder(buyeridValue, fileId, curOffset, createtimeValue);
       //goodIndex.addOrder(goodidValue, fileId, curOffset, orderidValue);
       return 2;
