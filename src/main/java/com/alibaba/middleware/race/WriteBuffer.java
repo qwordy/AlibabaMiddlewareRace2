@@ -75,18 +75,16 @@ public class WriteBuffer implements Runnable {
   public void run() {
     try {
       while (true) {
-        Thread.sleep(3000);
+        Thread.sleep(2000);
         System.out.println(System.currentTimeMillis() + " write start");
         boolean has = false;
         for (int i = 0; i < size; i++) {
-
           Buffer buffer = buffers[i];
-          fd.seek((long) i * blockSize + buffer.offInBlock);
           synchronized (buffer) {
             if (buffer.len > 0) {
               //System.out.println(i);
               has = true;
-
+              fd.seek((long) i * blockSize + buffer.offInBlock);
               fd.write(buffer.buf, 0, buffer.len);
               buffer.offInBlock += buffer.len;
               buffer.len = 0;
@@ -96,13 +94,11 @@ public class WriteBuffer implements Runnable {
         }
         int extBuffersSize = extBuffers.size();
         for (int i = 0; i < extBuffersSize; i++) {
-
           Buffer buffer = extBuffers.get(i);
-          fd.seek((long) (size + i) * blockSize + buffer.offInBlock);
           synchronized (buffer) {
             //System.out.println(size + i);
             has = true;
-
+            fd.seek((long) (size + i) * blockSize + buffer.offInBlock);
             fd.write(buffer.buf, 0, buffer.len);
             buffer.offInBlock += buffer.len;
             buffer.len = 0;
@@ -129,7 +125,9 @@ public class WriteBuffer implements Runnable {
             }
           }
           if (has) continue;
-          System.out.println("[yfy] buffer size " + size + extBuffers.size());
+          System.out.println("[yfy] buffer size " + (size + extBuffers.size()));
+          buffers = null;
+          extBuffers = null;
           return;
         }
       }

@@ -11,16 +11,13 @@ import com.alibaba.middleware.race.result.BuyerResult;
 import com.alibaba.middleware.race.result.GoodResult;
 import com.alibaba.middleware.race.result.SimpleResult;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.Future;
 
 /**
  * Created by yfy on 7/13/16.
@@ -31,7 +28,7 @@ public class Database {
   private List<String> orderFilesList, goodFilesList, buyerFilesList,
       storeFoldersList;
 
-  private static TupleCreatetimeComparator tupleCreatetimeComparator;
+  private static BuyerResultComparator buyerResultComparator;
 
   private static TupleOrderidComparator tupleOrderidComparator;
 
@@ -39,15 +36,12 @@ public class Database {
 
   public static BgIndex buyerIndex, goodIndex;
 
-  private Thread writeBuffer0Thread, writeBuffer1Thread,
-      writeBuffer2Thread;
-
   public Database(Collection<String> orderFiles,
                   Collection<String> buyerFiles,
                   Collection<String> goodFiles,
                   Collection<String> storeFolders) throws Exception {
 
-    tupleCreatetimeComparator = new TupleCreatetimeComparator();
+    buyerResultComparator = new BuyerResultComparator();
     tupleOrderidComparator = new TupleOrderidComparator();
 
     ConcurrentCache cache = ConcurrentCache.getInstance();
@@ -79,9 +73,7 @@ public class Database {
     buildOrder2OrderHash();
     buildGood2GoodHash();
     buildBuyer2BuyerHash();
-    writeBuffer0Thread.join();
-    writeBuffer1Thread.join();
-    writeBuffer2Thread.join();
+
     System.out.println("[yfy] buyer num: " + BuyerKvDealer.count);
     System.out.println("[yfy] good num: " + GoodKvDealer.count);
     System.out.flush();
@@ -94,9 +86,9 @@ public class Database {
         Config.buyerIndexBlockSize, Config.buyerIndexBlockBufSize);
     WriteBuffer writeBuffer2 = new WriteBuffer(Config.goodIndexSize,
         Config.goodIndexBlockSize, Config.goodIndexBlockBufSize);
-    writeBuffer0Thread = new Thread(writeBuffer0);
-    writeBuffer1Thread = new Thread(writeBuffer1);
-    writeBuffer2Thread = new Thread(writeBuffer2);
+    Thread thread0 = new Thread(writeBuffer0);
+    Thread thread1 = new Thread(writeBuffer1);
+    Thread thread2 = new Thread(writeBuffer2);
     orderIndex = new OrderIndex(orderFilesList, fullname0("order.idx"),
         writeBuffer0);
     buyerIndex = new BgIndex(orderFilesList, fullname1("b2o.idx"),
@@ -105,9 +97,9 @@ public class Database {
     goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"),
         goodFilesList, Config.goodIndexSize, Config.goodIndexBlockSize,
         writeBuffer2);
-    //writeBuffer0Thread.start();
-    //writeBuffer1Thread.start();
-    //writeBuffer2Thread.start();
+    thread0.start();
+    thread1.start();
+    thread2.start();
 
     System.out.println(System.currentTimeMillis());
     OrderKvDealer dealer = new OrderKvDealer(orderIndex, buyerIndex, goodIndex);
@@ -124,6 +116,9 @@ public class Database {
     writeBuffer0.finish();
     writeBuffer1.finish();
     writeBuffer2.finish();
+    thread0.join();
+    thread1.join();
+    thread2.join();
   }
 
   private void buildGood2GoodHash() throws Exception {
@@ -187,9 +182,6 @@ public class Database {
   private void readDataFile(String filename, IKvDealer dealer)
       throws Exception {
 
-    //BufferedInputStream bis =
-    //    new BufferedInputStream(new FileInputStream(filename));
-
     System.out.println("[yfy] filename: " + filename +
         " size: " + new File(filename).length());
     ReadBuffer readBuffer = new ReadBuffer(filename);
@@ -240,7 +232,9 @@ public class Database {
   public ResultImpl queryOrder(long orderId, Collection<String> keys)
       throws Exception {
 
-    Tuple orderTuple = orderIndex.get(Util.long2byte(orderId));
+    if (orderId > Config.orderidMax)
+      return null;
+    Tuple orderTuple = orderIndex.get(Util.long2byte5(orderId));
     if (orderTuple == null)
       return null;
     ResultImpl result = new ResultImpl(orderTuple, keys);
@@ -252,19 +246,19 @@ public class Database {
       long startTime, long endTime, String buyerid) throws Exception {
 
     //TupleFilter filter = new TupleFilter(startTime, endTime);
-    List<Tuple> orderTupleList = buyerIndex.getOrder(buyerid); // filter
+    List<Tuple> orderTupleList = buyerIndex.getOrder(buyerid);
     if (orderTupleList.isEmpty())
       return new ArrayList<OrderSystem.Result>().iterator();
 
     Tuple buyerTuple = buyerIndex.getBg(buyerid);
     SimpleResult buyerResult = new SimpleResult(buyerTuple, null);
 
-    Collections.sort(orderTupleList, tupleCreatetimeComparator);
-    List<OrderSystem.Result> resultList = new ArrayList<>();
-    for (Tuple tuple : orderTupleList) {
-      if (tuple.getData() >= startTime && tuple.getData() <= endTime)
-        resultList.add(new BuyerResult(tuple, buyerResult));
-    }
+    List<OrderSystem.Result> resultList =
+        new ArrayList<>(orderTupleList.size());
+    for (Tuple tuple : orderTupleList)
+      resultList.add(new BuyerResult(tuple, buyerResult));
+    Collections.sort(resultList, buyerResultComparator);
+
     return resultList.iterator();
   }
 

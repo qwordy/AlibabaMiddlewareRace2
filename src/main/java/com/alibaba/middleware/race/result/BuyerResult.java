@@ -16,6 +16,8 @@ public class BuyerResult extends AbstractResult implements OrderSystem.Result {
 
   private Map<String, OrderSystem.KeyValue> buyerResultMap, resultMap;
 
+  private long createtime;
+
   public BuyerResult(Tuple orderTuple, SimpleResult buyerResult) throws Exception {
     buyerResultMap = buyerResult.getResultMap();
     resultMap = new HashMap<>();
@@ -26,6 +28,14 @@ public class BuyerResult extends AbstractResult implements OrderSystem.Result {
       Tuple goodTuple = Database.goodIndex.getBg(goodKv.valueAsString());
       scan(goodTuple, resultMap);
     }
+
+    OrderSystem.KeyValue kv = resultMap.get("createtime");
+    if (kv != null)
+      createtime = kv.valueAsLong();
+  }
+
+  public long getCreatetime() {
+    return createtime;
   }
 
   @Override
