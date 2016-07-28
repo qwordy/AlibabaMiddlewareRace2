@@ -82,10 +82,12 @@ public class Database {
   private void buildOrder2OrderHash() throws Exception {
     WriteBuffer writeBuffer0 = new WriteBuffer(Config.orderIndexSize,
         Config.orderIndexBlockSize, Config.orderIndexBlockBufSize);
-    WriteBuffer writeBuffer1 = new WriteBuffer(Config.buyerIndexSize,
-        Config.buyerIndexBlockSize, Config.buyerIndexBlockBufSize);
-    WriteBuffer writeBuffer2 = new WriteBuffer(Config.goodIndexSize,
-        Config.goodIndexBlockSize, Config.goodIndexBlockBufSize);
+//    WriteBuffer writeBuffer1 = new WriteBuffer(Config.buyerIndexSize,
+//        Config.buyerIndexBlockSize, Config.buyerIndexBlockBufSize);
+//    WriteBuffer writeBuffer2 = new WriteBuffer(Config.goodIndexSize,
+//        Config.goodIndexBlockSize, Config.goodIndexBlockBufSize);
+    WriteBuffer writeBuffer1 = new WriteBuffer(1, 1, 1);
+    WriteBuffer writeBuffer2 = new WriteBuffer(1, 1, 1);
     Thread thread0 = new Thread(writeBuffer0);
     Thread thread1 = new Thread(writeBuffer1);
     Thread thread2 = new Thread(writeBuffer2);
@@ -98,8 +100,8 @@ public class Database {
         goodFilesList, Config.goodIndexSize, Config.goodIndexBlockSize,
         writeBuffer2);
     thread0.start();
-    thread1.start();
-    thread2.start();
+    //thread1.start();
+    //thread2.start();
 
     System.out.println(System.currentTimeMillis());
     OrderKvDealer dealer = new OrderKvDealer(orderIndex, buyerIndex, goodIndex);

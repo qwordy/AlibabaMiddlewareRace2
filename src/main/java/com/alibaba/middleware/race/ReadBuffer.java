@@ -15,7 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ReadBuffer implements Runnable {
 
-  private final static int SIZE = 1 << 26;
+  private final static int SIZE = 1 << 24;
 
   private byte[][] bufs;
 

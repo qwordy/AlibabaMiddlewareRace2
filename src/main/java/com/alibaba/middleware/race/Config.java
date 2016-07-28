@@ -10,7 +10,7 @@ public class Config {
 
   public static int orderIndexBlockSize = 4096;
 
-  public static int orderIndexBlockBufSize = 640;
+  public static int orderIndexBlockBufSize = 1500;//640;
 
   public static int buyerIndexSize = 8000000;
 
