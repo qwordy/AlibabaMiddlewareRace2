@@ -87,7 +87,7 @@ public class AppTest {
   @Test
   public void constructSim() throws Exception {
     OrderSystem os = new OrderSystemImpl();
-    os.construct(Arrays.asList("data/order"),
+    os.construct(Arrays.asList("../prerun_data/order.2.2"),
         Arrays.asList("data/buyer"),
         Arrays.asList("data/good"),
         Arrays.asList("data", "data", "data"));

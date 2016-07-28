@@ -24,13 +24,9 @@ public class Tuple {
   private final int MASK = 0xfff;
 
   public Tuple(String file, long offset) {
-    this(file, offset, 0);
-  }
-
-  public Tuple(String file, long offset, long data) {
     this.file = file;
     this.offset = offset;
-    this.data = data;
+    //this.data = data;
     pos = offset;  // current pos
     cache = ConcurrentCache.getInstance();
     valid = false;

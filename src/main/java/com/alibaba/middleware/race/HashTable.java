@@ -49,7 +49,7 @@ public class HashTable {
   // 2 ^ BIT = BLOCK
   private final int BIT;
 
-  private static final int ENTRY_SIZE = 14;
+  private final int ENTRY_SIZE;
 
   // current number of blocks
   private int blockNum;
@@ -65,13 +65,14 @@ public class HashTable {
   private WriteBuffer writeBuffer;
 
   public HashTable(List<String> dataFiles, RandomAccessFile fd,
-                   int size, int blockSize, WriteBuffer writeBuffer)
-      throws Exception {
+                   int size, int blockSize, int entrySize,
+                   WriteBuffer writeBuffer) throws Exception {
 
     this.dataFiles = dataFiles;
     this.fd = fd;
     SIZE = blockNum = size;
     BLOCK_SIZE = blockSize;
+    ENTRY_SIZE = entrySize;
     this.writeBuffer = writeBuffer;
 
     if (blockSize == 4096)
@@ -92,7 +93,8 @@ public class HashTable {
     entryBuf = new byte[ENTRY_SIZE];
   }
 
-  public void add(byte[] data, int blockNo, int fileId, long fileOff)
+  // key.length == 5
+  public void add(byte[] key, int blockNo, int fileId, long fileOff)
       throws Exception {
 
     Meta meta = bucketMetas[blockNo];
@@ -111,17 +113,19 @@ public class HashTable {
       meta = meta.nextMeta;
     }
 
-    // data(key)
-    System.arraycopy(data, 0, entryBuf, 0, 8);
     // fileId
-    System.arraycopy(Util.short2byte(fileId), 0, entryBuf, 8, 2);
-    // fildOff
-    System.arraycopy(Util.longTo4Byte(fileOff), 0, entryBuf, 10, 4);
+    entryBuf[0] = (byte) fileId;
+    // fileOff
+    System.arraycopy(Util.longTo4Byte(fileOff), 0, entryBuf, 1, 4);
+    // key
+    if (key != null)
+      System.arraycopy(key, 0, entryBuf, 5, 5);
 
     writeBuffer.add(blockNo, entryBuf);
     meta.size += ENTRY_SIZE;
   }
 
+  // entry size 10
   public Tuple get(byte[] key, int blockNo) throws Exception {
     byte[] buf = new byte[BLOCK_SIZE];
     Meta meta = bucketMetas[blockNo];
@@ -133,10 +137,10 @@ public class HashTable {
         fd.read(buf);
       }
       int size = meta.size;
-      for (int off = 0; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
-        if (Util.bytesEqual(buf, off, key, 0, 8)) {
-          int fileId = Util.byte2short(buf, off + 8);
-          long fileOff = Util.byte4ToLong(buf, off + 10);
+      for (int off = 0; off + 10 <= size; off += 10) {
+        if (Util.bytesEqual(buf, off + 5, key, 0, 5)) {
+          int fileId = buf[off];
+          long fileOff = Util.byte4ToLong(buf, off + 1);
           return new Tuple(dataFiles.get(fileId), fileOff);
         }
       }
@@ -147,6 +151,7 @@ public class HashTable {
     }
   }
 
+  // entry size 5
   public List<Tuple> getAll(int blockNo) throws Exception {
     List<Tuple> list = new ArrayList<>();
     byte[] buf = new byte[BLOCK_SIZE];
@@ -159,11 +164,10 @@ public class HashTable {
         fd.read(buf);
       }
       int size = meta.size;
-      for (int off = 0; off + ENTRY_SIZE <= size; off += ENTRY_SIZE) {
-        long data = Util.byte2long(buf, off);
-        int fileId = Util.byte2short(buf, off + 8);
-        long fileOff = Util.byte4ToLong(buf, off + 10);
-        list.add(new Tuple(dataFiles.get(fileId), fileOff, data));
+      for (int off = 0; off + 5 <= size; off += 5) {
+        int fileId = buf[off];
+        long fileOff = Util.byte4ToLong(buf, off + 1);
+        list.add(new Tuple(dataFiles.get(fileId), fileOff));
       }
       blockNo = meta.next;
       if (blockNo == 0)

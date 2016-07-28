@@ -5,6 +5,9 @@ import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by yfy on 7/27/16.
@@ -14,44 +17,72 @@ public class ReadBuffer implements Runnable {
 
   private final static int SIZE = 1 << 24;
 
-  private BlockingQueue<byte[]> queue;
+  private byte[][] bufs;
 
-  private byte[] buf;
+  private int[] lens;
 
-  private int pos;
+  private int pos, readPt, writePt;
 
   private BufferedInputStream bis;
 
+  private final Lock lock = new ReentrantLock();
+
+  // write condition
+  private final Condition notFull = lock.newCondition();
+
+  // read condition
+  private final Condition notEmpty = lock.newCondition();
+
   public ReadBuffer(String filename) throws Exception {
-    queue = new ArrayBlockingQueue<>(1);
     bis = new BufferedInputStream(new FileInputStream(filename));
+    bufs = new byte[2][];
+    bufs[0] = new byte[SIZE];
+    bufs[1] = new byte[SIZE];
+    lens = new int[2];
+  }
+
+  public void getBuf() throws Exception {
+    lock.lock();
+    try {
+      while (readPt == writePt)
+        notEmpty.await();
+      readPt = (readPt + 1) & 1;
+      pos = 0;
+      notFull.signal();
+    } finally {
+      lock.unlock();
+    }
   }
 
   public int read() throws Exception {
-    if (buf == null)
-      buf = queue.take();
-    if (buf.length == 0)
-      return -1;
-    if (pos >= buf.length) {
-      buf = queue.take();
-      pos = 0;
+    if (pos >= lens[readPt]) {
+      getBuf();
     }
-    if (buf.length == 0)
+    if (lens[readPt] == 0)
       return -1;
-    return buf[pos++];
+    //System.out.println(readPt + " " + pos);
+    return bufs[readPt][pos++];
   }
 
   @Override
   public void run() {
     try {
       while (true) {
-        byte[] buf = new byte[SIZE];
-        int n = bis.read(buf);
-        if (n == -1)
-          buf = new byte[0];
-        else if (n < SIZE)
-          buf = Arrays.copyOf(buf, n);
-        queue.put(buf);
+        int n;
+        lock.lock();
+        try {
+          while (readPt != writePt)
+            notFull.await();
+          writePt = (writePt + 1) & 1;
+          n = bis.read(bufs[writePt]);
+          if (n == -1)
+            lens[writePt] = 0;
+          else
+            lens[writePt] = n;
+          notEmpty.signal();
+        } finally {
+          lock.unlock();
+        }
         if (n == -1) {
           bis.close();
           return;
@@ -61,4 +92,5 @@ public class ReadBuffer implements Runnable {
       e.printStackTrace();
     }
   }
+
 }

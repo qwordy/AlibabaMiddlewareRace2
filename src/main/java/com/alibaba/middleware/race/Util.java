@@ -46,6 +46,17 @@ public class Util {
         | ((int) b[offset] & 0xff);
   }
 
+  public static void long2byte5(long n, byte[] b) {
+    //b[7] = (byte) (n >> 56);
+    //b[6] = (byte) (n >> 48);
+    //b[5] = (byte) (n >> 40);
+    b[4] = (byte) (n >> 32);
+    b[3] = (byte) (n >> 24);
+    b[2] = (byte) (n >> 16);
+    b[1] = (byte) (n >> 8);
+    b[0] = (byte) (n);
+  }
+
   public static byte[] long2byte(long n) {
     byte[] b = new byte[8];
     b[7] = (byte) (n >> 56);

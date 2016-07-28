@@ -33,14 +33,14 @@ public class BgIndex {
     map = new ConcurrentHashMap<>(size);
     RandomAccessFile fd = new RandomAccessFile(bg2oIndexFile, "rw");
     writeBuffer.setFd(fd);
-    table = new HashTable(orderFiles, fd, size, blockSize, writeBuffer);
+    table = new HashTable(orderFiles, fd, size, blockSize, 5, writeBuffer);
   }
 
-  public void addOrder(byte[] bg, int fildId, long fildOff, byte[] data)
+  public void addOrder(byte[] bg, int len, int fildId, long fildOff)
       throws Exception {
 
     //System.out.println("bg addOrder");
-    String buyerStr = new String(bg);
+    String buyerStr = new String(bg, 0, len);
     Value value = map.get(buyerStr);
     int blockNo;
     if (value == null) {
@@ -50,7 +50,7 @@ public class BgIndex {
     } else {
       blockNo = value.blockNo;
     }
-    table.add(data, blockNo, fildId, fildOff);
+    table.add(null, blockNo, fildId, fildOff);
   }
 
   public void addBg(byte[] bg, int len, int fileId, long fileOff) {

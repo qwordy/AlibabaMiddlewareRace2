@@ -23,9 +23,10 @@ public class OrderIndex {
     RandomAccessFile fd = new RandomAccessFile(indexFile, "rw");
     writeBuffer.setFd(fd);
     table = new HashTable(dataFiles, fd, Config.orderIndexSize,
-        Config.orderIndexBlockSize, writeBuffer);
+        Config.orderIndexBlockSize, 10, writeBuffer);
   }
 
+  // id.length == 5
   public void add(byte[] id, int fileId, long fileOff) throws Exception {
     //System.out.println("order add");
     int hash = Util.bytesHash(id) & 0x1fffff;

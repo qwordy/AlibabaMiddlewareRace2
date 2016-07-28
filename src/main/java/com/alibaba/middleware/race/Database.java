@@ -88,7 +88,6 @@ public class Database {
   }
 
   private void buildOrder2OrderHash() throws Exception {
-    System.out.println(System.currentTimeMillis());
     WriteBuffer writeBuffer0 = new WriteBuffer(Config.orderIndexSize,
         Config.orderIndexBlockSize, Config.orderIndexBlockBufSize);
     WriteBuffer writeBuffer1 = new WriteBuffer(Config.buyerIndexSize,
@@ -106,7 +105,7 @@ public class Database {
     goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"),
         goodFilesList, Config.goodIndexSize, Config.goodIndexBlockSize,
         writeBuffer2);
-    writeBuffer0Thread.start();
+    //writeBuffer0Thread.start();
     //writeBuffer1Thread.start();
     //writeBuffer2Thread.start();
 
@@ -121,8 +120,6 @@ public class Database {
     System.out.println("[yfy] order num: " + OrderKvDealer.count);
     System.out.println("[yfy] orderid max: " + OrderKvDealer.maxOid +
         " min: " + OrderKvDealer.minOid);
-    System.out.println("[yfy] createtime max: " + OrderKvDealer.maxTime +
-        " min: " + OrderKvDealer.minTime);
 
     writeBuffer0.finish();
     writeBuffer1.finish();
@@ -197,6 +194,7 @@ public class Database {
         " size: " + new File(filename).length());
     ReadBuffer readBuffer = new ReadBuffer(filename);
     new Thread(readBuffer).start();
+    readBuffer.getBuf();
 
     int b, keyLen = 0, valueLen = 0;
     long offset = 0, count = 0;
@@ -238,15 +236,6 @@ public class Database {
     }
     dealer.deal(key, keyLen, value, valueLen, offset);
   }
-
-//  private void print(byte[] key, int keyLen, byte[] value, int valueLen) {
-//    for (int i = 0; i < keyLen; i++)
-//      System.out.print((char) key[i]);
-//    System.out.print(':');
-//    for (int i = 0; i < valueLen; i++)
-//      System.out.print((char) value[i]);
-//    System.out.print('\t');
-//  }
 
   public ResultImpl queryOrder(long orderId, Collection<String> keys)
       throws Exception {
@@ -365,6 +354,15 @@ public class Database {
 
     return new KeyValueForSum(key, sumLong, sumDouble);
   }
+
+  //  private void print(byte[] key, int keyLen, byte[] value, int valueLen) {
+//    for (int i = 0; i < keyLen; i++)
+//      System.out.print((char) key[i]);
+//    System.out.print(':');
+//    for (int i = 0; i < valueLen; i++)
+//      System.out.print((char) value[i]);
+//    System.out.print('\t');
+//  }
 
 //  private void readOrderFile(String filename, int fileId) throws Exception {
 //    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filename));

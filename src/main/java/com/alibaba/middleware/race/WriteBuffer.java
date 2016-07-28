@@ -37,6 +37,7 @@ public class WriteBuffer implements Runnable {
   }
 
   public void add(int id, byte[] buf) throws Exception {
+    //System.out.println("add " + id);
     Buffer buffer;
     int entrySize = buf.length;
     if (id < size) {
@@ -73,15 +74,19 @@ public class WriteBuffer implements Runnable {
   @Override
   public void run() {
     try {
-      Thread.sleep(2000);
       while (true) {
+        Thread.sleep(3000);
+        System.out.println(System.currentTimeMillis() + " write start");
         boolean has = false;
         for (int i = 0; i < size; i++) {
+
           Buffer buffer = buffers[i];
+          fd.seek((long) i * blockSize + buffer.offInBlock);
           synchronized (buffer) {
             if (buffer.len > 0) {
+              //System.out.println(i);
               has = true;
-              fd.seek((long) i * blockSize + buffer.offInBlock);
+
               fd.write(buffer.buf, 0, buffer.len);
               buffer.offInBlock += buffer.len;
               buffer.len = 0;
@@ -91,10 +96,13 @@ public class WriteBuffer implements Runnable {
         }
         int extBuffersSize = extBuffers.size();
         for (int i = 0; i < extBuffersSize; i++) {
+
           Buffer buffer = extBuffers.get(i);
+          fd.seek((long) (size + i) * blockSize + buffer.offInBlock);
           synchronized (buffer) {
+            //System.out.println(size + i);
             has = true;
-            fd.seek((long) (size + i) * blockSize + buffer.offInBlock);
+
             fd.write(buffer.buf, 0, buffer.len);
             buffer.offInBlock += buffer.len;
             buffer.len = 0;

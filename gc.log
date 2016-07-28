@@ -1,0 +1,15 @@
+Java HotSpot(TM) 64-Bit Server VM (25.91-b14) for linux-amd64 JRE (1.8.0_91-b14), built on Apr  1 2016 00:57:21 by "java_re" with gcc 4.3.0 20080428 (Red Hat 4.3.0-8)
+Memory: 4k page, physical 8101600k(4462940k free), swap 3905532k(2497340k free)
+CommandLine flags: -XX:CMSParPromoteBlocksToClaim=16 -XX:InitialHeapSize=5368709120 -XX:InitialTenuringThreshold=6 -XX:MaxHeapSize=5368709120 -XX:MaxNewSize=1789571072 -XX:MaxTenuringThreshold=6 -XX:NewSize=1789571072 -XX:OldPLABSize=16 -XX:OldSize=3579138048 -XX:+PrintGC -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+UseParNewGC 
+0.525: [GC (Allocation Failure) 0.525: [ParNew: 1398144K->174720K(1572864K), 0.8887955 secs] 1398144K->1370232K(5068160K), 0.8888872 secs] [Times: user=2.47 sys=0.46, real=0.88 secs] 
+1.594: [GC (Allocation Failure) 1.594: [ParNew: 1572864K->174720K(1572864K), 0.6596503 secs] 2768376K->2751384K(5068160K), 0.6597124 secs] [Times: user=3.34 sys=0.38, real=0.66 secs] 
+2.257: [GC (CMS Initial Mark) [1 CMS-initial-mark: 2576664K(3495296K)] 2806583K(5068160K), 0.0199596 secs] [Times: user=0.06 sys=0.00, real=0.02 secs] 
+2.277: [CMS-concurrent-mark-start]
+Heap
+ par new generation   total 1572864K, used 1370570K [0x0000000680000000, 0x00000006eaaa0000, 0x00000006eaaa0000)
+  eden space 1398144K,  85% used [0x0000000680000000, 0x00000006c8fd2b90, 0x00000006d5560000)
+  from space 174720K, 100% used [0x00000006d5560000, 0x00000006e0000000, 0x00000006e0000000)
+  to   space 174720K,   0% used [0x00000006e0000000, 0x00000006e0000000, 0x00000006eaaa0000)
+ concurrent mark-sweep generation total 3495296K, used 2576664K [0x00000006eaaa0000, 0x00000007c0000000, 0x00000007c0000000)
+ Metaspace       used 5226K, capacity 5484K, committed 5632K, reserved 1056768K
+  class space    used 619K, capacity 658K, committed 768K, reserved 1048576K
