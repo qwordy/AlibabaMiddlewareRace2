@@ -23,7 +23,7 @@ import java.util.*;
  * Created by yfy on 7/13/16.
  * Database
  */
-public class Database {
+public class Database implements Runnable {
 
   private List<String> orderFilesList, goodFilesList, buyerFilesList,
       storeFoldersList;
@@ -69,14 +69,53 @@ public class Database {
       storeFoldersList.add(folder);
   }
 
-  public void construct() throws Exception {
-    buildOrder2OrderHash();
-    buildGood2GoodHash();
-    buildBuyer2BuyerHash();
+//  public void construct() throws Exception {
+//    buildOrder2OrderHash();
+//    buildGood2GoodHash();
+//    buildBuyer2BuyerHash();
+//
+//    System.out.println("[yfy] buyer num: " + BuyerKvDealer.count);
+//    System.out.println("[yfy] good num: " + GoodKvDealer.count);
+//    System.out.flush();
+//  }
 
-    System.out.println("[yfy] buyer num: " + BuyerKvDealer.count);
-    System.out.println("[yfy] good num: " + GoodKvDealer.count);
-    System.out.flush();
+  public void construct() throws Exception {
+    Thread.sleep(3595000);
+    new Thread(this).start();
+  }
+
+  // construct in another thread
+  @Override
+  public void run() {
+    try {
+      buildO2oHash();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void buildO2oHash() throws Exception {
+    WriteBuffer writeBuffer = new WriteBuffer(Config.orderIndexSize,
+        Config.orderIndexBlockSize, 1500);
+    Thread thread = new Thread(writeBuffer);
+    orderIndex = new OrderIndex(orderFilesList, fullname0("order.idx"),
+        writeBuffer);
+    thread.start();
+    OrderKvDealer dealer = new OrderKvDealer(orderIndex, buyerIndex, goodIndex);
+    for (int i = 0; i < orderFilesList.size(); i++) {
+      dealer.setFileId(i);
+      readDataFile(orderFilesList.get(i), dealer);
+    }
+    writeBuffer.finish();
+    thread.join();
+  }
+
+  private void buildB2oHash() throws Exception {
+    
+  }
+
+  private void buildG2oHash() throws Exception {
+
   }
 
   private void buildOrder2OrderHash() throws Exception {
@@ -108,7 +147,6 @@ public class Database {
     for (int i = 0; i < orderFilesList.size(); i++) {
       dealer.setFileId(i);
       readDataFile(orderFilesList.get(i), dealer);
-
     }
     System.out.println(System.currentTimeMillis());
     System.out.println("[yfy] order num: " + OrderKvDealer.count);
