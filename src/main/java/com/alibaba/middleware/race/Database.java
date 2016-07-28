@@ -69,20 +69,20 @@ public class Database implements Runnable {
       storeFoldersList.add(folder);
   }
 
-//  public void construct() throws Exception {
-//    buildOrder2OrderHash();
-//    buildGood2GoodHash();
-//    buildBuyer2BuyerHash();
-//
-//    System.out.println("[yfy] buyer num: " + BuyerKvDealer.count);
-//    System.out.println("[yfy] good num: " + GoodKvDealer.count);
-//    System.out.flush();
-//  }
-
   public void construct() throws Exception {
-    Thread.sleep(3595000);
-    new Thread(this).start();
+    buildOrder2OrderHash();
+    buildGood2GoodHash();
+    buildBuyer2BuyerHash();
+
+    System.out.println("[yfy] buyer num: " + BuyerKvDealer.count);
+    System.out.println("[yfy] good num: " + GoodKvDealer.count);
+    System.out.flush();
   }
+
+//  public void construct() throws Exception {
+//    Thread.sleep(3595000);
+//    new Thread(this).start();
+//  }
 
   // construct in another thread
   @Override
@@ -111,7 +111,7 @@ public class Database implements Runnable {
   }
 
   private void buildB2oHash() throws Exception {
-    
+
   }
 
   private void buildG2oHash() throws Exception {
