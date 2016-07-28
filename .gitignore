@@ -4,3 +4,4 @@ target
 *.idx*
 test
 data
+gc.log
