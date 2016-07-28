@@ -3,6 +3,7 @@ package com.alibaba.middleware.race.index;
 import com.alibaba.middleware.race.HashTable;
 import com.alibaba.middleware.race.Tuple;
 import com.alibaba.middleware.race.WriteBuffer;
+import com.alibaba.middleware.race.WriteBufferNew;
 
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class BgIndex {
                  WriteBuffer writeBuffer) throws Exception {
 
     this.bgFiles = bgFiles;
-    map = new ConcurrentHashMap<>();
+    map = new ConcurrentHashMap<>(size);
     RandomAccessFile fd = new RandomAccessFile(bg2oIndexFile, "rw");
     writeBuffer.setFd(fd);
     table = new HashTable(orderFiles, fd, size, blockSize, writeBuffer);

@@ -1,9 +1,6 @@
 package com.alibaba.middleware.race.index;
 
-import com.alibaba.middleware.race.HashTable;
-import com.alibaba.middleware.race.Tuple;
-import com.alibaba.middleware.race.Util;
-import com.alibaba.middleware.race.WriteBuffer;
+import com.alibaba.middleware.race.*;
 
 import java.io.RandomAccessFile;
 import java.util.List;
@@ -25,7 +22,8 @@ public class OrderIndex {
 
     RandomAccessFile fd = new RandomAccessFile(indexFile, "rw");
     writeBuffer.setFd(fd);
-    table = new HashTable(dataFiles, fd, 1 << 21, 4096, writeBuffer);
+    table = new HashTable(dataFiles, fd, Config.orderIndexSize,
+        Config.orderIndexBlockSize, writeBuffer);
   }
 
   public void add(byte[] id, int fileId, long fileOff) throws Exception {

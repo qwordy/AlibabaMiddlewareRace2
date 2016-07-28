@@ -88,19 +88,25 @@ public class Database {
   }
 
   private void buildOrder2OrderHash() throws Exception {
-    WriteBuffer writeBuffer0 = new WriteBuffer(21, 20, 4096);
-    WriteBuffer writeBuffer1 = new WriteBuffer(85, 24, 1024);
-    WriteBuffer writeBuffer2 = new WriteBuffer(45, 24, 2048);
+    System.out.println(System.currentTimeMillis());
+    WriteBuffer writeBuffer0 = new WriteBuffer(Config.orderIndexSize,
+        Config.orderIndexBlockSize, Config.orderIndexBlockBufSize);
+    WriteBuffer writeBuffer1 = new WriteBuffer(Config.buyerIndexSize,
+        Config.buyerIndexBlockSize, Config.buyerIndexBlockBufSize);
+    WriteBuffer writeBuffer2 = new WriteBuffer(Config.goodIndexSize,
+        Config.goodIndexBlockSize, Config.goodIndexBlockBufSize);
     writeBuffer0Thread = new Thread(writeBuffer0);
     writeBuffer1Thread = new Thread(writeBuffer1);
     writeBuffer2Thread = new Thread(writeBuffer2);
     orderIndex = new OrderIndex(orderFilesList, fullname0("order.idx"),
         writeBuffer0);
     buyerIndex = new BgIndex(orderFilesList, fullname1("b2o.idx"),
-        buyerFilesList, 8500000, 1024, writeBuffer1);
+        buyerFilesList, Config.buyerIndexSize, Config.buyerIndexBlockSize,
+        writeBuffer1);
     goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"),
-        goodFilesList, 4500000, 2048, writeBuffer2);
-    //writeBuffer0Thread.start();
+        goodFilesList, Config.goodIndexSize, Config.goodIndexBlockSize,
+        writeBuffer2);
+    writeBuffer0Thread.start();
     //writeBuffer1Thread.start();
     //writeBuffer2Thread.start();
 
@@ -113,13 +119,14 @@ public class Database {
     }
     System.out.println(System.currentTimeMillis());
     System.out.println("[yfy] order num: " + OrderKvDealer.count);
-    System.out.println("[yfy] orderid max: " + OrderKvDealer.maxOid);
-    System.out.println("[yfy] createtime max: " + OrderKvDealer.maxTime);
+    System.out.println("[yfy] orderid max: " + OrderKvDealer.maxOid +
+        " min: " + OrderKvDealer.minOid);
+    System.out.println("[yfy] createtime max: " + OrderKvDealer.maxTime +
+        " min: " + OrderKvDealer.minTime);
 
     writeBuffer0.finish();
     writeBuffer1.finish();
     writeBuffer2.finish();
-
   }
 
   private void buildGood2GoodHash() throws Exception {

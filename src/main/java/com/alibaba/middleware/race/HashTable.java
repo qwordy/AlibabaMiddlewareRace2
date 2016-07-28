@@ -80,6 +80,8 @@ public class HashTable {
       BIT = 11;
     else if (blockSize == 1024)
       BIT = 10;
+    else if (blockSize == 512)
+      BIT = 9;
     else
       throw new Exception();
 

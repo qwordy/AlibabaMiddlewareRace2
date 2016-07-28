@@ -25,7 +25,8 @@ public class OrderKvDealer extends AbstractKvDealer {
   // for test
   public static int count;
 
-  public static long maxOid, maxTime;
+  public static long maxOid, maxTime,
+      minOid = Long.MAX_VALUE, minTime = Long.MAX_VALUE;
 
   public OrderKvDealer(OrderIndex orderIndex, BgIndex buyerIndex, BgIndex goodIndex) {
     this.orderIndex = orderIndex;
@@ -42,6 +43,7 @@ public class OrderKvDealer extends AbstractKvDealer {
       long orderidLong = Long.parseLong(new String(value, 0, valueLen));
       orderidValue = Util.long2byte(orderidLong);
       if (orderidLong > maxOid) maxOid = orderidLong;
+      if (orderidLong < minOid) minOid = orderidLong;
       return tryAdd();
 
     } else if (keyMatch(key, keyLen, buyeridBytes)) {
@@ -54,6 +56,7 @@ public class OrderKvDealer extends AbstractKvDealer {
       long createtimeLong = Long.parseLong(new String(value, 0, valueLen));
       createtimeValue = Util.long2byte(createtimeLong);
       if (createtimeLong > maxTime) maxTime = createtimeLong;
+      if (createtimeLong < minTime) minTime = createtimeLong;
       return tryAdd();
 
     } else if (keyMatch(key, keyLen, goodidBytes)) {
@@ -76,7 +79,7 @@ public class OrderKvDealer extends AbstractKvDealer {
     keyCount++;
     if (keyCount == 4) {
       count++;
-      //orderIndex.add(orderidValue, fileId, curOffset);
+      orderIndex.add(orderidValue, fileId, curOffset);
       //buyerIndex.addOrder(buyeridValue, fileId, curOffset, createtimeValue);
       //goodIndex.addOrder(goodidValue, fileId, curOffset, orderidValue);
       return 2;
