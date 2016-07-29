@@ -34,14 +34,17 @@ public class Config {
 //  [yfy] buyer max len 20 min len 20
 //  [yfy] good max len 21 min len 20
 
-//  public static int eachIndexMaxCount = 60000000;
-//
 //  public static long orderidMin = 587732231;
-//
 //  public static long createtimeMax = 11668409867L;
-//  public static int buyerIndexBlockBufSize = 80;
-//  public static int goodIndexBlockBufSize = 160;
-//
-//  public static int orderIndexBlockBufSize = 1500;//640;
+
+//  good 4m
+//  buyer 8m
+//  order 400m 2m block
+
+  /**
+   * tmp/ad4f8b693bc/
+   * tmp/9b6f625817f/
+   * tmp/0b2542a378a/
+   */
 
 }
