@@ -7,8 +7,8 @@ package com.alibaba.middleware.race;
 public class Config {
 
   // 每个桶预计放182个，容量409个
-  //public static int orderIndexSize = 732421;
-  public static int orderIndexSize = 100;
+  public static int orderIndexSize = 732421;
+  //public static int orderIndexSize = 100;
 
   public static int orderIndexBlockSize = 4096;
 
