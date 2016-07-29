@@ -212,6 +212,7 @@ public class HashTable {
       bos.write(block);
     bos.close();
 
+    System.out.println("[yfy] size: " + SIZE + " extSize: " + memoryExt.size());
     System.out.println(System.currentTimeMillis() + " [yfy] writeFile end");
 
     memory = null;
