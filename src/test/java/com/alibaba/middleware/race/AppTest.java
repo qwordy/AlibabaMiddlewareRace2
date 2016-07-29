@@ -87,7 +87,7 @@ public class AppTest {
   @Test
   public void constructSim() throws Exception {
     OrderSystem os = new OrderSystemImpl();
-    os.construct(Arrays.asList("data/order"),
+    os.construct(Arrays.asList("../prerun_data/order.0.0"),
         Arrays.asList("data/buyer"),
         Arrays.asList("data/good"),
         Arrays.asList("data", "data", "data"));
@@ -287,7 +287,7 @@ public class AppTest {
   public void disk() {
     try {
       RandomAccessFile f = new RandomAccessFile("test", "rw");
-      f.setLength(8000000000L);
+      //f.setLength(8000000000L);
       byte[] buf = new byte[8000];
       for (int i = 0; i < buf.length; i++)
         buf[i] = (byte) (Math.random() * 1000);
@@ -297,8 +297,8 @@ public class AppTest {
 
       long t0, t1, ts = 0;
 
-      int sum = 0, step = 8192;
-      for (long i = 0; i < 8000000000L; i += step) {
+      int sum = 0, step = 4096;
+      for (long i = 0; i < 4000000000L; i += step) {
         t0 = System.currentTimeMillis();
 //        for (int j = 0; j < step; j++)
 //          buf[j] = (byte) (Math.random()*1000);
@@ -331,7 +331,7 @@ public class AppTest {
   @Test
   public void buildData() throws Exception {
     PrintWriter pw = new PrintWriter("data/order0");
-    for (int i = 0; i < 20000000; i++) {
+    for (int i = 0; i < 2000000; i++) {
       pw.print("orderid:");
       pw.print(String.valueOf((long) (Math.random() * 9999999999L)));
       pw.print('\t');
@@ -339,7 +339,9 @@ public class AppTest {
       pw.print(String.valueOf((long) (Math.random() * 9999999999L)));
       pw.print("\tbuyerid:");
       pw.print(randStr());
-      pw.print("\tgoodid:gd-9e43-678e940e0e32\tamount:12\tdone:true\ta_o_4699:-34842\ta_o_3337:227e8faf-defa-42ce-9725-28dca1bdb785\ta_o_22304:0.024\ta_o_12490:-1640\n");
+      pw.print("\tgoodid:");
+      pw.print(randStr());
+      pw.print("\tamount:12\tdone:true\ta_o_4699:-34842\ta_o_3337:227e8faf-defa-42ce-9725-28dca1bdb785\ta_o_22304:0.024\ta_o_12490:-1640\n");
     }
   }
 
@@ -347,8 +349,16 @@ public class AppTest {
     int len = (int)(Math.random() * 12) + 8;
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < len; i++)
-      sb.append((char)(Math.random() * 256));
+      sb.append((char)(Math.random() * (122 - 65) + 65));
     return sb.toString();
+  }
+
+  @Test
+  public void newByte() {
+    //byte[] b = new byte[400000000];
+    byte[][] bb = new byte[200000][];
+    for (int i = 0; i < 200000; i++)
+      bb[i] = new byte[4000];
   }
 
   @Test

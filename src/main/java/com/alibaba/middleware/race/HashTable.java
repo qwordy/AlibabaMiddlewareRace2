@@ -39,6 +39,8 @@ import java.util.List;
  * good -> order
  * good -> good
  * buyer -> buyer
+ *
+ * 4, 2, 1, 4, 5
  */
 public class HashTable {
 
@@ -54,26 +56,23 @@ public class HashTable {
   // current number of blocks
   private int blockNum;
 
-  private Meta[] bucketMetas;
-
   private List<String> dataFiles;
 
-  private RandomAccessFile fd;
+  private String indexFile;
 
   private byte[] entryBuf;
 
-  private WriteBuffer writeBuffer;
+  private byte[][] memory;
 
-  public HashTable(List<String> dataFiles, RandomAccessFile fd,
-                   int size, int blockSize, int entrySize,
-                   WriteBuffer writeBuffer) throws Exception {
+  public HashTable(List<String> dataFiles, String indexFile,
+                   int size, int blockSize, int entrySize
+                   ) throws Exception {
 
     this.dataFiles = dataFiles;
-    this.fd = fd;
+    this.indexFile = indexFile;
     SIZE = blockNum = size;
     BLOCK_SIZE = blockSize;
     ENTRY_SIZE = entrySize;
-    this.writeBuffer = writeBuffer;
 
     if (blockSize == 4096)
       BIT = 12;
@@ -86,31 +85,28 @@ public class HashTable {
     else
       throw new Exception();
 
-    bucketMetas = new Meta[size];
-//    for (int i = 0; i < size; i++)
-//      bucketMetas[i] = new Meta();
-
-    entryBuf = new byte[ENTRY_SIZE];
+    entryBuf = new byte[entrySize];
+    memory = new byte[size][];
+    for (int i = 0; i < size; i++)
+      memory[i] = new byte[BLOCK_SIZE];
   }
 
   // key.length == 5
   public void add(byte[] key, int blockNo, int fileId, long fileOff)
       throws Exception {
 
-    Meta meta = bucketMetas[blockNo];
-    if (meta == null)
-      meta = bucketMetas[blockNo] = new Meta();
+    byte[] block = memory[blockNo];
+
     // find the last bucket in the chain
-    while (meta.next > 0) {
-      blockNo = meta.next;
-      meta = meta.nextMeta;
+    while (Util.byte2int(block, 0) > 0) {
+      blockNo = Util.byte2int(block, 0);
+      block = memory[blockNo];
     }
     // no enough space in bucket
-    if (meta.size + ENTRY_SIZE > BLOCK_SIZE) {
-      meta.next = blockNum++;
-      meta.nextMeta = new Meta();
-      blockNo = meta.next;
-      meta = meta.nextMeta;
+    if (Util.byte2short(block, 4) + ENTRY_SIZE > BLOCK_SIZE) {
+      blockNo = blockNum++;
+      Util.int2byte(blockNo, block, 0);
+
     }
 
     // fileId
@@ -121,60 +117,59 @@ public class HashTable {
     if (key != null)
       System.arraycopy(key, 0, entryBuf, 5, 5);
 
-    writeBuffer.add(blockNo, entryBuf);
-    meta.size += ENTRY_SIZE;
+
   }
 
   // entry size 10
-  public Tuple get(byte[] key, int blockNo) throws Exception {
-    byte[] buf = new byte[BLOCK_SIZE];
-    Meta meta = bucketMetas[blockNo];
-    if (meta == null)
-      meta = bucketMetas[blockNo] = new Meta();
-    while (true) {
-      synchronized (fd) {
-        fd.seek(((long) blockNo) << BIT);
-        fd.read(buf);
-      }
-      int size = meta.size;
-      for (int off = 0; off + 10 <= size; off += 10) {
-        if (Util.bytesEqual(buf, off + 5, key, 0, 5)) {
-          int fileId = buf[off];
-          long fileOff = Util.byte4ToLong(buf, off + 1);
-          return new Tuple(dataFiles.get(fileId), fileOff);
-        }
-      }
-      blockNo = meta.next;
-      if (blockNo == 0)
-        return null;
-      meta = meta.nextMeta;
-    }
-  }
-
-  // entry size 5
-  public List<Tuple> getAll(int blockNo) throws Exception {
-    List<Tuple> list = new ArrayList<>();
-    byte[] buf = new byte[BLOCK_SIZE];
-    Meta meta = bucketMetas[blockNo];
-    if (meta == null)
-      meta = bucketMetas[blockNo] = new Meta();
-    while (true) {
-      synchronized (fd) {
-        fd.seek(((long) blockNo) << BIT);
-        fd.read(buf);
-      }
-      int size = meta.size;
-      for (int off = 0; off + 5 <= size; off += 5) {
-        int fileId = buf[off];
-        long fileOff = Util.byte4ToLong(buf, off + 1);
-        list.add(new Tuple(dataFiles.get(fileId), fileOff));
-      }
-      blockNo = meta.next;
-      if (blockNo == 0)
-        return list;
-      meta = meta.nextMeta;
-    }
-  }
+//  public Tuple get(byte[] key, int blockNo) throws Exception {
+//    byte[] buf = new byte[BLOCK_SIZE];
+//    Meta meta = bucketMetas[blockNo];
+//    if (meta == null)
+//      meta = bucketMetas[blockNo] = new Meta();
+//    while (true) {
+//      synchronized (fd) {
+//        fd.seek(((long) blockNo) << BIT);
+//        fd.read(buf);
+//      }
+//      int size = meta.size;
+//      for (int off = 0; off + 10 <= size; off += 10) {
+//        if (Util.bytesEqual(buf, off + 5, key, 0, 5)) {
+//          int fileId = buf[off];
+//          long fileOff = Util.byte4ToLong(buf, off + 1);
+//          return new Tuple(dataFiles.get(fileId), fileOff);
+//        }
+//      }
+//      blockNo = meta.next;
+//      if (blockNo == 0)
+//        return null;
+//      meta = meta.nextMeta;
+//    }
+//  }
+//
+//  // entry size 5
+//  public List<Tuple> getAll(int blockNo) throws Exception {
+//    List<Tuple> list = new ArrayList<>();
+//    byte[] buf = new byte[BLOCK_SIZE];
+//    Meta meta = bucketMetas[blockNo];
+//    if (meta == null)
+//      meta = bucketMetas[blockNo] = new Meta();
+//    while (true) {
+//      synchronized (fd) {
+//        fd.seek(((long) blockNo) << BIT);
+//        fd.read(buf);
+//      }
+//      int size = meta.size;
+//      for (int off = 0; off + 5 <= size; off += 5) {
+//        int fileId = buf[off];
+//        long fileOff = Util.byte4ToLong(buf, off + 1);
+//        list.add(new Tuple(dataFiles.get(fileId), fileOff));
+//      }
+//      blockNo = meta.next;
+//      if (blockNo == 0)
+//        return list;
+//      meta = meta.nextMeta;
+//    }
+//  }
 
   private static class Meta {
     int next, size;

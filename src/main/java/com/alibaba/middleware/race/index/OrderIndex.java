@@ -15,26 +15,40 @@ import java.util.List;
  */
 public class OrderIndex {
 
-  private HashTable table;
+  private HashTable[] tables;
 
-  public OrderIndex(List<String> dataFiles, String indexFile,
-                    WriteBuffer writeBuffer) throws Exception {
+  private List<String> dataFiles;
 
-    RandomAccessFile fd = new RandomAccessFile(indexFile, "rw");
-    writeBuffer.setFd(fd);
-    table = new HashTable(dataFiles, fd, Config.orderIndexSize,
-        Config.orderIndexBlockSize, 10, writeBuffer);
+  private int tableId;
+
+  public OrderIndex(List<String> dataFiles) throws Exception {
+    tables = new HashTable[3];
+    this.dataFiles = dataFiles;
+
+  }
+
+  // 0..2
+  public void setCurrentTable(int id, String indexFile) throws Exception {
+    tables[id] = new HashTable(dataFiles, indexFile,
+        Config.orderIndexSize, Config.orderIndexBlockSize, 10);
+    tableId = id;
+  }
+
+  public void finish(int id) {
+    //tables[id].writeFile();
+    //tables[id].clearMemory();
   }
 
   // id.length == 5
   public void add(byte[] id, int fileId, long fileOff) throws Exception {
     //System.out.println("order add");
-    int hash = Util.bytesHash(id) & 0x1fffff;
-    table.add(id, hash, fileId, fileOff);
+    int hash = Util.bytesHash(id) % Config.orderIndexSize;
+    tables[tableId].add(id, hash, fileId, fileOff);
   }
 
   public Tuple get(byte[] id) throws Exception {
     int hash = Util.bytesHash(id) & 0x1fffff;
-    return table.get(id, hash);
+    //return tables[tableId].get(id, hash);
+    return null;
   }
 }

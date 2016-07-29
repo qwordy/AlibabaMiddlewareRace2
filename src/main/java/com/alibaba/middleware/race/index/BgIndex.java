@@ -26,14 +26,13 @@ public class BgIndex {
   private List<String> bgFiles;
 
   public BgIndex(List<String> orderFiles, String bg2oIndexFile,
-                 List<String> bgFiles, int size, int blockSize,
-                 WriteBuffer writeBuffer) throws Exception {
+                 List<String> bgFiles, int size, int blockSize)
+      throws Exception {
 
     this.bgFiles = bgFiles;
     map = new ConcurrentHashMap<>(size);
     RandomAccessFile fd = new RandomAccessFile(bg2oIndexFile, "rw");
-    writeBuffer.setFd(fd);
-    table = new HashTable(orderFiles, fd, size, blockSize, 5, writeBuffer);
+    //table = new HashTable(orderFiles, fd, size, blockSize, 5, writeBuffer);
   }
 
   public void addOrder(byte[] bg, int len, int fildId, long fildOff)
@@ -49,8 +48,9 @@ public class BgIndex {
       count++;
     } else {
       blockNo = value.blockNo;
+      value.orderNum++;
     }
-    table.add(null, blockNo, fildId, fildOff);
+    //table.add(null, blockNo, fildId, fildOff);
   }
 
   public void addBg(byte[] bg, int len, int fileId, long fileOff) {
@@ -69,7 +69,8 @@ public class BgIndex {
     Value value = map.get(bg);
     if (value == null)
       return new ArrayList<>();
-    return table.getAll(value.blockNo);
+    //return table.getAll(value.blockNo);
+    return null;
   }
 
   public Tuple getBg(String bg) {
@@ -79,15 +80,26 @@ public class BgIndex {
     return new Tuple(bgFiles.get(value.fileId), value.fileOff);
   }
 
+  public int maxOrderNum() {
+    int max = 0;
+    for (Value value : map.values()) {
+      if (value.orderNum > max)
+        max = value.orderNum;
+    }
+    return max;
+  }
+
   private static class Value {
     short fileId;  // bg file id
     long fileOff;  // bg file off
+    int orderNum;
     int blockNo;
 
     Value(short fileId, long fileOff, int blockNo) {
       this.fileId = fileId;
       this.fileOff = fileOff;
       this.blockNo = blockNo;
+      orderNum = 1;
     }
   }
 }

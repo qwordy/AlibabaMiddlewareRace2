@@ -35,6 +35,13 @@ public class Util {
     return b;
   }
 
+  public static void int2byte(int n, byte[] b, int off) {
+    b[off + 3] = (byte) (n >> 24);
+    b[off + 2] = (byte) (n >> 16);
+    b[off + 1] = (byte) (n >> 8);
+    b[off] = (byte) (n);
+  }
+
   public static int byte2int(byte[] b) {
     return byte2int(b, 0);
   }

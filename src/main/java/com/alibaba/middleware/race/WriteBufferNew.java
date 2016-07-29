@@ -46,7 +46,7 @@ public class WriteBufferNew implements Runnable {
     extBlockOffs = new Vector<>();
     bigbuf = new byte[blockSize];
     count = new AtomicInteger();
-    maxCount = Config.eachIndexMaxCount;
+    //maxCount = Config.eachIndexMaxCount;
   }
 
   public void setFd(RandomAccessFile fd) {

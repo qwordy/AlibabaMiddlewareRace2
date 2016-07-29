@@ -44,24 +44,24 @@ public class Database implements Runnable {
     buyerResultComparator = new BuyerResultComparator();
     tupleOrderidComparator = new TupleOrderidComparator();
 
-    ConcurrentCache cache = ConcurrentCache.getInstance();
+    //ConcurrentCache cache = ConcurrentCache.getInstance();
 
     orderFilesList = new ArrayList<>();
     for (String file : orderFiles) {
       orderFilesList.add(file);
-      cache.addFd(file, true);
+      //cache.addFd(file, true);
     }
 
     goodFilesList = new ArrayList<>();
     for (String file : goodFiles) {
       goodFilesList.add(file);
-      cache.addFd(file, true);
+      //cache.addFd(file, true);
     }
 
     buyerFilesList = new ArrayList<>();
     for (String file : buyerFiles) {
       buyerFilesList.add(file);
-      cache.addFd(file, true);
+      //cache.addFd(file, true);
     }
 
     storeFoldersList = new ArrayList<>();
@@ -71,17 +71,17 @@ public class Database implements Runnable {
 
   public void construct() throws Exception {
     buildOrder2OrderHash();
-    buildGood2GoodHash();
-    buildBuyer2BuyerHash();
+    //buildGood2GoodHash();
+    //buildBuyer2BuyerHash();
 
-    System.out.println("[yfy] buyer num: " + BuyerKvDealer.count);
-    System.out.println("[yfy] good num: " + GoodKvDealer.count);
+    //System.out.println("[yfy] buyer num: " + BuyerKvDealer.count);
+    //System.out.println("[yfy] good num: " + GoodKvDealer.count);
     System.out.flush();
   }
 
 //  public void construct() throws Exception {
-//    Thread.sleep(3595000);
-//    new Thread(this).start();
+//    buildO2oHash();
+//    buildBg2oHash();
 //  }
 
   // construct in another thread
@@ -95,52 +95,28 @@ public class Database implements Runnable {
   }
 
   private void buildO2oHash() throws Exception {
-    WriteBuffer writeBuffer = new WriteBuffer(Config.orderIndexSize,
-        Config.orderIndexBlockSize, 1500);
-    Thread thread = new Thread(writeBuffer);
-    orderIndex = new OrderIndex(orderFilesList, fullname0("order.idx"),
-        writeBuffer);
-    thread.start();
-    OrderKvDealer dealer = new OrderKvDealer(orderIndex, buyerIndex, goodIndex);
-    for (int i = 0; i < orderFilesList.size(); i++) {
-      dealer.setFileId(i);
-      readDataFile(orderFilesList.get(i), dealer);
+    orderIndex = new OrderIndex(orderFilesList);
+    for (int diskId = 0; diskId < 3; diskId++) {
+      orderIndex.setCurrentTable(diskId,
+          storeFoldersList.get(diskId) + '/' + "order.idx");
+      for (int i = 0; i < orderFilesList.size(); i++) {
+        String filename = orderFilesList.get(i);
+        if (filename.charAt(5) == '1' + diskId) {
+
+        }
+      }
+      orderIndex.finish(diskId);
     }
-    writeBuffer.finish();
-    thread.join();
   }
 
-  private void buildB2oHash() throws Exception {
-
-  }
-
-  private void buildG2oHash() throws Exception {
-
-  }
+  private void buildBg2oHash() throws Exception {}
 
   private void buildOrder2OrderHash() throws Exception {
-    WriteBuffer writeBuffer0 = new WriteBuffer(Config.orderIndexSize,
-        Config.orderIndexBlockSize, Config.orderIndexBlockBufSize);
-//    WriteBuffer writeBuffer1 = new WriteBuffer(Config.buyerIndexSize,
-//        Config.buyerIndexBlockSize, Config.buyerIndexBlockBufSize);
-//    WriteBuffer writeBuffer2 = new WriteBuffer(Config.goodIndexSize,
-//        Config.goodIndexBlockSize, Config.goodIndexBlockBufSize);
-    WriteBuffer writeBuffer1 = new WriteBuffer(1, 1, 1);
-    WriteBuffer writeBuffer2 = new WriteBuffer(1, 1, 1);
-    Thread thread0 = new Thread(writeBuffer0);
-    Thread thread1 = new Thread(writeBuffer1);
-    Thread thread2 = new Thread(writeBuffer2);
-    orderIndex = new OrderIndex(orderFilesList, fullname0("order.idx"),
-        writeBuffer0);
+    orderIndex = new OrderIndex(orderFilesList);
     buyerIndex = new BgIndex(orderFilesList, fullname1("b2o.idx"),
-        buyerFilesList, Config.buyerIndexSize, Config.buyerIndexBlockSize,
-        writeBuffer1);
+        buyerFilesList, Config.buyerIndexSize, Config.buyerIndexBlockSize);
     goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"),
-        goodFilesList, Config.goodIndexSize, Config.goodIndexBlockSize,
-        writeBuffer2);
-    thread0.start();
-    //thread1.start();
-    //thread2.start();
+        goodFilesList, Config.goodIndexSize, Config.goodIndexBlockSize);
 
     System.out.println(System.currentTimeMillis());
     OrderKvDealer dealer = new OrderKvDealer(orderIndex, buyerIndex, goodIndex);
@@ -152,13 +128,8 @@ public class Database implements Runnable {
     System.out.println("[yfy] order num: " + OrderKvDealer.count);
     System.out.println("[yfy] orderid max: " + OrderKvDealer.maxOid +
         " min: " + OrderKvDealer.minOid);
-
-    writeBuffer0.finish();
-    writeBuffer1.finish();
-    writeBuffer2.finish();
-    thread0.join();
-    thread1.join();
-    thread2.join();
+    System.out.println("[yfy] buyer max orderNum " + buyerIndex.maxOrderNum());
+    System.out.println("[yfy] good max orderNum " + goodIndex.maxOrderNum());
   }
 
   private void buildGood2GoodHash() throws Exception {
