@@ -27,6 +27,9 @@ public class OrderKvDealer extends AbstractKvDealer {
 
   public static long maxOid, minOid = Long.MAX_VALUE;
 
+  public static int maxBl, minBl = Integer.MAX_VALUE,
+      maxGl, minGl = Integer.MAX_VALUE;
+
   public OrderKvDealer(OrderIndex orderIndex, BgIndex buyerIndex, BgIndex goodIndex) {
     this.orderIndex = orderIndex;
     this.buyerIndex = buyerIndex;
@@ -42,8 +45,8 @@ public class OrderKvDealer extends AbstractKvDealer {
   public int deal(byte[] key, int keyLen, byte[] value, int valueLen, long offset) throws Exception {
     if (keyMatch(key, keyLen, orderidBytes)) {
       update(offset);
-      long orderidLong = Long.parseLong(new String(value, 0, valueLen));
-      Util.long2byte5(orderidLong, orderidValue);
+      long orderidLong = parseLong(value, valueLen); //Long.parseLong(new String(value, 0, valueLen));
+      Util.long2byte5(orderidLong, orderidValue, 0);
       if (orderidLong > maxOid) maxOid = orderidLong;
       if (orderidLong < minOid) minOid = orderidLong;
       return tryAdd();
@@ -52,15 +55,26 @@ public class OrderKvDealer extends AbstractKvDealer {
       update(offset);
       System.arraycopy(value, 0, buyeridValue, 0, valueLen);
       buyeridLen = valueLen;
+      if (buyeridLen > maxBl) maxBl = buyeridLen;
+      if (buyeridLen < minBl) minBl = buyeridLen;
       return tryAdd();
 
     } else if (keyMatch(key, keyLen, goodidBytes)) {
       update(offset);
       System.arraycopy(value, 0, goodidValue, 0, valueLen);
       goodidLen = valueLen;
+      if (goodidLen > maxGl) maxGl = goodidLen;
+      if (goodidLen < minGl) minGl = goodidLen;
       return tryAdd();
     }
     return 0;
+  }
+
+  private long parseLong(byte[] b, int len) {
+    long n = 0;
+    for (int i = 0; i < len; i++)
+      n = n * 10 + b[i] - '0';
+    return n;
   }
 
   private void update(long offset) {

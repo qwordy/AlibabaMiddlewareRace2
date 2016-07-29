@@ -69,20 +69,20 @@ public class Database implements Runnable {
       storeFoldersList.add(folder);
   }
 
-  public void construct() throws Exception {
-    buildOrder2OrderHash();
-    //buildGood2GoodHash();
-    //buildBuyer2BuyerHash();
-
-    //System.out.println("[yfy] buyer num: " + BuyerKvDealer.count);
-    //System.out.println("[yfy] good num: " + GoodKvDealer.count);
-    System.out.flush();
-  }
-
 //  public void construct() throws Exception {
-//    buildO2oHash();
-//    buildBg2oHash();
+//    buildOrder2OrderHash();
+//    //buildGood2GoodHash();
+//    //buildBuyer2BuyerHash();
+//
+//    //System.out.println("[yfy] buyer num: " + BuyerKvDealer.count);
+//    //System.out.println("[yfy] good num: " + GoodKvDealer.count);
+//    System.out.flush();
 //  }
+
+  public void construct() throws Exception {
+    buildO2oHash();
+    buildBg2oHash();
+  }
 
   // construct in another thread
   @Override
@@ -96,41 +96,58 @@ public class Database implements Runnable {
 
   private void buildO2oHash() throws Exception {
     orderIndex = new OrderIndex(orderFilesList);
-    for (int diskId = 0; diskId < 3; diskId++) {
-      orderIndex.setCurrentTable(diskId,
-          storeFoldersList.get(diskId) + '/' + "order.idx");
-      for (int i = 0; i < orderFilesList.size(); i++) {
-        String filename = orderFilesList.get(i);
-        if (filename.charAt(5) == '1' + diskId) {
 
-        }
-      }
-      orderIndex.finish(diskId);
-    }
-  }
-
-  private void buildBg2oHash() throws Exception {}
-
-  private void buildOrder2OrderHash() throws Exception {
-    orderIndex = new OrderIndex(orderFilesList);
     buyerIndex = new BgIndex(orderFilesList, fullname1("b2o.idx"),
         buyerFilesList, Config.buyerIndexSize, Config.buyerIndexBlockSize);
     goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"),
         goodFilesList, Config.goodIndexSize, Config.goodIndexBlockSize);
 
-    System.out.println(System.currentTimeMillis());
     OrderKvDealer dealer = new OrderKvDealer(orderIndex, buyerIndex, goodIndex);
-    for (int i = 0; i < orderFilesList.size(); i++) {
-      dealer.setFileId(i);
-      readDataFile(orderFilesList.get(i), dealer);
+    for (int diskId = 0; diskId < 3; diskId++) {
+      //orderIndex.setCurrentTable(diskId,
+      //    storeFoldersList.get(diskId) + '/' + "o2o.idx");
+      for (int i = 0; i < orderFilesList.size(); i++) {
+        String filename = orderFilesList.get(i);
+        if (filename.charAt(5) == '1' + diskId)
+          readDataFile(filename, dealer);
+      }
+      //orderIndex.finish(diskId);
+      //break;
     }
-    System.out.println(System.currentTimeMillis());
+
     System.out.println("[yfy] order num: " + OrderKvDealer.count);
     System.out.println("[yfy] orderid max: " + OrderKvDealer.maxOid +
         " min: " + OrderKvDealer.minOid);
-    System.out.println("[yfy] buyer max orderNum " + buyerIndex.maxOrderNum());
-    System.out.println("[yfy] good max orderNum " + goodIndex.maxOrderNum());
+    buyerIndex.printInfo("buyer");
+    goodIndex.printInfo("good");
+    System.out.println("[yfy] buyer max len " + OrderKvDealer.maxBl +
+        " min len " + OrderKvDealer.minBl);
+    System.out.println("[yfy] good max len " + OrderKvDealer.maxGl +
+        " min len " + OrderKvDealer.minGl);
   }
+
+  private void buildBg2oHash() throws Exception {}
+
+//  private void buildOrder2OrderHash() throws Exception {
+//    orderIndex = new OrderIndex(orderFilesList);
+//    buyerIndex = new BgIndex(orderFilesList, fullname1("b2o.idx"),
+//        buyerFilesList, Config.buyerIndexSize, Config.buyerIndexBlockSize);
+//    goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"),
+//        goodFilesList, Config.goodIndexSize, Config.goodIndexBlockSize);
+//
+//    System.out.println(System.currentTimeMillis());
+//    OrderKvDealer dealer = new OrderKvDealer(orderIndex, buyerIndex, goodIndex);
+//    for (int i = 0; i < orderFilesList.size(); i++) {
+//      dealer.setFileId(i);
+//      readDataFile(orderFilesList.get(i), dealer);
+//    }
+//    System.out.println(System.currentTimeMillis());
+//    System.out.println("[yfy] order num: " + OrderKvDealer.count);
+//    System.out.println("[yfy] orderid max: " + OrderKvDealer.maxOid +
+//        " min: " + OrderKvDealer.minOid);
+//    System.out.println("[yfy] buyer max orderNum " + buyerIndex.maxOrderNum());
+//    System.out.println("[yfy] good max orderNum " + goodIndex.maxOrderNum());
+//  }
 
   private void buildGood2GoodHash() throws Exception {
     GoodKvDealer dealer = new GoodKvDealer(goodIndex);

@@ -7,7 +7,8 @@ package com.alibaba.middleware.race;
 public class Config {
 
   // 每个桶预计放182个，容量409个
-  public static int orderIndexSize = 732421;
+  //public static int orderIndexSize = 732421;
+  public static int orderIndexSize = 100000;
 
   public static int orderIndexBlockSize = 4096;
 
@@ -21,6 +22,8 @@ public class Config {
 
   public static long orderidMax = 60767378408L;
 
+  //[yfy] buyer max orderNum 246
+  //[yfy] good max orderNum 468
 
 //  public static int eachIndexMaxCount = 60000000;
 //

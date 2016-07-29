@@ -78,23 +78,28 @@ public class AppTest {
         Arrays.asList(fn("buyer.0.0"), fn("buyer.1.1")),
         Arrays.asList(fn("good.0.0"), fn("good.1.1"), fn("good.2.2")),
         Arrays.asList(
-            "/home/yfy/middleware/prerun_data",
-            "/home/yfy/middleware/prerun_data",
-            "/home/yfy/middleware/prerun_data"));
+            "/home/yfy/middleware/pr1run_data",
+            "/home/yfy/middleware/pr1run_data",
+            "/home/yfy/middleware/pr1run_data"));
     return os;
+  }
+
+  @Test()
+  public void testConstructBig() throws Exception {
+    constructBig();
+  }
+
+  private String fn(String file) {
+    return "../pr1run_data/" + file;
   }
 
   @Test
   public void constructSim() throws Exception {
     OrderSystem os = new OrderSystemImpl();
-    os.construct(Arrays.asList("../prerun_data/order.0.0"),
+    os.construct(Arrays.asList("data/1order0"),
         Arrays.asList("data/buyer"),
         Arrays.asList("data/good"),
         Arrays.asList("data", "data", "data"));
-  }
-
-  private String fn(String file) {
-    return "/home/yfy/middleware/prerun_data/" + file;
   }
 
   @Test
@@ -222,6 +227,10 @@ public class AppTest {
     assertEquals(Short.MAX_VALUE, Util.byte2short(Util.short2byte(Short.MAX_VALUE)));
     assertEquals(65535, Util.byte2short(Util.short2byte(-1)));
     assertEquals(0, Util.byte2short(Util.short2byte(0)));
+
+    byte[] b = new byte[5];
+    Util.longToByte4(4000000000L, b, 1);
+    assertEquals(4000000000L, Util.byte4ToLong(b, 1));
   }
 
   @Test
@@ -331,7 +340,7 @@ public class AppTest {
   @Test
   public void buildData() throws Exception {
     PrintWriter pw = new PrintWriter("data/order0");
-    for (int i = 0; i < 2000000; i++) {
+    for (int i = 0; i < 20000000; i++) {
       pw.print("orderid:");
       pw.print(String.valueOf((long) (Math.random() * 9999999999L)));
       pw.print('\t');
@@ -356,9 +365,14 @@ public class AppTest {
   @Test
   public void newByte() {
     //byte[] b = new byte[400000000];
-    byte[][] bb = new byte[200000][];
-    for (int i = 0; i < 200000; i++)
-      bb[i] = new byte[4000];
+//    byte[][] bb = new byte[200000][];
+//    for (int i = 0; i < 200000; i++)
+//      bb[i] = new byte[4000];
+    byte[] b = new byte[80000000];
+    System.out.println(System.currentTimeMillis());
+    for (int i = 0; i < 80000000; i++)
+      b[i] = (byte)i;
+    System.out.println(System.currentTimeMillis());
   }
 
   @Test

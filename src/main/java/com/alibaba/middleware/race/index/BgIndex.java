@@ -31,7 +31,7 @@ public class BgIndex {
 
     this.bgFiles = bgFiles;
     map = new ConcurrentHashMap<>(size);
-    RandomAccessFile fd = new RandomAccessFile(bg2oIndexFile, "rw");
+    //RandomAccessFile fd = new RandomAccessFile(bg2oIndexFile, "rw");
     //table = new HashTable(orderFiles, fd, size, blockSize, 5, writeBuffer);
   }
 
@@ -80,13 +80,20 @@ public class BgIndex {
     return new Tuple(bgFiles.get(value.fileId), value.fileOff);
   }
 
-  public int maxOrderNum() {
+  public void printInfo(String tag) {
+    int[] nums = new int[12];
     int max = 0;
     for (Value value : map.values()) {
+      nums[value.orderNum / 50]++;
       if (value.orderNum > max)
         max = value.orderNum;
     }
-    return max;
+
+    System.out.println("[yfy] " + tag + " max order num: " + max);
+    System.out.print("[yfy] dist: ");
+    for (int i = 0; i < 12; i++)
+      System.out.print(nums[i] + " ");
+    System.out.println();
   }
 
   private static class Value {

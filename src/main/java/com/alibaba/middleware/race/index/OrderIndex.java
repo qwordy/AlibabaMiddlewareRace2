@@ -24,7 +24,6 @@ public class OrderIndex {
   public OrderIndex(List<String> dataFiles) throws Exception {
     tables = new HashTable[3];
     this.dataFiles = dataFiles;
-
   }
 
   // 0..2
@@ -34,15 +33,14 @@ public class OrderIndex {
     tableId = id;
   }
 
-  public void finish(int id) {
-    //tables[id].writeFile();
-    //tables[id].clearMemory();
+  public void finish(int id) throws Exception {
+    tables[id].writeFile();
   }
 
   // id.length == 5
   public void add(byte[] id, int fileId, long fileOff) throws Exception {
     //System.out.println("order add");
-    int hash = Util.bytesHash(id) % Config.orderIndexSize;
+    int hash = (Util.bytesHash(id) & 0x7fffffff) % Config.orderIndexSize;
     tables[tableId].add(id, hash, fileId, fileOff);
   }
 

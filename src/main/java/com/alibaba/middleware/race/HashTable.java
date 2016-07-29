@@ -1,5 +1,7 @@
 package com.alibaba.middleware.race;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,13 +62,16 @@ public class HashTable {
 
   private String indexFile;
 
+  private RandomAccessFile fd;
+
   private byte[] entryBuf;
 
   private byte[][] memory;
 
+  private List<byte[]> memoryExt;
+
   public HashTable(List<String> dataFiles, String indexFile,
-                   int size, int blockSize, int entrySize
-                   ) throws Exception {
+      int size, int blockSize, int entrySize) throws Exception {
 
     this.dataFiles = dataFiles;
     this.indexFile = indexFile;
@@ -89,43 +94,77 @@ public class HashTable {
     memory = new byte[size][];
     for (int i = 0; i < size; i++)
       memory[i] = new byte[BLOCK_SIZE];
+    memoryExt = new ArrayList<>();
   }
 
   // key.length == 5
   public void add(byte[] key, int blockNo, int fileId, long fileOff)
       throws Exception {
 
-    byte[] block = memory[blockNo];
+    byte[] block;
+    if (blockNo < SIZE)
+      block = memory[blockNo];
+    else
+      block = memoryExt.get(blockNo - SIZE);
 
     // find the last bucket in the chain
     while (Util.byte2int(block, 0) > 0) {
       blockNo = Util.byte2int(block, 0);
-      block = memory[blockNo];
+      if (blockNo < SIZE)
+        block = memory[blockNo];
+      else
+        block = memoryExt.get(blockNo - SIZE);
     }
     // no enough space in bucket
     if (Util.byte2short(block, 4) + ENTRY_SIZE > BLOCK_SIZE) {
       blockNo = blockNum++;
       Util.int2byte(blockNo, block, 0);
-
+      block = new byte[BLOCK_SIZE];
+      memoryExt.add(block);
     }
 
+    int nextPos = Util.byte2short(block, 4);
+    if (nextPos == 0)
+      nextPos = 6;
+
     // fileId
-    entryBuf[0] = (byte) fileId;
+    block[nextPos] = (byte) fileId;
+    nextPos++;
     // fileOff
-    System.arraycopy(Util.longTo4Byte(fileOff), 0, entryBuf, 1, 4);
+    Util.longToByte4(fileOff, block, nextPos);
+    nextPos += 4;
     // key
-    if (key != null)
-      System.arraycopy(key, 0, entryBuf, 5, 5);
+    if (key != null) {
+      System.arraycopy(key, 0, block, nextPos, 5);
+      nextPos += 5;
+    }
 
+    Util.short2byte(nextPos, block, 4);
+  }
 
+  public void writeFile() throws Exception {
+    System.out.println(System.currentTimeMillis() + " [yfy] writeFile start");
+
+    BufferedOutputStream bos = new BufferedOutputStream(
+        new FileOutputStream(indexFile));
+    for (int i = 0; i < SIZE; i++)
+      bos.write(memory[i]);
+    for (byte[] block : memoryExt)
+      bos.write(block);
+    bos.close();
+
+    System.out.println(System.currentTimeMillis() + " [yfy] writeFile end");
+
+    memory = null;
+    memoryExt = null;
+    System.gc();
+
+    fd = new RandomAccessFile(indexFile, "r");
   }
 
   // entry size 10
 //  public Tuple get(byte[] key, int blockNo) throws Exception {
-//    byte[] buf = new byte[BLOCK_SIZE];
-//    Meta meta = bucketMetas[blockNo];
-//    if (meta == null)
-//      meta = bucketMetas[blockNo] = new Meta();
+//    byte[] block = new byte[BLOCK_SIZE];
 //    while (true) {
 //      synchronized (fd) {
 //        fd.seek(((long) blockNo) << BIT);
@@ -145,7 +184,7 @@ public class HashTable {
 //      meta = meta.nextMeta;
 //    }
 //  }
-//
+
 //  // entry size 5
 //  public List<Tuple> getAll(int blockNo) throws Exception {
 //    List<Tuple> list = new ArrayList<>();
