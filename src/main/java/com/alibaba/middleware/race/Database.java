@@ -82,6 +82,7 @@ public class Database implements Runnable {
   public void construct() throws Exception {
     buildO2oHash();
     buildBg2oHash();
+    FdMap.init(orderFilesList, goodFilesList, buyerFilesList);
   }
 
   // construct in another thread
@@ -97,36 +98,36 @@ public class Database implements Runnable {
   private void buildO2oHash() throws Exception {
     orderIndex = new OrderIndex(orderFilesList);
 
-    buyerIndex = new BgIndex(orderFilesList, fullname1("b2o.idx"),
-        buyerFilesList, Config.buyerIndexSize, Config.buyerIndexBlockSize);
-    goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"),
-        goodFilesList, Config.goodIndexSize, Config.goodIndexBlockSize);
-
-    OrderKvDealer dealer = new OrderKvDealer(orderIndex, buyerIndex, goodIndex);
+    OrderKvDealer dealer = new OrderKvDealer(orderIndex, null, null);
     for (int diskId = 0; diskId < 3; diskId++) {
-      //orderIndex.setCurrentTable(diskId,
-      //    storeFoldersList.get(diskId) + '/' + "o2o.idx");
+      String indexFile = storeFoldersList.get(diskId) + '/' + "o2o.idx";
+      orderIndex.setCurrentTable(diskId, indexFile);
       for (int i = 0; i < orderFilesList.size(); i++) {
         String filename = orderFilesList.get(i);
+        dealer.setFileId(i);
         if (filename.charAt(5) == '1' + diskId)
           readDataFile(filename, dealer);
       }
-      //orderIndex.finish(diskId);
-      //break;
+      orderIndex.finish(diskId);
     }
 
     System.out.println("[yfy] order num: " + OrderKvDealer.count);
     System.out.println("[yfy] orderid max: " + OrderKvDealer.maxOid +
         " min: " + OrderKvDealer.minOid);
-    buyerIndex.printInfo("buyer");
-    goodIndex.printInfo("good");
+    //buyerIndex.printInfo("buyer");
+    //goodIndex.printInfo("good");
     System.out.println("[yfy] buyer max len " + OrderKvDealer.maxBl +
         " min len " + OrderKvDealer.minBl);
     System.out.println("[yfy] good max len " + OrderKvDealer.maxGl +
         " min len " + OrderKvDealer.minGl);
   }
 
-  private void buildBg2oHash() throws Exception {}
+  private void buildBg2oHash() throws Exception {
+    buyerIndex = new BgIndex(orderFilesList, buyerFilesList,
+        Config.buyerIndexSize, Config.buyerIndexBlockSize);
+    goodIndex = new BgIndex(orderFilesList, goodFilesList,
+        Config.goodIndexSize, Config.goodIndexBlockSize);
+  }
 
 //  private void buildOrder2OrderHash() throws Exception {
 //    orderIndex = new OrderIndex(orderFilesList);

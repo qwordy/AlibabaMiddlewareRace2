@@ -25,7 +25,10 @@ public class AppTest {
     OrderSystem os = constructBig();
 
     // queryOrder
-    OrderSystem.Result result = os.queryOrder(606092157, Arrays.asList("buyername"));
+    OrderSystem.Result result = os.queryOrder(606092157, null);
+    assertEquals(606092157, result.orderId());
+    assertEquals("wx-ae52-539368e70aaa", result.get("buyerid").valueAsString());
+    assertEquals(false, result.get("done").valueAsBoolean());
     assertEquals("晋恿吾", result.get("buyername").valueAsString());
 
     result = os.queryOrder(604911336, Arrays.asList("buyerid"));
@@ -74,13 +77,10 @@ public class AppTest {
   private OrderSystem constructBig() throws Exception {
     OrderSystem os = new OrderSystemImpl();
     os.construct(
-        Arrays.asList(fn("order.0.0"), fn("order.0.3"), fn("order.1.1"), fn("order.2.2")),
-        Arrays.asList(fn("buyer.0.0"), fn("buyer.1.1")),
-        Arrays.asList(fn("good.0.0"), fn("good.1.1"), fn("good.2.2")),
-        Arrays.asList(
-            "/home/yfy/middleware/pr1run_data",
-            "/home/yfy/middleware/pr1run_data",
-            "/home/yfy/middleware/pr1run_data"));
+        Arrays.asList(d1("order.0.0"), d2("order.0.3"), d1("order.1.1"), d3("order.2.2")),
+        Arrays.asList(d1("buyer.0.0"), d2("buyer.1.1")),
+        Arrays.asList(d1("good.0.0"), d2("good.1.1"), d3("good.2.2")),
+        Arrays.asList("diskk1", "diskk2", "diskk3"));
     return os;
   }
 
@@ -89,9 +89,13 @@ public class AppTest {
     constructBig();
   }
 
-  private String fn(String file) {
-    return "../pr1run_data/" + file;
-  }
+  private String d1(String file) { return "diskk1/" + file; }
+
+  private String d2(String file) { return "diskk2/" + file; }
+
+  private String d3(String file) { return "diskk3/" + file; }
+
+  private String fn(String file) { return "../pr1run_data/" + file; }
 
   @Test
   public void constructSim() throws Exception {
@@ -231,6 +235,8 @@ public class AppTest {
     byte[] b = new byte[5];
     Util.longToByte4(4000000000L, b, 1);
     assertEquals(4000000000L, Util.byte4ToLong(b, 1));
+
+    assertEquals(250, (int)(((byte)250) & 0xff));
   }
 
   @Test
@@ -368,9 +374,9 @@ public class AppTest {
 //    byte[][] bb = new byte[200000][];
 //    for (int i = 0; i < 200000; i++)
 //      bb[i] = new byte[4000];
-    byte[] b = new byte[80000000];
+    byte[] b = new byte[16000];
     System.out.println(System.currentTimeMillis());
-    for (int i = 0; i < 80000000; i++)
+    for (int i = 0; i < 16000; i++)
       b[i] = (byte)i;
     System.out.println(System.currentTimeMillis());
   }

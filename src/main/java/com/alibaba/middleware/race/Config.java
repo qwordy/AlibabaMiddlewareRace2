@@ -8,7 +8,7 @@ public class Config {
 
   // 每个桶预计放182个，容量409个
   //public static int orderIndexSize = 732421;
-  public static int orderIndexSize = 100000;
+  public static int orderIndexSize = 100;
 
   public static int orderIndexBlockSize = 4096;
 
@@ -24,6 +24,15 @@ public class Config {
 
   //[yfy] buyer max orderNum 246
   //[yfy] good max orderNum 468
+
+//  [yfy] order num: 400000000
+//  [yfy] orderid max: 60767378408 min: 587732231
+//  [yfy] buyer max order num: 246
+//  [yfy] dist: 6355815 637708 462424 499476 44577 0 0 0 0 0 0 0
+//  [yfy] good max order num: 468
+//  [yfy] dist: 419677 2778409 106809 194374 120701 106557 129251 133620 10586 16 0 0
+//  [yfy] buyer max len 20 min len 20
+//  [yfy] good max len 21 min len 20
 
 //  public static int eachIndexMaxCount = 60000000;
 //

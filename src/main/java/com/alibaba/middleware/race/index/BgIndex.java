@@ -1,9 +1,6 @@
 package com.alibaba.middleware.race.index;
 
-import com.alibaba.middleware.race.HashTable;
-import com.alibaba.middleware.race.Tuple;
-import com.alibaba.middleware.race.WriteBuffer;
-import com.alibaba.middleware.race.WriteBufferNew;
+import com.alibaba.middleware.race.*;
 
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -19,24 +16,50 @@ public class BgIndex {
 
   private Map<String, Value> map;
 
+  // bg 2 o
+  private HashTable[] tables;
+
+  private int tableId;
+
+  // bg 2 bg
   private HashTable table;
 
-  private int count;
+  private List<String> orderFiles, bgFiles;
 
-  private List<String> bgFiles;
+  private int size, blockSize, count;
 
-  public BgIndex(List<String> orderFiles, String bg2oIndexFile,
-                 List<String> bgFiles, int size, int blockSize)
-      throws Exception {
+  public BgIndex(List<String> orderFiles, List<String> bgFiles,
+                 int size, int blockSize) throws Exception {
 
+    this.orderFiles = orderFiles;
     this.bgFiles = bgFiles;
-    map = new ConcurrentHashMap<>(size);
+    this.size = size;
+    this.blockSize = blockSize;
+    tables = new HashTable[3];
+
+    //map = new ConcurrentHashMap<>(size);
     //RandomAccessFile fd = new RandomAccessFile(bg2oIndexFile, "rw");
     //table = new HashTable(orderFiles, fd, size, blockSize, 5, writeBuffer);
   }
 
+  public void setBgTable(int size, int blockSize) throws Exception {
+    table = new HashTable(bgFiles, null, size, blockSize, 29);
+  }
+
+  // 0..2
+  public void setCurrentTable(int id, String indexFile) throws Exception {
+    tables[id] = new HashTable(orderFiles, indexFile, size, blockSize, 5);
+    tableId = id;
+  }
+
+  public void finish(int id) throws Exception {
+    tables[id].writeFile();
+  }
+
   public void addOrder(byte[] bg, int len, int fildId, long fildOff)
       throws Exception {
+
+
 
     //System.out.println("bg addOrder");
     String buyerStr = new String(bg, 0, len);

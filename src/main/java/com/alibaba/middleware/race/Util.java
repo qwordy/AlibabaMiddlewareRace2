@@ -111,6 +111,13 @@ public class Util {
     b[off] = (byte) (n);
   }
 
+  public static long byte4ToLong(byte[] b, int offset) {
+    return (((long) b[offset + 3] & 0xff) << 24)
+        | (((long) b[offset + 2] & 0xff) << 16)
+        | (((long) b[offset + 1] & 0xff) << 8)
+        | ((long) b[offset] & 0xff);
+  }
+
   public static long byte2long(byte[] b) {
     return byte2long(b, 0);
   }
@@ -121,13 +128,6 @@ public class Util {
         | (((long) b[offset + 5] & 0xff) << 40)
         | (((long) b[offset + 4] & 0xff) << 32)
         | (((long) b[offset + 3] & 0xff) << 24)
-        | (((long) b[offset + 2] & 0xff) << 16)
-        | (((long) b[offset + 1] & 0xff) << 8)
-        | ((long) b[offset] & 0xff);
-  }
-
-  public static long byte4ToLong(byte[] b, int offset) {
-    return (((long) b[offset + 3] & 0xff) << 24)
         | (((long) b[offset + 2] & 0xff) << 16)
         | (((long) b[offset + 1] & 0xff) << 8)
         | ((long) b[offset] & 0xff);

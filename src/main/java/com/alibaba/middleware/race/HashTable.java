@@ -64,8 +64,6 @@ public class HashTable {
 
   private RandomAccessFile fd;
 
-  private byte[] entryBuf;
-
   private byte[][] memory;
 
   private List<byte[]> memoryExt;
@@ -90,7 +88,6 @@ public class HashTable {
     else
       throw new Exception();
 
-    entryBuf = new byte[entrySize];
     memory = new byte[size][];
     for (int i = 0; i < size; i++)
       memory[i] = new byte[BLOCK_SIZE];
@@ -124,8 +121,7 @@ public class HashTable {
     }
 
     int nextPos = Util.byte2short(block, 4);
-    if (nextPos == 0)
-      nextPos = 6;
+    if (nextPos == 0) nextPos = 6;
 
     // fileId
     block[nextPos] = (byte) fileId;
@@ -140,6 +136,69 @@ public class HashTable {
     }
 
     Util.short2byte(nextPos, block, 4);
+  }
+
+  // get order, entry size 10
+  public Tuple get(byte[] key, int blockNo) throws Exception {
+    byte[] block = new byte[BLOCK_SIZE];
+    while (true) {
+      synchronized (fd) {
+        fd.seek(((long) blockNo) << BIT);
+        fd.read(block);
+      }
+      int size = Util.byte2short(block, 4);
+      if (size == 0) size = 6;
+      for (int off = 6; off + 10 <= size; off += 10) {
+        if (Util.bytesEqual(block, off + 5, key, 0, 5)) {
+          int fileId = block[off] & 0xff;
+          long fileOff = Util.byte4ToLong(block, off + 1);
+          return new Tuple(dataFiles.get(fileId), fileOff);
+        }
+      }
+      blockNo = Util.byte2int(block, 0);
+      if (blockNo == 0)
+        return null;
+    }
+  }
+
+  // get all order, entry size 5
+  public List<Tuple> getAll(int blockNo) throws Exception {
+    List<Tuple> list = new ArrayList<>();
+    byte[] block = new byte[BLOCK_SIZE];
+    while (true) {
+      synchronized (fd) {
+        fd.seek(((long) blockNo) << BIT);
+        fd.read(block);
+      }
+      int size = Util.byte2short(block, 4);
+      if (size == 0) size = 6;
+      for (int off = 6; off + 5 <= size; off += 5) {
+        int fileId = block[off] & 0xff;
+        long fileOff = Util.byte4ToLong(block, off + 1);
+        list.add(new Tuple(dataFiles.get(fileId), fileOff));
+      }
+      blockNo = Util.byte2int(block, 0);
+      if (blockNo == 0)
+        return list;
+    }
+  }
+
+  // key.length == 20 or 21
+  // return bg's id if bg exist
+  public int addBgId(byte[] key, int len, int id) {
+    return 0;
+  }
+
+  public void addBgTuple(byte[] key, int fileId, int fileOff) {
+
+  }
+
+  public void getBg(byte[] key, int len, BgBytes bgBytes) {
+
+  }
+
+  public Tuple getBgTuple(byte[] key) {
+    return null;
   }
 
   public void writeFile() throws Exception {
@@ -162,58 +221,10 @@ public class HashTable {
     fd = new RandomAccessFile(indexFile, "r");
   }
 
-  // entry size 10
-//  public Tuple get(byte[] key, int blockNo) throws Exception {
-//    byte[] block = new byte[BLOCK_SIZE];
-//    while (true) {
-//      synchronized (fd) {
-//        fd.seek(((long) blockNo) << BIT);
-//        fd.read(buf);
-//      }
-//      int size = meta.size;
-//      for (int off = 0; off + 10 <= size; off += 10) {
-//        if (Util.bytesEqual(buf, off + 5, key, 0, 5)) {
-//          int fileId = buf[off];
-//          long fileOff = Util.byte4ToLong(buf, off + 1);
-//          return new Tuple(dataFiles.get(fileId), fileOff);
-//        }
-//      }
-//      blockNo = meta.next;
-//      if (blockNo == 0)
-//        return null;
-//      meta = meta.nextMeta;
-//    }
+//  private static class Meta {
+//    int next, size;
+//    Meta nextMeta;
 //  }
-
-//  // entry size 5
-//  public List<Tuple> getAll(int blockNo) throws Exception {
-//    List<Tuple> list = new ArrayList<>();
-//    byte[] buf = new byte[BLOCK_SIZE];
-//    Meta meta = bucketMetas[blockNo];
-//    if (meta == null)
-//      meta = bucketMetas[blockNo] = new Meta();
-//    while (true) {
-//      synchronized (fd) {
-//        fd.seek(((long) blockNo) << BIT);
-//        fd.read(buf);
-//      }
-//      int size = meta.size;
-//      for (int off = 0; off + 5 <= size; off += 5) {
-//        int fileId = buf[off];
-//        long fileOff = Util.byte4ToLong(buf, off + 1);
-//        list.add(new Tuple(dataFiles.get(fileId), fileOff));
-//      }
-//      blockNo = meta.next;
-//      if (blockNo == 0)
-//        return list;
-//      meta = meta.nextMeta;
-//    }
-//  }
-
-  private static class Meta {
-    int next, size;
-    Meta nextMeta;
-  }
 
 //  private InnerAddr innerGet(byte[] key) throws Exception {
 //    if (keySizeFixed && key.length != KEY_SIZE)
