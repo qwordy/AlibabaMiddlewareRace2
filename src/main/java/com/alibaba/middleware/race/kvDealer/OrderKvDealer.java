@@ -92,8 +92,10 @@ public class OrderKvDealer extends AbstractKvDealer {
       if (orderIndex != null) {
         orderIndex.add(orderidValue, fileId, curOffset);
       } else {
-        buyerIndex.addOrder(buyeridValue, buyeridLen, fileId, curOffset);
-        goodIndex.addOrder(goodidValue, goodidLen, fileId, curOffset);
+        if (buyerIndex != null)
+          buyerIndex.addOrder(buyeridValue, buyeridLen, fileId, curOffset);
+        else
+          goodIndex.addOrder(goodidValue, goodidLen, fileId, curOffset);
       }
       return 2;
     }

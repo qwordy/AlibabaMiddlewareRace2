@@ -13,12 +13,14 @@ public class Config {
   public static int orderIndexBlockSize = 4096;
 
   public static int buyerIndexSize = 8000000;
+  //public static int buyerIndexSize = 80000;
 
-  public static int buyerIndexBlockSize = 512;
+  public static int buyerIndexBlockSize = 336;
 
   public static int goodIndexSize = 4000000;
+  //public static int goodIndexSize = 40000;
 
-  public static int goodIndexBlockSize = 1024;
+  public static int goodIndexBlockSize = 666;
 
   public static long orderidMax = 60767378408L;
 
@@ -34,6 +36,9 @@ public class Config {
 //  [yfy] buyer max len 20 min len 20
 //  [yfy] good max len 21 min len 20
 
+//  [yfy] buyer num: 8000000
+//  [yfy] good num: 4000000
+
 //  public static long orderidMin = 587732231;
 //  public static long createtimeMax = 11668409867L;
 
@@ -42,6 +47,10 @@ public class Config {
 //  order 400m 2m block
 
   /**
+   * 30:
+   *
+   * 29:
+   * tmp/255f0a61e4d/
    * tmp/ad4f8b693bc/
    * tmp/9b6f625817f/
    * tmp/0b2542a378a/

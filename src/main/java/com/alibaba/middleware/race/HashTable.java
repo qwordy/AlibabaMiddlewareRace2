@@ -42,7 +42,7 @@ import java.util.List;
  * good -> good
  * buyer -> buyer
  *
- * 4, 2, 1, 4, 5
+ * 4, 2,    1, 4, (5)
  */
 public class HashTable {
 
@@ -51,7 +51,7 @@ public class HashTable {
   private final int BLOCK_SIZE;
 
   // 2 ^ BIT = BLOCK
-  private final int BIT;
+  //private final int BIT;
 
   private final int ENTRY_SIZE;
 
@@ -69,7 +69,7 @@ public class HashTable {
   private List<byte[]> memoryExt;
 
   public HashTable(List<String> dataFiles, String indexFile,
-      int size, int blockSize, int entrySize) throws Exception {
+      int size, int blockSize, int entrySize) {
 
     this.dataFiles = dataFiles;
     this.indexFile = indexFile;
@@ -77,16 +77,14 @@ public class HashTable {
     BLOCK_SIZE = blockSize;
     ENTRY_SIZE = entrySize;
 
-    if (blockSize == 4096)
-      BIT = 12;
-    else if (blockSize == 2048)
-      BIT = 11;
-    else if (blockSize == 1024)
-      BIT = 10;
-    else if (blockSize == 512)
-      BIT = 9;
-    else
-      throw new Exception();
+//    if (blockSize == 4096)
+//      BIT = 12;
+//    else if (blockSize == 2048)
+//      BIT = 11;
+//    else if (blockSize == 1024)
+//      BIT = 10;
+//    else if (blockSize == 512)
+//      BIT = 9;
 
     memory = new byte[size][];
     for (int i = 0; i < size; i++)
@@ -95,8 +93,7 @@ public class HashTable {
   }
 
   // key.length == 5
-  public void add(byte[] key, int blockNo, int fileId, long fileOff)
-      throws Exception {
+  public void add(byte[] key, int blockNo, int fileId, long fileOff) {
 
     byte[] block;
     if (blockNo < SIZE)
@@ -143,7 +140,7 @@ public class HashTable {
     byte[] block = new byte[BLOCK_SIZE];
     while (true) {
       synchronized (fd) {
-        fd.seek(((long) blockNo) << BIT);
+        fd.seek(((long) blockNo) * BLOCK_SIZE);
         fd.read(block);
       }
       int size = Util.byte2short(block, 4);
@@ -167,7 +164,7 @@ public class HashTable {
     byte[] block = new byte[BLOCK_SIZE];
     while (true) {
       synchronized (fd) {
-        fd.seek(((long) blockNo) << BIT);
+        fd.seek(((long) blockNo) * BLOCK_SIZE);
         fd.read(block);
       }
       int size = Util.byte2short(block, 4);
@@ -183,22 +180,93 @@ public class HashTable {
     }
   }
 
-  // key.length == 20 or 21
-  // return bg's id if bg exist
-  public int addBgId(byte[] key, int len, int id) {
-    return 0;
+  // 21 1 4 3
+  // return true if find, false if not find, then create
+  public boolean getBg(byte[] key, int keyLen, BgBytes bgBytes) {
+    int size;
+    byte[] block;
+    int blockNo = Util.bytesHash(key, keyLen) % SIZE;
+    while (true) {
+      if (blockNo < SIZE)
+        block = memory[blockNo];
+      else
+        block = memoryExt.get(blockNo - SIZE);
+      size = Util.byte2short(block, 4);
+      if (size == 0) size = 6;
+      for (int off = 6; off + 29 <= size; off += 29) {
+        if (keyLen == 21 && Util.bytesEqual(block, off, key, 0, 21) ||
+            keyLen == 20 && block[off + 20] == 0 &&
+                Util.bytesEqual(block, off, key, 0, 20)) {
+          bgBytes.block = block;
+          bgBytes.off = off + 21;
+          return true;
+        }
+      }
+      blockNo = Util.byte2int(block, 0);
+      if (blockNo == 0) break;
+    }
+    if (size + 29 > BLOCK_SIZE) {
+      blockNo = blockNum++;
+      Util.int2byte(blockNo, block, 0);
+      block = new byte[BLOCK_SIZE];
+      memoryExt.add(block);
+    }
+    int nextPos = Util.byte2short(block, 4);
+    if (nextPos == 0) nextPos = 6;
+    // bg
+    System.arraycopy(key, 0, block, nextPos, keyLen);
+    Util.short2byte(nextPos + 29, block, 4);
+    bgBytes.block = block;
+    bgBytes.off = nextPos + 21;
+    return false;
   }
 
-  public void addBgTuple(byte[] key, int fileId, int fileOff) {
-
+  public Integer getBgId(byte[] key, int keyLen) {
+    int size;
+    byte[] block;
+    int blockNo = Util.bytesHash(key, keyLen) % SIZE;
+    while (true) {
+      if (blockNo < SIZE)
+        block = memory[blockNo];
+      else
+        block = memoryExt.get(blockNo - SIZE);
+      size = Util.byte2short(block, 4);
+      if (size == 0) size = 6;
+      for (int off = 6; off + 29 <= size; off += 29) {
+        if (keyLen == 21 && Util.bytesEqual(block, off, key, 0, 21) ||
+            keyLen == 20 && block[off + 20] == 0 &&
+                Util.bytesEqual(block, off, key, 0, 20)) {
+          return Util.byte3Toint(block, off + 26);
+        }
+      }
+      blockNo = Util.byte2int(block, 0);
+      if (blockNo == 0) return null;
+    }
   }
 
-  public void getBg(byte[] key, int len, BgBytes bgBytes) {
-
-  }
-
-  public Tuple getBgTuple(byte[] key) {
-    return null;
+  public Tuple getBgTuple(byte[] key, int keyLen) {
+    int size;
+    byte[] block;
+    int blockNo = Util.bytesHash(key, keyLen) % SIZE;
+    while (true) {
+      if (blockNo < SIZE)
+        block = memory[blockNo];
+      else
+        block = memoryExt.get(blockNo - SIZE);
+      size = Util.byte2short(block, 4);
+      if (size == 0) size = 6;
+      for (int off = 6; off + 29 <= size; off += 29) {
+        if (keyLen == 21 && Util.bytesEqual(block, off, key, 0, 21) ||
+            keyLen == 20 && block[off + 20] == 0 &&
+                Util.bytesEqual(block, off, key, 0, 20)) {
+          int fileId = block[off + 21] & 0xff;
+          long fileOff = Util.byte4ToLong(block, off + 22);
+          return new Tuple(dataFiles.get(fileId), fileOff);
+        }
+      }
+      blockNo = Util.byte2int(block, 0);
+      if (blockNo == 0) return null;
+    }
   }
 
   public void writeFile() throws Exception {
@@ -220,6 +288,10 @@ public class HashTable {
     System.gc();
 
     fd = new RandomAccessFile(indexFile, "r");
+  }
+
+  public void printSize() {
+    System.out.println("[yfy] size: " + SIZE + " extSize: " + memoryExt.size());
   }
 
 //  private static class Meta {

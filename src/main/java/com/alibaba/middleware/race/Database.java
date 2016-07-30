@@ -81,7 +81,10 @@ public class Database implements Runnable {
 
   public void construct() throws Exception {
     buildO2oHash();
-    buildBg2oHash();
+    buildG2oHash();
+    buildB2oHash();
+    buildG2gHash();
+    buildB2bHash();
     FdMap.init(orderFilesList, goodFilesList, buyerFilesList);
   }
 
@@ -96,11 +99,11 @@ public class Database implements Runnable {
   }
 
   private void buildO2oHash() throws Exception {
+    System.out.println(System.currentTimeMillis() + " [yfy] buildO2o");
     orderIndex = new OrderIndex(orderFilesList);
-
     OrderKvDealer dealer = new OrderKvDealer(orderIndex, null, null);
     for (int diskId = 0; diskId < 3; diskId++) {
-      String indexFile = storeFoldersList.get(diskId) + '/' + "o2o.idx";
+      String indexFile = storeFoldersList.get(diskId) + "/o2o.idx";
       orderIndex.setCurrentTable(diskId, indexFile);
       for (int i = 0; i < orderFilesList.size(); i++) {
         String filename = orderFilesList.get(i);
@@ -114,19 +117,54 @@ public class Database implements Runnable {
     System.out.println("[yfy] order num: " + OrderKvDealer.count);
     System.out.println("[yfy] orderid max: " + OrderKvDealer.maxOid +
         " min: " + OrderKvDealer.minOid);
-    //buyerIndex.printInfo("buyer");
-    //goodIndex.printInfo("good");
     System.out.println("[yfy] buyer max len " + OrderKvDealer.maxBl +
         " min len " + OrderKvDealer.minBl);
     System.out.println("[yfy] good max len " + OrderKvDealer.maxGl +
         " min len " + OrderKvDealer.minGl);
   }
 
-  private void buildBg2oHash() throws Exception {
-    buyerIndex = new BgIndex(orderFilesList, buyerFilesList,
+  private void buildB2oHash() throws Exception {
+    System.out.println(System.currentTimeMillis() + " [yfy] buildB2o");
+    buyerIndex = new BgIndex(orderFilesList,
+        storeFoldersList.get(1) + "/b2o.idx", buyerFilesList,
         Config.buyerIndexSize, Config.buyerIndexBlockSize);
-    goodIndex = new BgIndex(orderFilesList, goodFilesList,
+    buyerIndex.setBgTable(37735, 8192); // load factor 0.75
+    OrderKvDealer dealer = new OrderKvDealer(null, buyerIndex, null);
+    for (int i = 0; i < orderFilesList.size(); i++) {
+      dealer.setFileId(i);
+      readDataFile(orderFilesList.get(i), dealer);
+    }
+    buyerIndex.finish();
+  }
+
+  private void buildG2oHash() throws Exception {
+    System.out.println(System.currentTimeMillis() + " [yfy] buildG2o");
+    goodIndex = new BgIndex(orderFilesList,
+        storeFoldersList.get(2) + "/g2o.idx", goodFilesList,
         Config.goodIndexSize, Config.goodIndexBlockSize);
+    goodIndex.setBgTable(18867, 8192); // load factor 0.75
+    OrderKvDealer dealer = new OrderKvDealer(null, null, goodIndex);
+    for (int i = 0; i < orderFilesList.size(); i++) {
+      dealer.setFileId(i);
+      readDataFile(orderFilesList.get(i), dealer);
+    }
+    goodIndex.finish();
+  }
+
+  private void buildB2bHash() throws Exception {
+    BuyerKvDealer dealer = new BuyerKvDealer(buyerIndex);
+    for (int i = 0; i < buyerFilesList.size(); i++) {
+      dealer.setFileId(i);
+      readDataFile(buyerFilesList.get(i), dealer);
+    }
+  }
+
+  private void buildG2gHash() throws Exception {
+    GoodKvDealer dealer = new GoodKvDealer(goodIndex);
+    for (int i = 0; i < goodFilesList.size(); i++) {
+      dealer.setFileId(i);
+      readDataFile(goodFilesList.get(i), dealer);
+    }
   }
 
 //  private void buildOrder2OrderHash() throws Exception {
@@ -150,63 +188,47 @@ public class Database implements Runnable {
 //    System.out.println("[yfy] good max orderNum " + goodIndex.maxOrderNum());
 //  }
 
-  private void buildGood2GoodHash() throws Exception {
-    GoodKvDealer dealer = new GoodKvDealer(goodIndex);
-    for (int i = 0; i < goodFilesList.size(); i++) {
-      dealer.setFileId(i);
-      readDataFile(goodFilesList.get(i), dealer);
-    }
-  }
+//  private String fullname0(String filename) {
+//    return storeFoldersList.get(0) + '/' + filename;
+//  }
+//
+//  private String fullname1(String filename) {
+//    return storeFoldersList.get(1) + '/' + filename;
+//  }
+//
+//  private String fullname2(String filename) {
+//    return storeFoldersList.get(2) + '/' + filename;
+//  }
 
-  private void buildBuyer2BuyerHash() throws Exception {
-    BuyerKvDealer dealer = new BuyerKvDealer(buyerIndex);
-    for (int i = 0; i < buyerFilesList.size(); i++) {
-      dealer.setFileId(i);
-      readDataFile(buyerFilesList.get(i), dealer);
-    }
-  }
-
-  private String fullname0(String filename) {
-    return storeFoldersList.get(0) + '/' + filename;
-  }
-
-  private String fullname1(String filename) {
-    return storeFoldersList.get(1) + '/' + filename;
-  }
-
-  private String fullname2(String filename) {
-    return storeFoldersList.get(2) + '/' + filename;
-  }
-
-  private void readAio(String filename) throws Exception {
-    final int SIZE = 50;
-    Path path = Paths.get(filename);
-    final AsynchronousFileChannel channel = AsynchronousFileChannel.open(path);
-    final ByteBuffer buffer0 = ByteBuffer.allocate(SIZE);
-    final ByteBuffer buffer1 = ByteBuffer.allocate(SIZE);
-    CompletionHandler<Integer, Object> handler =
-        new CompletionHandler<Integer, Object>() {
-          public int offset;
-
-          @Override
-          public void completed(Integer result, Object att) {
-            System.out.println(new String(buffer0.array()));
-            offset += SIZE;
-            System.out.println(offset);
-            buffer0.clear();
-            channel.read(buffer0, offset, null, this);
-          }
-
-          @Override
-          public void failed(Throwable exc, Object att) {
-            System.out.println("fail");
-          }
-        };
-    channel.read(buffer0, 0, null, handler);
-
-    System.out.println("other");
-    Thread.sleep(3000);
-  }
+//  private void readAio(String filename) throws Exception {
+//    final int SIZE = 50;
+//    Path path = Paths.get(filename);
+//    final AsynchronousFileChannel channel = AsynchronousFileChannel.open(path);
+//    final ByteBuffer buffer0 = ByteBuffer.allocate(SIZE);
+//    final ByteBuffer buffer1 = ByteBuffer.allocate(SIZE);
+//    CompletionHandler<Integer, Object> handler =
+//        new CompletionHandler<Integer, Object>() {
+//          public int offset;
+//
+//          @Override
+//          public void completed(Integer result, Object att) {
+//            System.out.println(new String(buffer0.array()));
+//            offset += SIZE;
+//            System.out.println(offset);
+//            buffer0.clear();
+//            channel.read(buffer0, offset, null, this);
+//          }
+//
+//          @Override
+//          public void failed(Throwable exc, Object att) {
+//            System.out.println("fail");
+//          }
+//        };
+//    channel.read(buffer0, 0, null, handler);
+//
+//    System.out.println("other");
+//    Thread.sleep(3000);
+//  }
 
   private void readDataFile(String filename, IKvDealer dealer)
       throws Exception {
@@ -287,6 +309,8 @@ public class Database implements Runnable {
     for (Tuple tuple : orderTupleList)
       resultList.add(new BuyerResult(tuple, buyerResult));
     Collections.sort(resultList, buyerResultComparator);
+
+//Collections.binarySearch
 
     return resultList.iterator();
   }
