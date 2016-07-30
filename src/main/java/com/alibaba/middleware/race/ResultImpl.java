@@ -77,7 +77,7 @@ public class ResultImpl implements OrderSystem.Result {
     // 0 for read key, 1 for read value
     int status = 0;
     byte[] key = new byte[256];
-    byte[] value = new byte[65536];
+    byte[] value = new byte[105536];
     while ((b = tuple.next()) != -1) {
       if (status == 0) {
         if (b == ':') {

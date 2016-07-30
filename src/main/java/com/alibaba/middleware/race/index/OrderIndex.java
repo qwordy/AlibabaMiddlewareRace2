@@ -22,11 +22,11 @@ public class OrderIndex {
   private int tableId;
 
   public OrderIndex(List<String> dataFiles) {
-    tables = new HashTable[3];
+    tables = new HashTable[2];
     this.dataFiles = dataFiles;
   }
 
-  // 0..2
+  // 0..1
   public void setCurrentTable(int id, String indexFile) {
     tables[id] = new HashTable(dataFiles, indexFile,
         Config.orderIndexSize, Config.orderIndexBlockSize, 10);
@@ -39,7 +39,6 @@ public class OrderIndex {
 
   // id.length == 5
   public void add(byte[] id, int fileId, long fileOff) throws Exception {
-    //System.out.println("order add");
     int hash = Util.bytesHash(id) % Config.orderIndexSize;
     tables[tableId].add(id, hash, fileId, fileOff);
   }
@@ -49,8 +48,6 @@ public class OrderIndex {
     Tuple tuple = tables[0].get(id, hash);
     if (tuple == null)
       tuple = tables[1].get(id, hash);
-    if (tuple == null)
-      tuple = tables[2].get(id, hash);
     return tuple;
   }
 }
