@@ -3,10 +3,7 @@ package com.alibaba.middleware.race;
 import com.alibaba.middleware.race.cache.ConcurrentCache;
 import com.alibaba.middleware.race.index.BgIndex;
 import com.alibaba.middleware.race.index.OrderIndex;
-import com.alibaba.middleware.race.kvDealer.BuyerKvDealer;
-import com.alibaba.middleware.race.kvDealer.GoodKvDealer;
-import com.alibaba.middleware.race.kvDealer.IKvDealer;
-import com.alibaba.middleware.race.kvDealer.OrderKvDealer;
+import com.alibaba.middleware.race.kvDealer.*;
 import com.alibaba.middleware.race.result.BuyerResult;
 import com.alibaba.middleware.race.result.GoodResult;
 import com.alibaba.middleware.race.result.SimpleResult;
@@ -100,7 +97,7 @@ public class Database implements Runnable {
   private void buildO2oHash() throws Exception {
     System.out.println(System.currentTimeMillis() + " [yfy] buildO2o");
     orderIndex = new OrderIndex(orderFilesList);
-    OrderKvDealer dealer = new OrderKvDealer(orderIndex, null, null);
+    O2oKvDealer dealer = new O2oKvDealer(orderIndex);
     for (int diskId = 0; diskId < 3; diskId++) {
       String indexFile = storeFoldersList.get(diskId) + "/o2o.idx";
       orderIndex.setCurrentTable(diskId, indexFile);
@@ -114,13 +111,13 @@ public class Database implements Runnable {
       System.gc();
     }
 
-    System.out.println("[yfy] order num: " + OrderKvDealer.count);
-    System.out.println("[yfy] orderid max: " + OrderKvDealer.maxOid +
-        " min: " + OrderKvDealer.minOid);
-    System.out.println("[yfy] buyer max len " + OrderKvDealer.maxBl +
-        " min len " + OrderKvDealer.minBl);
-    System.out.println("[yfy] good max len " + OrderKvDealer.maxGl +
-        " min len " + OrderKvDealer.minGl);
+//    System.out.println("[yfy] order num: " + OrderKvDealer.count);
+//    System.out.println("[yfy] orderid max: " + OrderKvDealer.maxOid +
+//        " min: " + OrderKvDealer.minOid);
+//    System.out.println("[yfy] buyer max len " + OrderKvDealer.maxBl +
+//        " min len " + OrderKvDealer.minBl);
+//    System.out.println("[yfy] good max len " + OrderKvDealer.maxGl +
+//        " min len " + OrderKvDealer.minGl);
   }
 
   private void buildBg2oHash() throws Exception {
@@ -131,7 +128,7 @@ public class Database implements Runnable {
     goodIndex = new BgIndex(orderFilesList, goodFilesList,
         Config.goodIndexSize, Config.goodIndexBlockSize,
         Config.g2gIndexSize, Config.bg2bgIndexBlockSize);
-    OrderKvDealer dealer = new OrderKvDealer(null, buyerIndex, goodIndex);
+    Bg2oKvDealer dealer = new Bg2oKvDealer(buyerIndex, goodIndex);
 
     int mid = (orderFilesList.size() + 1) / 2;
 

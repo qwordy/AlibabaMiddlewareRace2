@@ -16,21 +16,27 @@ public class Config {
 //  public static int buyerIndexSize = 80000;
 
   // 250, 2.9g, 375, 3.6g
-  public static int buyerIndexBlockSize = 166;
+  public static int buyerIndexBlockSize = 186;
 
   public static int goodIndexSize = 4000000;
 //  public static int goodIndexSize = 40000;
 
   // 500, 2.8g, 750, 3.7g
-  public static int goodIndexBlockSize = 336;
+  public static int goodIndexBlockSize = 376;
 
-  //public static int b2bIndexSize = 37735;  // 0.75
-  public static int b2bIndexSize = 35461;  // 0.8
+//  //public static int b2bIndexSize = 37735;  // 0.75
+//  public static int b2bIndexSize = 35461;  // 0.8
+//
+//  //public static int g2gIndexSize = 18867;  // 0.75
+//  public static int g2gIndexSize = 17731;  // 0.8
+//
+//  public static int bg2bgIndexBlockSize = 8192;
 
-  //public static int g2gIndexSize = 18867;  // 0.75
-  public static int g2gIndexSize = 17731;  // 0.8
+  public static int b2bIndexSize = 75471; // 0.75
 
-  public static int bg2bgIndexBlockSize = 8192;
+  public static int g2gIndexSize = 37735; // 0.75
+
+  public static int bg2bgIndexBlockSize = 4096;
 
   public static long orderidMax = 60767378408L;
   public static long orderidMin = 587732231;
@@ -64,7 +70,7 @@ public class Config {
 
   /**
    * 30:
-   *
+   * tmp/702b3e07f7b/
    * 29:
    * tmp/255f0a61e4d/
    * tmp/ad4f8b693bc/
