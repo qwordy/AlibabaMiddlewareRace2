@@ -8,12 +8,10 @@ import java.util.Comparator;
  * Created by yfy on 7/28/16.
  * BuyerResultComparator
  */
-public class BuyerResultComparator implements Comparator<OrderSystem.Result> {
+public class BuyerResultComparator implements Comparator<BuyerResult> {
   @Override
-  public int compare(OrderSystem.Result o1, OrderSystem.Result o2) {
-
-    long d = ((BuyerResult)o1).getCreatetime() -
-        ((BuyerResult)o2).getCreatetime();
+  public int compare(BuyerResult o1, BuyerResult o2) {
+    long d = o1.getCreatetime() - o2.getCreatetime();
     if (d < 0)
       return 1;
     if (d > 0)

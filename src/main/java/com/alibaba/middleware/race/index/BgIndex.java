@@ -4,7 +4,6 @@ import com.alibaba.middleware.race.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by yfy on 7/24/16.
@@ -12,35 +11,40 @@ import java.util.Map;
  */
 public class BgIndex {
 
-  private HashTable orderTable;
+  private HashTable[] orderTables;
+
+  private int orderTableId;
 
   // bg 2 bg
   private HashTable bgTable;
 
-  private List<String> orderFiles, bgFiles;
+  private List<String> orderFiles;
 
   private int size, blockSize, count;
 
   private BgBytes bgBytes;
 
-  public BgIndex(List<String> orderFiles, String indexFile,
-                 List<String> bgFiles, int size, int blockSize) {
+  public BgIndex(List<String> orderFiles, List<String> bgFiles,
+                 int size, int blockSize,
+                 int bgSize, int bgBlockSize) {
 
     this.orderFiles = orderFiles;
-    this.bgFiles = bgFiles;
     this.size = size;
     this.blockSize = blockSize;
     bgBytes = new BgBytes();
-    orderTable = new HashTable(orderFiles, indexFile, size, blockSize, 5);
+    orderTables = new HashTable[2];
+    bgTable = new HashTable(bgFiles, null, bgSize, bgBlockSize, 29);
   }
 
-  public void setBgTable(int size, int blockSize) {
-    bgTable = new HashTable(bgFiles, null, size, blockSize, 29);
+  // 0 or 1
+  public void setCurrentTable(int id, String indexFile) {
+    orderTableId = id;
+    orderTables[id] = new HashTable(orderFiles, indexFile, size, blockSize, 5);
   }
 
   public void finish() throws Exception {
-    orderTable.writeFile();
-    bgTable.printSize();
+    orderTables[orderTableId].writeFile();
+    bgTable.printBgIndexSize();
   }
 
   public void addOrder(byte[] bg, int len, int fildId, long fildOff) {
@@ -53,7 +57,7 @@ public class BgIndex {
       bgNo = count++;
       Util.int2byte3(bgNo, bgBytes.block, bgBytes.off + 5);
     }
-    orderTable.add(null, bgNo, fildId, fildOff);
+    orderTables[orderTableId].add(null, bgNo, fildId, fildOff);
   }
 
   // add all order then add bg
@@ -72,7 +76,11 @@ public class BgIndex {
     Integer bgId = bgTable.getBgId(bg.getBytes(), len);
     if (bgId == null || bgId == 0xffffff)
       return new ArrayList<>();
-    return orderTable.getAll(bgId);
+    List<Tuple> list0 = orderTables[0].getAll(bgId);
+    List<Tuple> list1 = orderTables[1].getAll(bgId);
+    for (Tuple tuple : list1)
+      list0.add(tuple);
+    return list0;
   }
 
   public Tuple getBg(String bg) {

@@ -27,14 +27,14 @@ public class OrderIndex {
   }
 
   // 0..2
-  public void setCurrentTable(int id, String indexFile) throws Exception {
+  public void setCurrentTable(int id, String indexFile) {
     tables[id] = new HashTable(dataFiles, indexFile,
         Config.orderIndexSize, Config.orderIndexBlockSize, 10);
     tableId = id;
   }
 
-  public void finish(int id) throws Exception {
-    tables[id].writeFile();
+  public void finish() throws Exception {
+    tables[tableId].writeFile();
   }
 
   // id.length == 5

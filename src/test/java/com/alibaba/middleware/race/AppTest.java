@@ -1,13 +1,8 @@
 package com.alibaba.middleware.race;
 
-import com.alibaba.middleware.race.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
-import com.alibaba.middleware.race.concurrentlinkedhashmap.EvictionListener;
 import org.junit.Test;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.PrintWriter;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -34,11 +29,31 @@ public class AppTest {
     result = os.queryOrder(604911336, Arrays.asList("buyerid"));
     assertEquals("tp-9d00-3b1cf5d41ff5", result.get("buyerid").valueAsString());
 
+    result = os.queryOrder(590107063, Arrays.asList("a_g_12146"));
+    assertEquals(590107063, result.orderId());
+    assertEquals(null, result.get("a_g_12146"));
+
+    result = os.queryOrder(608178205, Arrays.asList("a_g_17779"));
+    assertEquals(false, result.get("a_g_17779").valueAsBoolean());
+
     // queryOrdersByBuyer
-    os.queryOrdersByBuyer(1470611363, 1484693606, "ap-ab95-3e7e0ed47717");
+    Iterator<OrderSystem.Result> iter =
+        os.queryOrdersByBuyer(1462018520, 1473999229, "wx-a0e0-6bda77db73ca");
+    result = iter.next(); // 1
+    assertEquals(607895670, result.orderId());
+    assertEquals("波兰最高监察院职业。", result.get("good_name").valueAsString());
+    assertEquals(0.803, result.get("a_b_6857").valueAsDouble(), 1e-6);
+    result = iter.next();  // 2
+    assertEquals(607807292, result.orderId());
+    assertEquals("强仁乌布本田公司。韦尔奇西澳县底镇：攀登",
+        result.get("address").valueAsString());
+    assertEquals(9590.908570420032, result.get("price").valueAsDouble(), 1e-6);
+    for (int i = 0; i < 17; i++)
+      result = iter.next();
+    assertEquals(587818574, result.orderId());
 
     // queryOrdersBySaler
-    Iterator<OrderSystem.Result> iter = os.queryOrdersBySaler(
+    iter = os.queryOrdersBySaler(
         "almm-8f6a-3e6a9697a0f9",
         "aye-8d0d-57e792eb1371",
         Arrays.asList("a_b_19123"));
@@ -56,6 +71,23 @@ public class AppTest {
     result = iter.next();
     assertEquals(588610606, result.orderId());
 
+    iter = os.queryOrdersBySaler(null, "gd-b972-6926df8128c3",
+        Arrays.asList("a_o_30709", "a_g_32587"));
+    result = iter.next(); // 1
+    assertEquals(588368978, result.orderId());
+    assertEquals(6, result.get("a_g_32587").valueAsLong());
+    assertEquals(null, result.get("a_o_30709"));
+    iter.next(); // 2
+    result = iter.next(); // 3
+    assertEquals("e6efe5a9-5936-4d81-8d7b-ae14005584bf",
+        result.get("a_o_30709").valueAsString());
+    int count = 0;
+    while (iter.hasNext()) {
+      iter.next();
+      count++;
+    }
+    assertEquals(53, count);
+
     // sumOrdersByGood
     OrderSystem.KeyValue kv = os.sumOrdersByGood("al-950f-5924be431212", "a_g_10839");
     assertEquals(null, kv);
@@ -71,6 +103,9 @@ public class AppTest {
 
     kv = os.sumOrdersByGood("dd-a665-acd638b44e92", "price");
     assertEquals(117811.2897340, kv.valueAsDouble(), 1e-6);
+
+    kv = os.sumOrdersByGood("al-9c4c-ac9ed4b6ad35", "offprice");
+    assertEquals(235886.19656021666, kv.valueAsDouble(), 1e-6);
 
   }
 
@@ -392,32 +427,42 @@ public class AppTest {
     return Arrays.asList("aa", "bb");
   }
 
-  @Test
-  public void clhm() {
-    EvictionListener<Integer, Integer> listener = new EvictionListener<Integer, Integer>() {
-      @Override
-      public void onEviction(Integer key, Integer value) {
-        System.out.println(key + " " + value);
-      }
-    };
-
-    ConcurrentLinkedHashMap<Integer, Integer> cache =
-        new ConcurrentLinkedHashMap.Builder<Integer, Integer>()
-            .maximumWeightedCapacity(5)
-            .listener(listener)
-            .build();
-    for (int i = 0; i < 20; i++)
-      cache.put(i, i);
-    cache.get(17);
-    cache.put(3, 3);
-
-    for (int key : cache.ascendingKeySet())
-      System.out.println(key);
-  }
+//  @Test
+//  public void clhm() {
+//    EvictionListener<Integer, Integer> listener = new EvictionListener<Integer, Integer>() {
+//      @Override
+//      public void onEviction(Integer key, Integer value) {
+//        System.out.println(key + " " + value);
+//      }
+//    };
+//
+//    ConcurrentLinkedHashMap<Integer, Integer> cache =
+//        new ConcurrentLinkedHashMap.Builder<Integer, Integer>()
+//            .maximumWeightedCapacity(5)
+//            .listener(listener)
+//            .build();
+//    for (int i = 0; i < 20; i++)
+//      cache.put(i, i);
+//    cache.get(17);
+//    cache.put(3, 3);
+//
+//    for (int key : cache.ascendingKeySet())
+//      System.out.println(key);
+//  }
 
   @Test
   public void fill() {
     short[] b = new short[2000000];
     Arrays.fill(b, (short) 8);
+  }
+
+  @Test
+  public void cutCase() throws Exception {
+    BufferedReader br = new BufferedReader(
+        new FileReader("../prerun_data/case.0"));
+    BufferedWriter bw = new BufferedWriter(
+        new FileWriter("../prerun_data/case"));
+    for (int i = 0; i < 1000000; i++)
+      bw.write(br.read());
   }
 }

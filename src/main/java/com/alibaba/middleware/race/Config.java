@@ -8,21 +8,32 @@ public class Config {
 
   // 每个桶预计放182个，容量409个
   public static int orderIndexSize = 732421;
-  //public static int orderIndexSize = 100;
+//  public static int orderIndexSize = 100;
 
   public static int orderIndexBlockSize = 4096;
 
   public static int buyerIndexSize = 8000000;
-  //public static int buyerIndexSize = 80000;
+//  public static int buyerIndexSize = 80000;
 
-  public static int buyerIndexBlockSize = 336;
+  // 250, 2.9g, 375, 3.6g
+  public static int buyerIndexBlockSize = 166;
 
   public static int goodIndexSize = 4000000;
-  //public static int goodIndexSize = 40000;
+//  public static int goodIndexSize = 40000;
 
-  public static int goodIndexBlockSize = 666;
+  // 500, 2.8g, 750, 3.7g
+  public static int goodIndexBlockSize = 336;
+
+  //public static int b2bIndexSize = 37735;  // 0.75
+  public static int b2bIndexSize = 35461;  // 0.8
+
+  //public static int g2gIndexSize = 18867;  // 0.75
+  public static int g2gIndexSize = 17731;  // 0.8
+
+  public static int bg2bgIndexBlockSize = 8192;
 
   public static long orderidMax = 60767378408L;
+  public static long orderidMin = 587732231;
 
   //[yfy] buyer max orderNum 246
   //[yfy] good max orderNum 468
@@ -39,7 +50,12 @@ public class Config {
 //  [yfy] buyer num: 8000000
 //  [yfy] good num: 4000000
 
-//  public static long orderidMin = 587732231;
+//  1469862899948 [yfy] writeFile start
+//  [yfy] size: 4000000 extSize: 1134804  blockSize = 666
+//  1469862943698 [yfy] writeFile end
+//  [yfy] size: 18867 extSize: 0
+
+
 //  public static long createtimeMax = 11668409867L;
 
 //  good 4m

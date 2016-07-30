@@ -77,15 +77,6 @@ public class HashTable {
     BLOCK_SIZE = blockSize;
     ENTRY_SIZE = entrySize;
 
-//    if (blockSize == 4096)
-//      BIT = 12;
-//    else if (blockSize == 2048)
-//      BIT = 11;
-//    else if (blockSize == 1024)
-//      BIT = 10;
-//    else if (blockSize == 512)
-//      BIT = 9;
-
     memory = new byte[size][];
     for (int i = 0; i < size; i++)
       memory[i] = new byte[BLOCK_SIZE];
@@ -285,14 +276,22 @@ public class HashTable {
 
     memory = null;
     memoryExt = null;
-    System.gc();
 
     fd = new RandomAccessFile(indexFile, "r");
   }
 
-  public void printSize() {
-    System.out.println("[yfy] size: " + SIZE + " extSize: " + memoryExt.size());
+  public void printBgIndexSize() {
+    System.out.println("[yfy] bg index size: " + SIZE + " extSize: " + memoryExt.size());
   }
+
+  //    if (blockSize == 4096)
+//      BIT = 12;
+//    else if (blockSize == 2048)
+//      BIT = 11;
+//    else if (blockSize == 1024)
+//      BIT = 10;
+//    else if (blockSize == 512)
+//      BIT = 9;
 
 //  private static class Meta {
 //    int next, size;

@@ -30,7 +30,7 @@ public class Database implements Runnable {
 
   private static BuyerResultComparator buyerResultComparator;
 
-  private static TupleOrderidComparator tupleOrderidComparator;
+  private static GoodResultComparator goodResultComparator;
 
   private OrderIndex orderIndex;
 
@@ -42,7 +42,7 @@ public class Database implements Runnable {
                   Collection<String> storeFolders) throws Exception {
 
     buyerResultComparator = new BuyerResultComparator();
-    tupleOrderidComparator = new TupleOrderidComparator();
+    goodResultComparator = new GoodResultComparator();
 
     //ConcurrentCache cache = ConcurrentCache.getInstance();
 
@@ -81,8 +81,7 @@ public class Database implements Runnable {
 
   public void construct() throws Exception {
     buildO2oHash();
-    buildG2oHash();
-    buildB2oHash();
+    buildBg2oHash();
     buildG2gHash();
     buildB2bHash();
     FdMap.init(orderFilesList, goodFilesList, buyerFilesList);
@@ -111,7 +110,8 @@ public class Database implements Runnable {
         if (filename.charAt(5) == '1' + diskId)
           readDataFile(filename, dealer);
       }
-      orderIndex.finish(diskId);
+      orderIndex.finish();
+      System.gc();
     }
 
     System.out.println("[yfy] order num: " + OrderKvDealer.count);
@@ -123,32 +123,37 @@ public class Database implements Runnable {
         " min len " + OrderKvDealer.minGl);
   }
 
-  private void buildB2oHash() throws Exception {
-    System.out.println(System.currentTimeMillis() + " [yfy] buildB2o");
-    buyerIndex = new BgIndex(orderFilesList,
-        storeFoldersList.get(1) + "/b2o.idx", buyerFilesList,
-        Config.buyerIndexSize, Config.buyerIndexBlockSize);
-    buyerIndex.setBgTable(37735, 8192); // load factor 0.75
-    OrderKvDealer dealer = new OrderKvDealer(null, buyerIndex, null);
-    for (int i = 0; i < orderFilesList.size(); i++) {
+  private void buildBg2oHash() throws Exception {
+    System.out.println(System.currentTimeMillis() + " [yfy] buildBg2o");
+    buyerIndex = new BgIndex(orderFilesList, buyerFilesList,
+        Config.buyerIndexSize, Config.buyerIndexBlockSize,
+        Config.b2bIndexSize, Config.bg2bgIndexBlockSize);
+    goodIndex = new BgIndex(orderFilesList, goodFilesList,
+        Config.goodIndexSize, Config.goodIndexBlockSize,
+        Config.g2gIndexSize, Config.bg2bgIndexBlockSize);
+    OrderKvDealer dealer = new OrderKvDealer(null, buyerIndex, goodIndex);
+
+    int mid = (orderFilesList.size() + 1) / 2;
+
+    buyerIndex.setCurrentTable(0, fullname1("b2o.idx"));
+    goodIndex.setCurrentTable(0, fullname2("g2o.idx"));
+    for (int i = 0; i < mid; i++) {
       dealer.setFileId(i);
       readDataFile(orderFilesList.get(i), dealer);
     }
     buyerIndex.finish();
-  }
+    goodIndex.finish();
+    System.gc();
 
-  private void buildG2oHash() throws Exception {
-    System.out.println(System.currentTimeMillis() + " [yfy] buildG2o");
-    goodIndex = new BgIndex(orderFilesList,
-        storeFoldersList.get(2) + "/g2o.idx", goodFilesList,
-        Config.goodIndexSize, Config.goodIndexBlockSize);
-    goodIndex.setBgTable(18867, 8192); // load factor 0.75
-    OrderKvDealer dealer = new OrderKvDealer(null, null, goodIndex);
-    for (int i = 0; i < orderFilesList.size(); i++) {
+    buyerIndex.setCurrentTable(1, fullname2("b2o.idx"));
+    goodIndex.setCurrentTable(1, fullname0("g2o.idx"));
+    for (int i = mid; i < orderFilesList.size(); i++) {
       dealer.setFileId(i);
       readDataFile(orderFilesList.get(i), dealer);
     }
+    buyerIndex.finish();
     goodIndex.finish();
+    System.gc();
   }
 
   private void buildB2bHash() throws Exception {
@@ -167,68 +172,17 @@ public class Database implements Runnable {
     }
   }
 
-//  private void buildOrder2OrderHash() throws Exception {
-//    orderIndex = new OrderIndex(orderFilesList);
-//    buyerIndex = new BgIndex(orderFilesList, fullname1("b2o.idx"),
-//        buyerFilesList, Config.buyerIndexSize, Config.buyerIndexBlockSize);
-//    goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"),
-//        goodFilesList, Config.goodIndexSize, Config.goodIndexBlockSize);
-//
-//    System.out.println(System.currentTimeMillis());
-//    OrderKvDealer dealer = new OrderKvDealer(orderIndex, buyerIndex, goodIndex);
-//    for (int i = 0; i < orderFilesList.size(); i++) {
-//      dealer.setFileId(i);
-//      readDataFile(orderFilesList.get(i), dealer);
-//    }
-//    System.out.println(System.currentTimeMillis());
-//    System.out.println("[yfy] order num: " + OrderKvDealer.count);
-//    System.out.println("[yfy] orderid max: " + OrderKvDealer.maxOid +
-//        " min: " + OrderKvDealer.minOid);
-//    System.out.println("[yfy] buyer max orderNum " + buyerIndex.maxOrderNum());
-//    System.out.println("[yfy] good max orderNum " + goodIndex.maxOrderNum());
-//  }
+  private String fullname0(String filename) {
+    return storeFoldersList.get(0) + '/' + filename;
+  }
 
-//  private String fullname0(String filename) {
-//    return storeFoldersList.get(0) + '/' + filename;
-//  }
-//
-//  private String fullname1(String filename) {
-//    return storeFoldersList.get(1) + '/' + filename;
-//  }
-//
-//  private String fullname2(String filename) {
-//    return storeFoldersList.get(2) + '/' + filename;
-//  }
+  private String fullname1(String filename) {
+    return storeFoldersList.get(1) + '/' + filename;
+  }
 
-//  private void readAio(String filename) throws Exception {
-//    final int SIZE = 50;
-//    Path path = Paths.get(filename);
-//    final AsynchronousFileChannel channel = AsynchronousFileChannel.open(path);
-//    final ByteBuffer buffer0 = ByteBuffer.allocate(SIZE);
-//    final ByteBuffer buffer1 = ByteBuffer.allocate(SIZE);
-//    CompletionHandler<Integer, Object> handler =
-//        new CompletionHandler<Integer, Object>() {
-//          public int offset;
-//
-//          @Override
-//          public void completed(Integer result, Object att) {
-//            System.out.println(new String(buffer0.array()));
-//            offset += SIZE;
-//            System.out.println(offset);
-//            buffer0.clear();
-//            channel.read(buffer0, offset, null, this);
-//          }
-//
-//          @Override
-//          public void failed(Throwable exc, Object att) {
-//            System.out.println("fail");
-//          }
-//        };
-//    channel.read(buffer0, 0, null, handler);
-//
-//    System.out.println("other");
-//    Thread.sleep(3000);
-//  }
+  private String fullname2(String filename) {
+    return storeFoldersList.get(2) + '/' + filename;
+  }
 
   private void readDataFile(String filename, IKvDealer dealer)
       throws Exception {
@@ -283,20 +237,17 @@ public class Database implements Runnable {
   public ResultImpl queryOrder(long orderId, Collection<String> keys)
       throws Exception {
 
-    if (orderId > Config.orderidMax)
+    if (orderId > Config.orderidMax || orderId < Config.orderidMin)
       return null;
     Tuple orderTuple = orderIndex.get(Util.long2byte5(orderId));
     if (orderTuple == null)
       return null;
-    ResultImpl result = new ResultImpl(orderTuple, keys);
-    //result.printOrderTuple();
-    return result;
+    return new ResultImpl(orderTuple, keys);
   }
 
   public Iterator<OrderSystem.Result> queryOrdersByBuyer(
       long startTime, long endTime, String buyerid) throws Exception {
 
-    //TupleFilter filter = new TupleFilter(startTime, endTime);
     List<Tuple> orderTupleList = buyerIndex.getOrder(buyerid);
     if (orderTupleList.isEmpty())
       return new ArrayList<OrderSystem.Result>().iterator();
@@ -304,13 +255,18 @@ public class Database implements Runnable {
     Tuple buyerTuple = buyerIndex.getBg(buyerid);
     SimpleResult buyerResult = new SimpleResult(buyerTuple, null);
 
-    List<OrderSystem.Result> resultList =
+    List<BuyerResult> resultListAll =
         new ArrayList<>(orderTupleList.size());
     for (Tuple tuple : orderTupleList)
-      resultList.add(new BuyerResult(tuple, buyerResult));
-    Collections.sort(resultList, buyerResultComparator);
+      resultListAll.add(new BuyerResult(tuple, buyerResult));
+    Collections.sort(resultListAll, buyerResultComparator);
 
-//Collections.binarySearch
+    List<OrderSystem.Result> resultList = new ArrayList<>();
+    for (BuyerResult br : resultListAll) {
+      long time = br.getCreatetime();
+      if (time >= startTime && time <= endTime)
+        resultList.add(br);
+    }
 
     return resultList.iterator();
   }
@@ -325,10 +281,10 @@ public class Database implements Runnable {
     Tuple goodTuple = goodIndex.getBg(goodid);
     SimpleResult goodResult = new SimpleResult(goodTuple, keys);
 
-    Collections.sort(tupleList, tupleOrderidComparator);
     List<OrderSystem.Result> resultList = new ArrayList<>();
     for (Tuple tuple : tupleList)
       resultList.add(new GoodResult(tuple, goodResult, keys));
+    Collections.sort(resultList, goodResultComparator);
     return resultList.iterator();
   }
 
@@ -401,6 +357,85 @@ public class Database implements Runnable {
 
     return new KeyValueForSum(key, sumLong, sumDouble);
   }
+
+  //  private void buildB2oHash() throws Exception {
+//    System.out.println(System.currentTimeMillis() + " [yfy] buildB2o");
+//    buyerIndex = new BgIndex(orderFilesList,
+//        storeFoldersList.get(1) + "/b2o.idx", buyerFilesList,
+//        Config.buyerIndexSize, Config.buyerIndexBlockSize);
+//    buyerIndex.setBgTable(37735, 8192); // load factor 0.75
+//    OrderKvDealer dealer = new OrderKvDealer(null, buyerIndex, null);
+//    for (int i = 0; i < orderFilesList.size(); i++) {
+//      dealer.setFileId(i);
+//      readDataFile(orderFilesList.get(i), dealer);
+//    }
+//    buyerIndex.finish();
+//  }
+//
+//  private void buildG2oHash() throws Exception {
+//    System.out.println(System.currentTimeMillis() + " [yfy] buildG2o");
+//    goodIndex = new BgIndex(orderFilesList,
+//        storeFoldersList.get(2) + "/g2o.idx", goodFilesList,
+//        Config.goodIndexSize, Config.goodIndexBlockSize);
+//    goodIndex.setBgTable(18867, 8192); // load factor 0.75
+//    OrderKvDealer dealer = new OrderKvDealer(null, null, goodIndex);
+//    for (int i = 0; i < orderFilesList.size(); i++) {
+//      dealer.setFileId(i);
+//      readDataFile(orderFilesList.get(i), dealer);
+//    }
+//    goodIndex.finish();
+//  }
+
+//  private void buildOrder2OrderHash() throws Exception {
+//    orderIndex = new OrderIndex(orderFilesList);
+//    buyerIndex = new BgIndex(orderFilesList, fullname1("b2o.idx"),
+//        buyerFilesList, Config.buyerIndexSize, Config.buyerIndexBlockSize);
+//    goodIndex = new BgIndex(orderFilesList, fullname2("g2o.idx"),
+//        goodFilesList, Config.goodIndexSize, Config.goodIndexBlockSize);
+//
+//    System.out.println(System.currentTimeMillis());
+//    OrderKvDealer dealer = new OrderKvDealer(orderIndex, buyerIndex, goodIndex);
+//    for (int i = 0; i < orderFilesList.size(); i++) {
+//      dealer.setFileId(i);
+//      readDataFile(orderFilesList.get(i), dealer);
+//    }
+//    System.out.println(System.currentTimeMillis());
+//    System.out.println("[yfy] order num: " + OrderKvDealer.count);
+//    System.out.println("[yfy] orderid max: " + OrderKvDealer.maxOid +
+//        " min: " + OrderKvDealer.minOid);
+//    System.out.println("[yfy] buyer max orderNum " + buyerIndex.maxOrderNum());
+//    System.out.println("[yfy] good max orderNum " + goodIndex.maxOrderNum());
+//  }
+
+//  private void readAio(String filename) throws Exception {
+//    final int SIZE = 50;
+//    Path path = Paths.get(filename);
+//    final AsynchronousFileChannel channel = AsynchronousFileChannel.open(path);
+//    final ByteBuffer buffer0 = ByteBuffer.allocate(SIZE);
+//    final ByteBuffer buffer1 = ByteBuffer.allocate(SIZE);
+//    CompletionHandler<Integer, Object> handler =
+//        new CompletionHandler<Integer, Object>() {
+//          public int offset;
+//
+//          @Override
+//          public void completed(Integer result, Object att) {
+//            System.out.println(new String(buffer0.array()));
+//            offset += SIZE;
+//            System.out.println(offset);
+//            buffer0.clear();
+//            channel.read(buffer0, offset, null, this);
+//          }
+//
+//          @Override
+//          public void failed(Throwable exc, Object att) {
+//            System.out.println("fail");
+//          }
+//        };
+//    channel.read(buffer0, 0, null, handler);
+//
+//    System.out.println("other");
+//    Thread.sleep(3000);
+//  }
 
   //  private void print(byte[] key, int keyLen, byte[] value, int valueLen) {
 //    for (int i = 0; i < keyLen; i++)
