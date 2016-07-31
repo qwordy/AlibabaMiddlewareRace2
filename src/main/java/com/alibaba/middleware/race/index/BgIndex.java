@@ -88,6 +88,10 @@ public class BgIndex {
     return orderTable.getAll(bgId);
   }
 
+  public List<Tuple> getGoodOrder(String goodid) {
+return null;
+  }
+
   public Tuple getBg(String bg) {
     int len = bg.length();
     if (len != 20 && len != 21)

@@ -3,10 +3,7 @@ package com.alibaba.middleware.race;
 import org.junit.Test;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
@@ -41,6 +38,13 @@ public class AppTest {
     assertEquals(589733122, result.orderId());
     assertEquals(null, result.get("buyerid"));
 
+    result = os.queryOrder(606473320, Arrays.asList("price", "a_g_10209"));
+    assertEquals(7495.452620928783, result.get("price").valueAsDouble(), 1e-6);
+    assertEquals(7, result.get("a_g_10209").valueAsLong());
+
+    result = os.queryOrder(593188936, null);
+    assertEquals(11, result.get("amount").valueAsLong());
+
     // queryOrdersByBuyer
     Iterator<OrderSystem.Result> iter =
         os.queryOrdersByBuyer(1462018520, 1473999229, "wx-a0e0-6bda77db73ca");
@@ -56,6 +60,9 @@ public class AppTest {
     for (int i = 0; i < 17; i++)
       result = iter.next();
     assertEquals(587818574, result.orderId());
+
+    //for (int i = 0; i < 1000; i++)
+    //  iter = os.queryOrdersByBuyer(1462018520, 1473999229, "wx-a0e0-6bda77db73ca");
 
     // queryOrdersBySaler
     iter = os.queryOrdersBySaler(
@@ -457,8 +464,9 @@ public class AppTest {
 
   @Test
   public void fill() {
-    short[] b = new short[2000000];
-    Arrays.fill(b, (short) 8);
+//    short[] b = new short[2000000];
+//    Arrays.fill(b, (short) 8);
+    System.out.println("helloworld");
   }
 
   @Test
@@ -467,7 +475,19 @@ public class AppTest {
         new FileReader("../prerun_data/case.0"));
     BufferedWriter bw = new BufferedWriter(
         new FileWriter("../prerun_data/case"));
-    for (int i = 0; i < 1000000; i++)
+    for (int i = 0; i < 100000000; i++)
       bw.write(br.read());
+  }
+
+  @Test
+  public void aloc() throws Exception {
+    Thread.sleep(10000);
+//    byte[][] b = new byte[1000000][];
+//    for (int i = 0; i < 1000000; i++)
+//      b[i] = new byte[100];
+    List<byte[]> list = new ArrayList<>();
+    for (int i = 0; i < 1000000; i++)
+      list.add(new byte[100]);
+    Thread.sleep(10000);
   }
 }

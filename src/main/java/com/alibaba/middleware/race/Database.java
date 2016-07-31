@@ -8,7 +8,9 @@ import com.alibaba.middleware.race.result.GoodResult;
 import com.alibaba.middleware.race.result.OrderResult;
 import com.alibaba.middleware.race.result.SimpleResult;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.*;
 
 /**
@@ -67,7 +69,23 @@ public class Database {
     buildB2oHash();
     buildG2gHash();
     buildB2bHash();
+    loadO2o1Memory();
     FdMap.init(orderFilesList, goodFilesList, buyerFilesList);
+  }
+
+  private void loadO2o1Memory() throws Exception {
+    File file = new File(fullname1("o2o.idx"));
+    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+    long len = file.length();
+    int blockSize = Config.orderIndexBlockSize;
+    int blockNum = (int) (len / blockSize);
+    byte[][] memory = new byte[blockNum][];
+    for (int i = 0; i < blockNum; i++) {
+      memory[i] = new byte[blockSize];
+      bis.read(memory[i]);
+    }
+    orderIndex.setTable0Memory(memory);
+    //file.delete();
   }
 
 //  public void construct() throws Exception {
@@ -91,9 +109,9 @@ public class Database {
     orderIndex = new OrderIndex(orderFilesList);
     O2oKvDealer dealer = new O2oKvDealer(orderIndex);
 
-    int mid = orderFilesList.size() / 2;
+    int mid = (orderFilesList.size() + 1) / 2;
 
-    orderIndex.setCurrentTable(0, fullname0("o2o.idx"));
+    orderIndex.setCurrentTable(0, fullname1("o2o.idx"));
     for (int i = 0; i < mid; i++) {
       dealer.setFileId(i);
       readDataFile(orderFilesList.get(i), dealer);
@@ -101,7 +119,7 @@ public class Database {
     orderIndex.finish();
     System.gc();
 
-    orderIndex.setCurrentTable(1, fullname1("o2o.idx"));
+    orderIndex.setCurrentTable(1, fullname0("o2o.idx"));
     for (int i = mid; i < orderFilesList.size(); i++) {
       dealer.setFileId(i);
       readDataFile(orderFilesList.get(i), dealer);

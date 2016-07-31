@@ -37,6 +37,10 @@ public class OrderIndex {
     tables[tableId].writeFile();
   }
 
+  public void setTable0Memory(byte[][] memory) {
+    tables[0].setOrderTable0Memory(memory);
+  }
+
   // id.length == 5
   public void add(byte[] id, int fileId, long fileOff) throws Exception {
     int hash = Util.bytesHash(id) % Config.orderIndexSize;

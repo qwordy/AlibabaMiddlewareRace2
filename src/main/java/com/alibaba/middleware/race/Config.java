@@ -8,7 +8,7 @@ public class Config {
 
   // 每个桶预计放300个，容量409个, 2.73g
   public static int orderIndexSize = 666666;
-//  public static int orderIndexSize = 500;
+//  public static int orderIndexSize = 1000;
 
   public static int orderIndexBlockSize = 4096;
 
@@ -16,13 +16,13 @@ public class Config {
 //  public static int buyerIndexSize = 80000;
 
   // 250, 2.9g, 375, 3.6g
-  public static int buyerIndexBlockSize = 371;
+  public static int buyerIndexBlockSize = 336;
 
   public static int goodIndexSize = 4000000;
 //  public static int goodIndexSize = 40000;
 
   // 500, 2.8g, 750, 3.7g
-  public static int goodIndexBlockSize = 746;
+  public static int goodIndexBlockSize = 726;
 
   public static int b2bIndexSize = 152381; // 0.75
 
@@ -77,6 +77,7 @@ public class Config {
 
   /**
    * 31:
+   * a09f845cd6c
    * 23cf629c17a
    * 30:
    * tmp/5e6e0847c8b/

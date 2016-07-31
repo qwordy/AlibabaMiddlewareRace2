@@ -126,13 +126,22 @@ public class HashTable {
     Util.short2byte(nextPos, block, 4);
   }
 
+  public void setOrderTable0Memory(byte[][] memory) {
+    this.memory = memory;
+  }
+
   // get order, entry size 10
   public Tuple get(byte[] key, int blockNo) throws Exception {
-    byte[] block = new byte[BLOCK_SIZE];
+    byte[] block;
     while (true) {
-      synchronized (fd) {
-        fd.seek(((long) blockNo) * BLOCK_SIZE);
-        fd.read(block);
+      if (memory != null) {
+        block = memory[blockNo];
+      } else {
+        block = new byte[BLOCK_SIZE];
+        synchronized (fd) {
+          fd.seek(((long) blockNo) * BLOCK_SIZE);
+          fd.read(block);
+        }
       }
       int size = Util.byte2short(block, 4);
       if (size == 0) size = 6;
