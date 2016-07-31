@@ -11,7 +11,8 @@ import java.util.List;
  */
 public class BgIndex {
 
-  private HashTable[] orderTables;
+  //private HashTable[] orderTables;
+  private HashTable orderTable;
 
   private int orderTableId;
 
@@ -32,18 +33,20 @@ public class BgIndex {
     this.size = size;
     this.blockSize = blockSize;
     bgBytes = new BgBytes();
-    orderTables = new HashTable[2];
+    //orderTables = new HashTable[2];
     bgTable = new HashTable(bgFiles, null, bgSize, bgBlockSize, 29);
   }
 
   // 0 or 1
   public void setCurrentTable(int id, String indexFile) {
-    orderTableId = id;
-    orderTables[id] = new HashTable(orderFiles, indexFile, size, blockSize, 5);
+    //orderTableId = id;
+    //orderTables[id] = new HashTable(orderFiles, indexFile, size, blockSize, 5);
+    orderTable = new HashTable(orderFiles, indexFile, size, blockSize, 5);
   }
 
   public void finish() throws Exception {
-    orderTables[orderTableId].writeFile();
+    //orderTables[orderTableId].writeFile();
+    orderTable.writeFile();
     bgTable.printBgIndexSize();
   }
 
@@ -57,7 +60,8 @@ public class BgIndex {
       bgNo = count++;
       Util.int2byte3(bgNo, bgBytes.block, bgBytes.off + 5);
     }
-    orderTables[orderTableId].add(null, bgNo, fildId, fildOff);
+    //orderTables[orderTableId].add(null, bgNo, fildId, fildOff);
+    orderTable.add(null, bgNo, fildId, fildOff);
   }
 
   // add all order then add bg
@@ -76,11 +80,12 @@ public class BgIndex {
     Integer bgId = bgTable.getBgId(bg.getBytes(), len);
     if (bgId == null || bgId == 0xffffff)
       return new ArrayList<>();
-    List<Tuple> list0 = orderTables[0].getAll(bgId);
-    List<Tuple> list1 = orderTables[1].getAll(bgId);
-    for (Tuple tuple : list1)
-      list0.add(tuple);
-    return list0;
+//    List<Tuple> list0 = orderTables[0].getAll(bgId);
+//    List<Tuple> list1 = orderTables[1].getAll(bgId);
+//    for (Tuple tuple : list1)
+//      list0.add(tuple);
+//    return list0;
+    return orderTable.getAll(bgId);
   }
 
   public Tuple getBg(String bg) {

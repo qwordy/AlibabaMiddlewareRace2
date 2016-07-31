@@ -15,7 +15,7 @@ import java.util.*;
  * Created by yfy on 7/13/16.
  * Database
  */
-public class Database implements Runnable {
+public class Database {
 
   private List<String> orderFilesList, goodFilesList, buyerFilesList,
       storeFoldersList;
@@ -63,7 +63,8 @@ public class Database implements Runnable {
 
   public void construct() throws Exception {
     buildO2oHash();
-    buildBg2oHash();
+    buildG2oHash();
+    buildB2oHash();
     buildG2gHash();
     buildB2bHash();
     FdMap.init(orderFilesList, goodFilesList, buyerFilesList);
@@ -76,18 +77,14 @@ public class Database implements Runnable {
 //  }
 
   // construct in another thread
-  @Override
-  public void run() {
-    try {
-      buildO2oHash();
-      buildBg2oHash();
-      buildG2gHash();
-      buildB2bHash();
-      FdMap.init(orderFilesList, goodFilesList, buyerFilesList);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
+//  @Override
+//  public void run() {
+//    try {
+//
+//    } catch (Exception e) {
+//      e.printStackTrace();
+//    }
+//  }
 
   private void buildO2oHash() throws Exception {
     System.out.println(System.currentTimeMillis() + " [yfy] buildO2o");
@@ -110,6 +107,36 @@ public class Database implements Runnable {
       readDataFile(orderFilesList.get(i), dealer);
     }
     orderIndex.finish();
+    System.gc();
+  }
+
+  private void buildG2oHash() throws Exception {
+    System.out.println(System.currentTimeMillis() + " [yfy] buildG2o");
+    goodIndex = new BgIndex(orderFilesList, goodFilesList,
+        Config.goodIndexSize, Config.goodIndexBlockSize,
+        Config.g2gIndexSize, Config.bg2bgIndexBlockSize);
+    G2oKvDealer dealer = new G2oKvDealer(goodIndex);
+    goodIndex.setCurrentTable(0, fullname1("g2o.idx"));
+    for (int i = 0; i < orderFilesList.size(); i++) {
+      dealer.setFileId(i);
+      readDataFile(orderFilesList.get(i), dealer);
+    }
+    goodIndex.finish();
+    System.gc();
+  }
+
+  private void buildB2oHash() throws Exception {
+    System.out.println(System.currentTimeMillis() + " [yfy] buildB2o");
+    buyerIndex = new BgIndex(orderFilesList, buyerFilesList,
+        Config.buyerIndexSize, Config.buyerIndexBlockSize,
+        Config.b2bIndexSize, Config.bg2bgIndexBlockSize);
+    B2oKvDealer dealer = new B2oKvDealer(buyerIndex);
+    buyerIndex.setCurrentTable(0, fullname2("b2o.idx"));
+    for (int i = 0; i < orderFilesList.size(); i++) {
+      dealer.setFileId(i);
+      readDataFile(orderFilesList.get(i), dealer);
+    }
+    buyerIndex.finish();
     System.gc();
   }
 
