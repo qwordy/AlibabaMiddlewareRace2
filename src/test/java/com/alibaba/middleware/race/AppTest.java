@@ -3,6 +3,8 @@ package com.alibaba.middleware.race;
 import org.junit.Test;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
@@ -44,6 +46,9 @@ public class AppTest {
 
     result = os.queryOrder(593188936, null);
     assertEquals(11, result.get("amount").valueAsLong());
+
+    result = os.queryOrder(607050270, null);
+    assertEquals(607050270, result.orderId());
 
     // queryOrdersByBuyer
     Iterator<OrderSystem.Result> iter =
@@ -265,19 +270,19 @@ public class AppTest {
 
   @Test
   public void util() {
-    assertEquals(Long.MAX_VALUE, Util.byte2long(Util.long2byte(Long.MAX_VALUE)));
-    assertEquals(Long.MIN_VALUE, Util.byte2long(Util.long2byte(Long.MIN_VALUE)));
-    assertEquals(-1, Util.byte2long(Util.long2byte(-1)));
-    assertEquals(0, Util.byte2long(Util.long2byte(0)));
+    //assertEquals(Long.MAX_VALUE, Util.byte2long(Util.long2byte(Long.MAX_VALUE)));
+    //assertEquals(Long.MIN_VALUE, Util.byte2long(Util.long2byte(Long.MIN_VALUE)));
+    //assertEquals(-1, Util.byte2long(Util.long2byte(-1)));
+    //assertEquals(0, Util.byte2long(Util.long2byte(0)));
 
-    assertEquals(Integer.MAX_VALUE, Util.byte2int(Util.int2byte(Integer.MAX_VALUE)));
-    assertEquals(Integer.MIN_VALUE, Util.byte2int(Util.int2byte(Integer.MIN_VALUE)));
-    assertEquals(-1, Util.byte2int(Util.int2byte(-1)));
-    assertEquals(0, Util.byte2int(Util.int2byte(0)));
+    //assertEquals(Integer.MAX_VALUE, Util.byte2int(Util.int2byte(Integer.MAX_VALUE)));
+    //assertEquals(Integer.MIN_VALUE, Util.byte2int(Util.int2byte(Integer.MIN_VALUE)));
+    //assertEquals(-1, Util.byte2int(Util.int2byte(-1)));
+    //assertEquals(0, Util.byte2int(Util.int2byte(0)));
 
-    assertEquals(Short.MAX_VALUE, Util.byte2short(Util.short2byte(Short.MAX_VALUE)));
-    assertEquals(65535, Util.byte2short(Util.short2byte(-1)));
-    assertEquals(0, Util.byte2short(Util.short2byte(0)));
+    //assertEquals(Short.MAX_VALUE, Util.byte2short(Util.short2byte(Short.MAX_VALUE)));
+    //assertEquals(65535, Util.byte2short(Util.short2byte(-1)));
+    //assertEquals(0, Util.byte2short(Util.short2byte(0)));
 
     byte[] b = new byte[5];
     Util.longToByte4(4000000000L, b, 1);
@@ -490,4 +495,44 @@ public class AppTest {
       list.add(new byte[100]);
     Thread.sleep(10000);
   }
+
+  @Test
+  public void directMem() {
+    try {
+      FileInputStream fis = new FileInputStream("order_records.txt");
+      FileChannel fc = fis.getChannel();
+      System.out.println(fc.size());
+      ByteBuffer buffer = ByteBuffer.allocateDirect(20);
+      ByteBuffer buffer2 = ByteBuffer.allocateDirect(20);
+      fc.read(buffer);
+      byte[] b = new byte[10];
+
+      buffer.position(10);
+      buffer.get(b);
+      printBytes(b);
+
+      buffer.position(0);
+      buffer.get(b);
+      printBytes(b);
+
+      buffer.position(5);
+      buffer.get(b);
+      printBytes(b);
+
+      fc.read(buffer2);
+      buffer2.position(0);
+      buffer2.get(b);
+      printBytes(b);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void printBytes(byte[] b) {
+    for (int i = 0; i < b.length; i++)
+      System.out.print((char)b[i]);
+    System.out.println();
+  }
+
 }

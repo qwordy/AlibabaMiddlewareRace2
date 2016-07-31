@@ -2,6 +2,7 @@ package com.alibaba.middleware.race.index;
 
 import com.alibaba.middleware.race.*;
 
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,9 +52,8 @@ public class BgIndex {
   }
 
   public void addOrder(byte[] bg, int len, int fildId, long fildOff) {
-
     int bgNo;
-    boolean find = bgTable.getBg(bg, len, bgBytes);
+    boolean find = bgTable.getBg(bg, len, bgBytes, true);
     if (find) {
       bgNo = Util.byte3Toint(bgBytes.block, bgBytes.off + 5);
     } else {
@@ -66,7 +66,7 @@ public class BgIndex {
 
   // add all order then add bg
   public void addBg(byte[] bg, int len, int fileId, long fileOff) {
-    boolean find = bgTable.getBg(bg, len, bgBytes);
+    boolean find = bgTable.getBg(bg, len, bgBytes, true);
     bgBytes.block[bgBytes.off] = (byte) fileId;
     Util.longToByte4(fileOff, bgBytes.block, bgBytes.off + 1);
     if (!find)
@@ -88,8 +88,44 @@ public class BgIndex {
     return orderTable.getAll(bgId);
   }
 
-  public List<Tuple> getGoodOrder(String goodid) {
-return null;
+  public List<Tuple> getGoodOrder(String goodid) throws Exception {
+    int len = goodid.length();
+    if (len != 20 && len != 21)
+      return new ArrayList<>();
+
+    BgBytes goodBytes = new BgBytes();
+    boolean find = bgTable.getBg(goodid.getBytes(), len, goodBytes, false);
+    if (!find)
+      return new ArrayList<>();
+
+    int bgNo = Util.byte3Toint(bgBytes.block, bgBytes.off + 5);
+    if (bgNo == 0xffffff)
+      return new ArrayList<>();
+
+    if (bgNo == 0xfffff0) { // tuples have been stored in g2o.dat
+      long off = Util.byte5ToLong(bgBytes.block, bgBytes.off);
+      byte[] buf = new byte[8];
+      RandomAccessFile fd = FdMap.g2oDat;
+      String g2oDatFilename = FdMap.g2oDatFilename;
+      fd.seek(off);
+      fd.read(buf, 0, 4);
+      int count = Util.byte2int(buf, 0);
+
+      for (int i = 0; i < count; i++) {
+        fd.read(buf, 0, 8);
+        long tupleOff = Util.byte2long(buf, 0);
+        new Tuple(g2oDatFilename, tupleOff);
+
+      }
+
+
+    } else {
+
+    }
+
+
+
+    return null;
   }
 
   public Tuple getBg(String bg) {

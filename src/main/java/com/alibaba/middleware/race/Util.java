@@ -70,6 +70,14 @@ public class Util {
     return b;
   }
 
+  public static long byte5ToLong(byte[] b, int offset) {
+    return (((long) b[offset + 4] & 0xff) << 32)
+        | (((long) b[offset + 3] & 0xff) << 24)
+        | (((long) b[offset + 2] & 0xff) << 16)
+        | (((long) b[offset + 1] & 0xff) << 8)
+        | ((long) b[offset] & 0xff);
+  }
+
   public static void longToByte4(long n, byte[] b, int off) {
     b[off + 3] = (byte) (n >> 24);
     b[off + 2] = (byte) (n >> 16);
@@ -138,12 +146,6 @@ public class Util {
     return bos.toByteArray();
   }
 
-
-
-
-
-
-
   public static long byte2long(byte[] b, int offset) {
     return (((long) b[offset + 7] & 0xff) << 56)
         | (((long) b[offset + 6] & 0xff) << 48)
@@ -155,45 +157,45 @@ public class Util {
         | ((long) b[offset] & 0xff);
   }
 
-  public static long byte2long(byte[] b) {
-    return byte2long(b, 0);
-  }
-
-  public static byte[] long2byte(long n) {
-    byte[] b = new byte[8];
-    b[7] = (byte) (n >> 56);
-    b[6] = (byte) (n >> 48);
-    b[5] = (byte) (n >> 40);
-    b[4] = (byte) (n >> 32);
-    b[3] = (byte) (n >> 24);
-    b[2] = (byte) (n >> 16);
-    b[1] = (byte) (n >> 8);
-    b[0] = (byte) (n);
-    return b;
-  }
-
-  public static byte[] int2byte(int n) {
-    byte[] b = new byte[4];
-    b[3] = (byte) (n >> 24);
-    b[2] = (byte) (n >> 16);
-    b[1] = (byte) (n >> 8);
-    b[0] = (byte) (n);
-    return b;
-  }
-
-  public static int byte2short(byte[] b) {
-    return byte2short(b, 0);
-  }
-
-  public static byte[] short2byte(int n) {
-    byte[] b = new byte[2];
-    b[1] = (byte) (n >> 8);
-    b[0] = (byte) (n);
-    return b;
-  }
-
-  public static int byte2int(byte[] b) {
-    return byte2int(b, 0);
-  }
+//  public static long byte2long(byte[] b) {
+//    return byte2long(b, 0);
+//  }
+//
+//  public static byte[] long2byte(long n) {
+//    byte[] b = new byte[8];
+//    b[7] = (byte) (n >> 56);
+//    b[6] = (byte) (n >> 48);
+//    b[5] = (byte) (n >> 40);
+//    b[4] = (byte) (n >> 32);
+//    b[3] = (byte) (n >> 24);
+//    b[2] = (byte) (n >> 16);
+//    b[1] = (byte) (n >> 8);
+//    b[0] = (byte) (n);
+//    return b;
+//  }
+//
+//  public static byte[] int2byte(int n) {
+//    byte[] b = new byte[4];
+//    b[3] = (byte) (n >> 24);
+//    b[2] = (byte) (n >> 16);
+//    b[1] = (byte) (n >> 8);
+//    b[0] = (byte) (n);
+//    return b;
+//  }
+//
+//  public static int byte2short(byte[] b) {
+//    return byte2short(b, 0);
+//  }
+//
+//  public static byte[] short2byte(int n) {
+//    byte[] b = new byte[2];
+//    b[1] = (byte) (n >> 8);
+//    b[0] = (byte) (n);
+//    return b;
+//  }
+//
+//  public static int byte2int(byte[] b) {
+//    return byte2int(b, 0);
+//  }
 
 }

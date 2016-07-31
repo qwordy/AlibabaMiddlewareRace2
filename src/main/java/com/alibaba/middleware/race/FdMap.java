@@ -13,8 +13,13 @@ public class FdMap {
 
   private static Map<String, RandomAccessFile> map;
 
+  public static RandomAccessFile g2oDat;
+
+  public static String g2oDatFilename;
+
   public static void init(List<String> files0, List<String> files1,
-                          List<String> files2) throws Exception {
+                          List<String> files2, String g2oDatFilename)
+      throws Exception {
 
     map = new HashMap<>();
     for (String file : files0)
@@ -23,6 +28,9 @@ public class FdMap {
       map.put(file, new RandomAccessFile(file, "r"));
     for (String file : files2)
       map.put(file, new RandomAccessFile(file, "r"));
+
+    FdMap.g2oDatFilename = g2oDatFilename;
+    g2oDat = new RandomAccessFile(g2oDatFilename, "rw");
   }
 
   public static RandomAccessFile get(String filename) {

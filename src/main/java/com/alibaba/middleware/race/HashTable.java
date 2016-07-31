@@ -3,6 +3,7 @@ package com.alibaba.middleware.race;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,6 +69,8 @@ public class HashTable {
 
   private List<byte[]> memoryExt;
 
+  private ByteBuffer byteBuffer1, byteBuffer2;
+
   public HashTable(List<String> dataFiles, String indexFile,
       int size, int blockSize, int entrySize) {
 
@@ -126,18 +129,25 @@ public class HashTable {
     Util.short2byte(nextPos, block, 4);
   }
 
-  public void setOrderTable0Memory(byte[][] memory) {
-    this.memory = memory;
+  public void setOrderTable0DirectMemory(ByteBuffer buffer1, ByteBuffer buffer2) {
+    byteBuffer1 = buffer1;
+    byteBuffer2 = buffer2;
   }
 
   // get order, entry size 10
   public Tuple get(byte[] key, int blockNo) throws Exception {
-    byte[] block;
+    byte[] block = new byte[BLOCK_SIZE];
     while (true) {
-      if (memory != null) {
-        block = memory[blockNo];
+      if (byteBuffer1 != null) {
+        int b1bn = 488281;
+        if (blockNo < b1bn) {
+          byteBuffer1.position(blockNo * BLOCK_SIZE);
+          byteBuffer1.get(block);
+        } else {
+          byteBuffer2.position((blockNo - b1bn) * BLOCK_SIZE);
+          byteBuffer2.get(block);
+        }
       } else {
-        block = new byte[BLOCK_SIZE];
         synchronized (fd) {
           fd.seek(((long) blockNo) * BLOCK_SIZE);
           fd.read(block);
@@ -181,8 +191,8 @@ public class HashTable {
   }
 
   // 21 1 4 3
-  // return true if find, false if not find, then create
-  public boolean getBg(byte[] key, int keyLen, BgBytes bgBytes) {
+  // return true if find, false if not find, then create if create
+  public boolean getBg(byte[] key, int keyLen, BgBytes bgBytes, boolean create) {
     int size;
     byte[] block;
     int blockNo = Util.bytesHash(key, keyLen) % SIZE;
@@ -205,6 +215,8 @@ public class HashTable {
       blockNo = Util.byte2int(block, 0);
       if (blockNo == 0) break;
     }
+    if (!create)
+      return false;
     if (size + 29 > BLOCK_SIZE) {
       blockNo = blockNum++;
       Util.int2byte(blockNo, block, 0);
@@ -213,9 +225,9 @@ public class HashTable {
     }
     int nextPos = Util.byte2short(block, 4);
     if (nextPos == 0) nextPos = 6;
-    // bg
+    // bg key
     System.arraycopy(key, 0, block, nextPos, keyLen);
-    Util.short2byte(nextPos + 29, block, 4);
+    Util.short2byte(nextPos + 29, block, 4);  // current block size
     bgBytes.block = block;
     bgBytes.off = nextPos + 21;
     return false;

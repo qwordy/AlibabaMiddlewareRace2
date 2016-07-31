@@ -11,6 +11,8 @@ import com.alibaba.middleware.race.result.SimpleResult;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.*;
 
 /**
@@ -69,23 +71,40 @@ public class Database {
     buildB2oHash();
     buildG2gHash();
     buildB2bHash();
-    loadO2o1Memory();
-    FdMap.init(orderFilesList, goodFilesList, buyerFilesList);
+    loadO2o1DirectMemory();
+    FdMap.init(orderFilesList, goodFilesList, buyerFilesList,
+        fullname1("g2o.dat"));
   }
 
-  private void loadO2o1Memory() throws Exception {
-    File file = new File(fullname1("o2o.idx"));
-    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
-    long len = file.length();
-    int blockSize = Config.orderIndexBlockSize;
-    int blockNum = (int) (len / blockSize);
-    byte[][] memory = new byte[blockNum][];
-    for (int i = 0; i < blockNum; i++) {
-      memory[i] = new byte[blockSize];
-      bis.read(memory[i]);
+//  private void loadO2o1Memory() throws Exception {
+//    File file = new File(fullname1("o2o.idx"));
+//    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+//    long len = file.length();
+//    int blockSize = Config.orderIndexBlockSize;
+//    int blockNum = (int) (len / blockSize);
+//    byte[][] memory = new byte[blockNum][];
+//    for (int i = 0; i < blockNum; i++) {
+//      memory[i] = new byte[blockSize];
+//      bis.read(memory[i]);
+//    }
+//    orderIndex.setTable0Memory(memory);
+//    //file.delete();
+//  }
+
+  private void loadO2o1DirectMemory() {
+    try {
+      FileInputStream fis = new FileInputStream(fullname1("o2o.idx"));
+      FileChannel channel = fis.getChannel();
+      int buffer1Size = 488281 * 4096;
+      int buffer2Size = (int) (channel.size() - buffer1Size);
+      ByteBuffer buffer1 = ByteBuffer.allocateDirect(buffer1Size);
+      ByteBuffer buffer2 = ByteBuffer.allocateDirect(buffer2Size);
+      channel.read(buffer1);
+      channel.read(buffer2);
+      orderIndex.setTable0DirectMemory(buffer1, buffer2);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-    orderIndex.setTable0Memory(memory);
-    //file.delete();
   }
 
 //  public void construct() throws Exception {
