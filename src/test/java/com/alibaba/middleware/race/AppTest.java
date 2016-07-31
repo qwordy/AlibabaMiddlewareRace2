@@ -3,6 +3,7 @@ package com.alibaba.middleware.race;
 import org.junit.Test;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -35,6 +36,10 @@ public class AppTest {
 
     result = os.queryOrder(608178205, Arrays.asList("a_g_17779"));
     assertEquals(false, result.get("a_g_17779").valueAsBoolean());
+
+    result = os.queryOrder(589733122, new ArrayList<String>());
+    assertEquals(589733122, result.orderId());
+    assertEquals(null, result.get("buyerid"));
 
     // queryOrdersByBuyer
     Iterator<OrderSystem.Result> iter =

@@ -14,14 +14,16 @@ import java.util.Set;
  */
 public abstract class AbstractResult {
 
+  private byte[] key = new byte[256];
+
+  private byte[] value = new byte[100000];
+
   protected void scan(Tuple tuple, Map<String, OrderSystem.KeyValue> resultMap)
       throws Exception {
 
     int b, keyLen = 0, valueLen = 0;
     // 0 for read key, 1 for read value
     int status = 0;
-    byte[] key = new byte[256];
-    byte[] value = new byte[105536];
     while ((b = tuple.next()) != -1) {
       if (status == 0) {
         if (b == ':') {

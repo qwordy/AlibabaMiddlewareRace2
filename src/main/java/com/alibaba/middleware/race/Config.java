@@ -6,9 +6,9 @@ package com.alibaba.middleware.race;
  */
 public class Config {
 
-  // 每个桶预计放234个，容量409个, 3.5g
-  public static int orderIndexSize = 854492;
-//  public static int orderIndexSize = 3000;
+  // 每个桶预计放300个，容量409个, 2.73g
+  public static int orderIndexSize = 666666;
+//  public static int orderIndexSize = 50;
 
   public static int orderIndexBlockSize = 4096;
 
@@ -24,6 +24,15 @@ public class Config {
   // 500, 2.8g, 750, 3.7g
   public static int goodIndexBlockSize = 376;
 
+  public static int b2bIndexSize = 152381; // 0.75
+//  public static int b2bIndexSize = 50;
+
+  public static int g2gIndexSize = 76191; // 0.75
+//  public static int g2gIndexSize = 50;
+
+  // 52.5 in 70 entrys
+  public static int bg2bgIndexBlockSize = 2036;
+
 //  //public static int b2bIndexSize = 37735;  // 0.75
 //  public static int b2bIndexSize = 35461;  // 0.8
 //
@@ -32,11 +41,11 @@ public class Config {
 //
 //  public static int bg2bgIndexBlockSize = 8192;
 
-  public static int b2bIndexSize = 75471; // 0.75
-
-  public static int g2gIndexSize = 37735; // 0.75
-
-  public static int bg2bgIndexBlockSize = 4096;
+//  public static int b2bIndexSize = 75471; // 0.75
+//
+//  public static int g2gIndexSize = 37735; // 0.75
+//
+//  public static int bg2bgIndexBlockSize = 4096;
 
   public static long orderidMax = 60767378408L;
   public static long orderidMin = 587732231;
@@ -69,6 +78,8 @@ public class Config {
 //  order 400m 2m block
 
   /**
+   * 31:
+   * 23cf629c17a
    * 30:
    * tmp/5e6e0847c8b/
    * tmp/0b63c40f834/
