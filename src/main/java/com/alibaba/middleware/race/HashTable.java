@@ -139,13 +139,17 @@ public class HashTable {
     byte[] block = new byte[BLOCK_SIZE];
     while (true) {
       if (byteBuffer1 != null) {
-        int b1bn = 488281;
+        int b1bn = 366210;
         if (blockNo < b1bn) {
-          byteBuffer1.position(blockNo * BLOCK_SIZE);
-          byteBuffer1.get(block);
+          synchronized (byteBuffer1) {
+            byteBuffer1.position(blockNo * BLOCK_SIZE);
+            byteBuffer1.get(block);
+          }
         } else {
-          byteBuffer2.position((blockNo - b1bn) * BLOCK_SIZE);
-          byteBuffer2.get(block);
+          synchronized (byteBuffer2) {
+            byteBuffer2.position((blockNo - b1bn) * BLOCK_SIZE);
+            byteBuffer2.get(block);
+          }
         }
       } else {
         synchronized (fd) {

@@ -6,6 +6,7 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.*;
+import java.util.concurrent.Exchanger;
 
 import static org.junit.Assert.assertEquals;
 
@@ -17,7 +18,50 @@ public class AppTest {
 
   @Test
   public void queryBig() throws Exception {
-    OrderSystem os = constructBig();
+    final OrderSystem os = constructBig();
+
+    Runnable r = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          // queryOrder
+          OrderSystem.Result result = os.queryOrder(606092157, null);
+          assertEquals(606092157, result.orderId());
+          assertEquals("wx-ae52-539368e70aaa", result.get("buyerid").valueAsString());
+          assertEquals(false, result.get("done").valueAsBoolean());
+          assertEquals("晋恿吾", result.get("buyername").valueAsString());
+
+          result = os.queryOrder(604911336, Arrays.asList("buyerid"));
+          assertEquals("tp-9d00-3b1cf5d41ff5", result.get("buyerid").valueAsString());
+
+          result = os.queryOrder(590107063, Arrays.asList("a_g_12146"));
+          assertEquals(590107063, result.orderId());
+          assertEquals(null, result.get("a_g_12146"));
+
+          result = os.queryOrder(608178205, Arrays.asList("a_g_17779"));
+          assertEquals(false, result.get("a_g_17779").valueAsBoolean());
+
+          result = os.queryOrder(589733122, new ArrayList<String>());
+          assertEquals(589733122, result.orderId());
+          assertEquals(null, result.get("buyerid"));
+
+          result = os.queryOrder(606473320, Arrays.asList("price", "a_g_10209"));
+          assertEquals(7495.452620928783, result.get("price").valueAsDouble(), 1e-6);
+          assertEquals(7, result.get("a_g_10209").valueAsLong());
+
+          result = os.queryOrder(593188936, null);
+          assertEquals(11, result.get("amount").valueAsLong());
+
+          result = os.queryOrder(607050270, null);
+          assertEquals(607050270, result.orderId());
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    };
+
+    for (int i = 0; i < 1215; i++)
+      new Thread(r).start();
 
     // queryOrder
     OrderSystem.Result result = os.queryOrder(606092157, null);
@@ -141,13 +185,21 @@ public class AppTest {
     constructBig();
   }
 
-  private String d1(String file) { return "diskk1/" + file; }
+  private String d1(String file) {
+    return "diskk1/" + file;
+  }
 
-  private String d2(String file) { return "diskk2/" + file; }
+  private String d2(String file) {
+    return "diskk2/" + file;
+  }
 
-  private String d3(String file) { return "diskk3/" + file; }
+  private String d3(String file) {
+    return "diskk3/" + file;
+  }
 
-  private String fn(String file) { return "../pr1run_data/" + file; }
+  private String fn(String file) {
+    return "../pr1run_data/" + file;
+  }
 
   @Test
   public void constructSim() throws Exception {
@@ -288,7 +340,7 @@ public class AppTest {
     Util.longToByte4(4000000000L, b, 1);
     assertEquals(4000000000L, Util.byte4ToLong(b, 1));
 
-    assertEquals(250, (int)(((byte)250) & 0xff));
+    assertEquals(250, (int) (((byte) 250) & 0xff));
   }
 
   @Test
@@ -344,7 +396,7 @@ public class AppTest {
 //      while ((b = bis.read()) != -1);
     byte[] buf = new byte[8192];
     long count = 0;
-    while (bis.read(buf) != -1);// && count < 4000000000L)
+    while (bis.read(buf) != -1) ;// && count < 4000000000L)
 //      count += 8192;
 //    while (fd.read(buf) != -1);
 
@@ -413,10 +465,10 @@ public class AppTest {
   }
 
   private String randStr() {
-    int len = (int)(Math.random() * 12) + 8;
+    int len = (int) (Math.random() * 12) + 8;
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < len; i++)
-      sb.append((char)(Math.random() * (122 - 65) + 65));
+      sb.append((char) (Math.random() * (122 - 65) + 65));
     return sb.toString();
   }
 
@@ -429,7 +481,7 @@ public class AppTest {
     byte[] b = new byte[16000];
     System.out.println(System.currentTimeMillis());
     for (int i = 0; i < 16000; i++)
-      b[i] = (byte)i;
+      b[i] = (byte) i;
     System.out.println(System.currentTimeMillis());
   }
 
@@ -531,7 +583,7 @@ public class AppTest {
 
   private void printBytes(byte[] b) {
     for (int i = 0; i < b.length; i++)
-      System.out.print((char)b[i]);
+      System.out.print((char) b[i]);
     System.out.println();
   }
 

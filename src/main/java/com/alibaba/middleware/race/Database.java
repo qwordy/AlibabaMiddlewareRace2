@@ -95,7 +95,7 @@ public class Database {
     try {
       FileInputStream fis = new FileInputStream(fullname1("o2o.idx"));
       FileChannel channel = fis.getChannel();
-      int buffer1Size = 488281 * 4096;
+      int buffer1Size = 366210 * 4096;
       int buffer2Size = (int) (channel.size() - buffer1Size);
       ByteBuffer buffer1 = ByteBuffer.allocateDirect(buffer1Size);
       ByteBuffer buffer2 = ByteBuffer.allocateDirect(buffer2Size);
