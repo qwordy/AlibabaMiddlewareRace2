@@ -19,8 +19,12 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
 
   private long orderid;
 
+  private Tuple orderTuple, buyerTuple;
+
   public GoodResult(Tuple orderTuple, SimpleResult goodResult, Collection<String> keys)
       throws Exception {
+
+    this.orderTuple = orderTuple;
 
     goodResultMap = goodResult.getResultMap();
     int goodResultMapSize = goodResultMap.size();
@@ -43,6 +47,7 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
       OrderSystem.KeyValue buyerKv = resultMap.get("buyerid");
       if (buyerKv != null) {
         Tuple buyerTuple = Database.buyerIndex.getBg(buyerKv.valueAsString());
+        this.buyerTuple = buyerTuple;
         scan(buyerTuple);
       }
     }
@@ -100,5 +105,13 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
   @Override
   protected boolean done() {
     return false;
+  }
+
+  public Tuple getOrderTuple() {
+    return orderTuple;
+  }
+
+  public Tuple getBuyerTuple() {
+    return buyerTuple;
   }
 }

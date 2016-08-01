@@ -18,7 +18,7 @@ public class Config {
 //  public static int buyerIndexSize = 80000;
 
   // 250, 2.9g, 375, 3.6g
-  public static int buyerIndexBlockSize = 346;
+  public static int buyerIndexBlockSize = 351;
 
   public static int goodIndexSize = 4000000;
 //  public static int goodIndexSize = 40000;
@@ -82,11 +82,12 @@ public class Config {
 
   /**
    * 1:
+   * tmp/ca1ded20036/
    * c6819d25856 346 746
    * 31:
    * tmp/d7eb78703d2/ 341 736
    * tmp/f04895cfad4/ 336 726
-   * a09f845cd6c
+   * a09f845cd6c 90000 371 746
    * 23cf629c17a
    * 30:
    * tmp/5e6e0847c8b/

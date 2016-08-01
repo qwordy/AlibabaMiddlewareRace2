@@ -29,9 +29,10 @@ public class Tuple {
 
   private boolean recordContent;
 
+  // exclude \n
   private List<byte[]> tupleContent;
 
-  // include \n
+  // exclude \n
   private int tupleContentLen;
 
   public Tuple(String file, long offset) {
@@ -40,7 +41,7 @@ public class Tuple {
     this.offset = offset;
     pos = offset;  // current pos
     valid = false;
-    buf = new byte[8192];
+    buf = new byte[2048];
   }
 
   public void setRecordContent() {
@@ -62,17 +63,29 @@ public class Tuple {
     blockOff++;
     if (b == '\n' || b == '\r') {
       if (recordContent) {
-        tupleContent.add(Arrays.copyOf(buf, blockOff));
-        tupleContentLen = (int) (pos - offset);
+        tupleContent.add(Arrays.copyOf(buf, blockOff - 1));
+        tupleContentLen = (int) (pos - offset - 1);
       }
       return -1;
     }
-    if (blockOff == 8192) {
+    if (blockOff == 2048) {
       if (recordContent)
-        tupleContent.add(Arrays.copyOf(buf, 8192));
+        tupleContent.add(Arrays.copyOf(buf, 2048));
       valid = false;
     }
     return b;
+  }
+
+  public boolean isRecordContent() {
+    return recordContent;
+  }
+
+  public List<byte[]> getTupleContent() {
+    return tupleContent;
+  }
+
+  public int getTupleContentLen() {
+    return tupleContentLen;
   }
 
   /**

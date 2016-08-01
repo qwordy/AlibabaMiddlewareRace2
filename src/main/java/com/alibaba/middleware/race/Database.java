@@ -128,7 +128,7 @@ public class Database {
     orderIndex = new OrderIndex(orderFilesList);
     O2oKvDealer dealer = new O2oKvDealer(orderIndex);
 
-    int mid = (orderFilesList.size() + 1) / 2;
+    int mid = orderFilesList.size() / 2;
 
     orderIndex.setCurrentTable(0, fullname1("o2o.idx"));
     for (int i = 0; i < mid; i++) {
@@ -376,7 +376,7 @@ public class Database {
       return new KeyValueForSum(key, vl * size, vd * size);
     }
 
-    List<GoodResult> goodResultList = new ArrayList<>();
+    //List<GoodResult> goodResultList = new ArrayList<>();
 
     for (Tuple tuple : orderTupleList) {
       long valueLong = 0;
@@ -416,6 +416,7 @@ public class Database {
 
     // has traversed all results
     //Collections.sort(goodResultList, goodResultComparator);
+    //goodIndex.saveOrderTuples(goodResultList, goodid);
 
     if (!hasKey)
       return null;

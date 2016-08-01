@@ -125,8 +125,46 @@ public class BgIndex {
     return null;
   }
 
-  public void saveOrderTuples(List<GoodResult> resultList) {
+  public void saveOrderTuples(List<GoodResult> resultList, String goodid)
+      throws Exception {
 
+    BgBytes goodBytes = new BgBytes();
+    boolean find = bgTable.getBg(goodid.getBytes(), goodid.length(),
+        goodBytes, false);
+    if (!find) return;
+
+    int bgNo = Util.byte3Toint(bgBytes.block, bgBytes.off + 5);
+    if (bgNo == 0xfffff0)  // already in
+      return;
+
+    int size = resultList.size();
+    RandomAccessFile fd = FdMap.g2oDat;
+    byte[] buf = new byte[8];
+    synchronized (fd) {
+      long fileLen = fd.length();
+      Util.int2byte(size, buf, 0);
+      fd.seek(fileLen);
+      fd.write(buf, 0, 4);
+      long tupleOff = fileLen + 4 + 8 * size;
+      for (GoodResult result : resultList) {
+        Util.long2byte(tupleOff, buf, 0);
+        fd.write(buf, 0, 8);
+
+        Tuple orderTuple = result.getOrderTuple();
+        Tuple buyerTuple = result.getBuyerTuple();
+        int tuplesLen = orderTuple.getTupleContentLen() + 1;
+        if (buyerTuple.isRecordContent()) {
+          tuplesLen += buyerTuple.getTupleContentLen() + 1;
+        }
+        tupleOff = tuplesLen;
+      }
+      for (GoodResult result : resultList) {
+
+
+//        List<byte[]> orderContent = orderTuple.getTupleContent();
+//        int orderLen = orderTuple.getTupleContentLen();
+      }
+    }
   }
 
   public Tuple getBg(String bg) {

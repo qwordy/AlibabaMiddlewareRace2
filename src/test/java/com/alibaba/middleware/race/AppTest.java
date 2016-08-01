@@ -103,8 +103,10 @@ public class AppTest {
               result = iter.next();
             assertEquals(587818574, result.orderId());
 
-            //for (int i = 0; i < 1000; i++)
-            //  iter = os.queryOrdersByBuyer(1462018520, 1473999229, "wx-a0e0-6bda77db73ca");
+//            for (int i = 0; i < 1000; i++) {
+//              iter = os.queryOrdersByBuyer(1462018520, 1473999229, "wx-a0e0-6bda77db73ca");
+//              iter.next();
+//            }
 
             // queryOrdersBySaler
             iter = os.queryOrdersBySaler(
