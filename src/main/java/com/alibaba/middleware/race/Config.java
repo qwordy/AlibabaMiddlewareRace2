@@ -6,11 +6,13 @@ package com.alibaba.middleware.race;
  */
 public class Config {
 
-  // 3g
-  public static int orderIndexSize = 732421;
-//  public static int orderIndexSize = 1000;
-  // 每个桶预计放300个，容量409个, 2.73g
-  //public static int orderIndexSize = 666666;
+  // 327.2 of 409, f = 0.8, 4g, 319531741 entrys
+  public static int orderIndex1Size = 976564;
+//  public static int orderIndex1Size = 100;
+
+  // 286 of 409, f = 0.7, 1.152g, 80468259 entrys
+  public static int orderIndex2Size = 281357;
+//  public static int orderIndex2Size = 25;
 
   public static int orderIndexBlockSize = 4096;
 
@@ -35,6 +37,11 @@ public class Config {
 
   public static long orderidMax = 60767378408L;
   public static long orderidMin = 587732231;
+
+  //  public static int orderIndexSize = 732421; //3g
+//  public static int orderIndexSize = 1000;
+  // 每个桶预计放300个，容量409个, 2.73g
+  //public static int orderIndexSize = 666666;
 
   //public static int orderIndexBuffer1BlockNum = 366210; // 4096
   //public static int orderIndexBuffer1BlockNum = 500;
@@ -82,6 +89,7 @@ public class Config {
 
   /**
    * 1:
+   * ae979f5f10e 351 751
    * tmp/ca1ded20036/
    * c6819d25856 346 746
    * 31:

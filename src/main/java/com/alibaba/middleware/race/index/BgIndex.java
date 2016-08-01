@@ -146,6 +146,7 @@ public class BgIndex {
       fd.seek(fileLen);
       fd.write(buf, 0, 4);
       long tupleOff = fileLen + 4 + 8 * size;
+      // write head: size, off, off...
       for (GoodResult result : resultList) {
         Util.long2byte(tupleOff, buf, 0);
         fd.write(buf, 0, 8);
@@ -158,11 +159,31 @@ public class BgIndex {
         }
         tupleOff = tuplesLen;
       }
+      // write tuples
       for (GoodResult result : resultList) {
+        Tuple orderTuple = result.getOrderTuple();
+        Tuple buyerTuple = result.getBuyerTuple();
 
+        List<byte[]> orderContent = orderTuple.getTupleContent();
+        int tupleLen = orderTuple.getTupleContentLen();
+        int blockNum = orderContent.size();
+        for (int i = 0; i < blockNum - 1; i++)
+          fd.write(orderContent.get(i));
+        fd.write(orderContent.get(blockNum - 1), 0, tupleLen % 2048);
 
-//        List<byte[]> orderContent = orderTuple.getTupleContent();
-//        int orderLen = orderTuple.getTupleContentLen();
+        if (buyerTuple.isRecordContent()) {
+          List<byte[]> buyerContent = buyerTuple.getTupleContent();
+          tupleLen = buyerTuple.getTupleContentLen();
+          blockNum = buyerContent.size();
+          fd.write('\t');
+          for (int i = 0; i < blockNum - 1; i++)
+            fd.write(buyerContent.get(i));
+          fd.write(buyerContent.get(blockNum - 1), 0, tupleLen % 2048);
+          fd.write('\n');
+        } else {
+
+        }
+
       }
     }
   }

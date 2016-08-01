@@ -128,9 +128,9 @@ public class Database {
     orderIndex = new OrderIndex(orderFilesList);
     O2oKvDealer dealer = new O2oKvDealer(orderIndex);
 
-    int mid = orderFilesList.size() / 2;
+    int mid = (int) (orderFilesList.size() * 0.8);
 
-    orderIndex.setCurrentTable(0, fullname1("o2o.idx"));
+    orderIndex.setCurrentTable(0, fullname0("o2o.idx"), Config.orderIndex1Size);
     for (int i = 0; i < mid; i++) {
       dealer.setFileId(i);
       readDataFile(orderFilesList.get(i), dealer);
@@ -138,7 +138,7 @@ public class Database {
     orderIndex.finish();
     System.gc();
 
-    orderIndex.setCurrentTable(1, fullname0("o2o.idx"));
+    orderIndex.setCurrentTable(1, fullname1("o2o.idx"), Config.orderIndex2Size);
     for (int i = mid; i < orderFilesList.size(); i++) {
       dealer.setFileId(i);
       readDataFile(orderFilesList.get(i), dealer);
