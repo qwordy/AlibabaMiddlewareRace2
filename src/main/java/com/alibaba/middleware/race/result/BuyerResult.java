@@ -18,20 +18,35 @@ public class BuyerResult extends AbstractResult implements OrderSystem.Result {
 
   private long createtime;
 
+  private Tuple orderTuple, goodTuple;
+
   public BuyerResult(Tuple orderTuple, SimpleResult buyerResult) throws Exception {
+    this.orderTuple = orderTuple;
     buyerResultMap = buyerResult.getResultMap();
     resultMap = new HashMap<>();
     scan(orderTuple);
 
-    OrderSystem.KeyValue goodKv = resultMap.get("goodid");
-    if (goodKv != null) {
-      Tuple goodTuple = Database.goodIndex.getBg(goodKv.valueAsString());
-      scan(goodTuple);
-    }
+    //if (orderTuple.isRecord()) { //savedat
+      OrderSystem.KeyValue goodKv = resultMap.get("goodid");
+      if (goodKv != null) {
+        Tuple goodTuple = Database.goodIndex.getBg(goodKv.valueAsString());
+        this.goodTuple = goodTuple;
+        //goodTuple.setRecord(); //savedat
+        scan(goodTuple);
+      }
+    //}
 
     OrderSystem.KeyValue kv = resultMap.get("createtime");
     if (kv != null)
       createtime = kv.valueAsLong();
+  }
+
+  public Tuple getOrderTuple() {
+    return orderTuple;
+  }
+
+  public Tuple getGoodTuple() {
+    return goodTuple;
   }
 
   public long getCreatetime() {
@@ -76,8 +91,8 @@ public class BuyerResult extends AbstractResult implements OrderSystem.Result {
     return true;
   }
 
-  @Override
-  protected boolean done() {
-    return false;
-  }
+//  @Override
+//  protected boolean done() {
+//    return false;
+//  }
 }

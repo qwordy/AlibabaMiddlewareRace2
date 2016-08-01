@@ -1,11 +1,8 @@
 package com.alibaba.middleware.race;
 
-import com.alibaba.middleware.race.cache.ConcurrentCache;
-
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -23,44 +20,53 @@ public class Tuple {
   // whether buf has more bytes to read
   private boolean valid;
 
-  private boolean recordContent;
+  // whether record tuple content
+  private boolean record;
 
   // exclude \n
   private List<byte[]> tupleContent;
 
   // exclude \n
-  private int tupleContentLen;
+  private int tupleLen;
+
+  // start pos in first block in tupleContent
+  private int tupleStartOff;
 
   public Tuple(String file, long offset) {
     fd = FdMap.get(file);
     this.offset = offset;
     pos = offset;  // current pos
     valid = false;
-    buf = new byte[4096];
+    buf = new byte[4096];  // 4096 also in BgIndex!!!
+    tupleStartOff = (int) (pos & 0xfff);
   }
 
-  public void setRecordContent() {
-    recordContent = true;
+  public void setRecord() {
+    record = true;
     tupleContent = new ArrayList<>();
   }
 
-  public boolean isRecordContent() {
-    return recordContent;
+  public boolean isRecord() {
+    return record;
   }
 
   public List<byte[]> getTupleContent() {
     return tupleContent;
   }
 
-  public int getTupleContentLen() {
-    return tupleContentLen;
+  public int getTupleLen() {
+    return tupleLen;
+  }
+
+  public int getTupleStartOff() {
+    return tupleStartOff;
   }
 
   /**
    * @return next byte, -1 when end
    */
   public int next() throws Exception {
-    int BUF_SIZE = 4096;
+    int BLOCK_SIZE = 4096;
     int BIT = 12;
     int MASK = 0xfff;
     if (!valid) {
@@ -72,11 +78,20 @@ public class Tuple {
     }
     int blockOff = (int) (pos & MASK);
     byte b = buf[blockOff];
-    pos++;
-    if (b == '\n' || b == '\r')
+    if (b == '\n' || b == '\r') {
+      if (record) {
+        tupleContent.add(Arrays.copyOf(buf, blockOff));
+        tupleLen = (int) (pos - offset);
+      }
       return -1;
-    if (blockOff == BUF_SIZE - 1)
+    }
+    if (blockOff == BLOCK_SIZE - 1) {
+      if (record) {
+        tupleContent.add(Arrays.copyOf(buf, BLOCK_SIZE));
+      }
       valid = false;
+    }
+    pos++;
     return b;
   }
 

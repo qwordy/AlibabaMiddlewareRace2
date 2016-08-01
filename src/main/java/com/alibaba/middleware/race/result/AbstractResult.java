@@ -38,7 +38,7 @@ public abstract class AbstractResult {
             String keyStr = new String(key, 0, keyLen);
             String valueStr = new String(value, 0, valueLen);
             resultMap.put(keyStr, new KeyValueImpl(keyStr, valueStr));
-            if (done()) return;
+            //if (done()) return;
           }
           keyLen = 0;
           status = 0;
@@ -58,6 +58,6 @@ public abstract class AbstractResult {
   protected abstract boolean needKey(byte[] key, int keyLen);
 
   // find all key-values
-  protected abstract boolean done();
+  //protected abstract boolean done();
 
 }

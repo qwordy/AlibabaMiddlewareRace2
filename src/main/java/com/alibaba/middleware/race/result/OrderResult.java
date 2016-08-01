@@ -90,8 +90,8 @@ public class OrderResult extends AbstractResult implements OrderSystem.Result {
         keyStr.equals("goodid");
   }
 
-  @Override
-  protected boolean done() {
-    return keys != null && resultMap.size() >= targetSize;
-  }
+//  @Override
+//  protected boolean done() {
+//    return keys != null && resultMap.size() >= targetSize;
+//  }
 }

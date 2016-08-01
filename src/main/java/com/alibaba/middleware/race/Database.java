@@ -72,8 +72,8 @@ public class Database {
     buildG2gHash();
     buildB2bHash();
     //loadO2o1DirectMemory();
-    FdMap.init(orderFilesList, goodFilesList, buyerFilesList,
-        fullname1("g2o.dat"));
+    FdMap.init(orderFilesList, goodFilesList, buyerFilesList);
+        //fullname1("g2o.dat"), fullname2("b2o.dat"));
   }
 
 //  private void loadO2o1Memory() throws Exception {
@@ -302,7 +302,7 @@ public class Database {
   public Iterator<OrderSystem.Result> queryOrdersByBuyer(
       long startTime, long endTime, String buyerid) throws Exception {
 
-    List<Tuple> orderTupleList = buyerIndex.getOrder(buyerid);
+    List<Tuple> orderTupleList = buyerIndex.getOrder(buyerid); // savedat
     if (orderTupleList.isEmpty())
       return new ArrayList<OrderSystem.Result>().iterator();
 
@@ -315,6 +315,8 @@ public class Database {
         new ArrayList<>(orderTupleList.size());
     for (Tuple tuple : orderTupleList)
       resultListAll.add(new BuyerResult(tuple, buyerResult));
+    //if (resultListAll.get(0).getOrderTuple().isRecord()) // savedat
+    //  buyerIndex.saveBuyerOrder(resultListAll, buyerid);
     Collections.sort(resultListAll, buyerResultComparator);
 
     List<OrderSystem.Result> resultList = new ArrayList<>();

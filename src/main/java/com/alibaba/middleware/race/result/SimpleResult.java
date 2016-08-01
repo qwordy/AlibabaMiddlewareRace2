@@ -45,8 +45,8 @@ public class SimpleResult extends AbstractResult {
 //    return Util.keysContainKey(keys, key, keyLen);
   }
 
-  @Override
-  protected boolean done() {
-    return keys != null && resultMap.size() >= targetSize;
-  }
+//  @Override
+//  protected boolean done() {
+//    return keys != null && resultMap.size() >= targetSize;
+//  }
 }

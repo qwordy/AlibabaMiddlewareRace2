@@ -102,10 +102,10 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
 //        Util.bytesEqual(key, 0, AbstractKvDealer.buyeridBytes, 0, 7);
   }
 
-  @Override
-  protected boolean done() {
-    return false;
-  }
+//  @Override
+//  protected boolean done() {
+//    return false;
+//  }
 
   public Tuple getOrderTuple() {
     return orderTuple;
