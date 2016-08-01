@@ -42,7 +42,7 @@ import java.util.List;
  * good -> order
  * good -> good
  * buyer -> buyer
- *
+ * <p>
  * 4, 2,    1, 4, (5)
  */
 public class HashTable {
@@ -72,7 +72,7 @@ public class HashTable {
   private ByteBuffer byteBuffer1, byteBuffer2;
 
   public HashTable(List<String> dataFiles, String indexFile,
-      int size, int blockSize, int entrySize) {
+                   int size, int blockSize, int entrySize) {
 
     this.dataFiles = dataFiles;
     this.indexFile = indexFile;
@@ -129,33 +129,32 @@ public class HashTable {
     Util.short2byte(nextPos, block, 4);
   }
 
-  public void setOrderTable0DirectMemory(ByteBuffer buffer1, ByteBuffer buffer2) {
-    byteBuffer1 = buffer1;
-    byteBuffer2 = buffer2;
-  }
+//  public void setOrderTable0DirectMemory(ByteBuffer buffer1, ByteBuffer buffer2) {
+//    byteBuffer1 = buffer1;
+//    byteBuffer2 = buffer2;
+//  }
 
   // get order, entry size 10
   public Tuple get(byte[] key, int blockNo) throws Exception {
     byte[] block = new byte[BLOCK_SIZE];
     while (true) {
-      if (byteBuffer1 != null) {
-        int b1bn = 366210;
-        if (blockNo < b1bn) {
-          synchronized (byteBuffer1) {
-            byteBuffer1.position(blockNo * BLOCK_SIZE);
-            byteBuffer1.get(block);
-          }
-        } else {
-          synchronized (byteBuffer2) {
-            byteBuffer2.position((blockNo - b1bn) * BLOCK_SIZE);
-            byteBuffer2.get(block);
-          }
-        }
-      } else {
-        synchronized (fd) {
-          fd.seek(((long) blockNo) * BLOCK_SIZE);
-          fd.read(block);
-        }
+//      if (byteBuffer1 != null) {
+//        int b1bn = Config.orderIndexBuffer1BlockNum;
+//        if (blockNo < b1bn) {
+//          synchronized (byteBuffer1) {
+//            byteBuffer1.position(blockNo * BLOCK_SIZE);
+//            byteBuffer1.get(block);
+//          }
+//        } else {
+//          synchronized (byteBuffer2) {
+//            byteBuffer2.position((blockNo - b1bn) * BLOCK_SIZE);
+//            byteBuffer2.get(block);
+//          }
+//        }
+//      } else {
+      synchronized (fd) {
+        fd.seek(((long) blockNo) * BLOCK_SIZE);
+        fd.read(block);
       }
       int size = Util.byte2short(block, 4);
       if (size == 0) size = 6;
@@ -296,7 +295,8 @@ public class HashTable {
       bos.write(block);
     bos.close();
 
-    System.out.println("[yfy] size: " + SIZE + " extSize: " + memoryExt.size());
+    System.out.println("[yfy] size: " + SIZE + " extSize: " + memoryExt.size() +
+        " blockSize: " + BLOCK_SIZE);
     System.out.println(System.currentTimeMillis() + " [yfy] writeFile end");
 
     memory = null;

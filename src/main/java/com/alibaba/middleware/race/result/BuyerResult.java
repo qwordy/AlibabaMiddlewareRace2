@@ -14,19 +14,19 @@ import java.util.Map;
  */
 public class BuyerResult extends AbstractResult implements OrderSystem.Result {
 
-  private Map<String, OrderSystem.KeyValue> buyerResultMap, resultMap;
+  private Map<String, OrderSystem.KeyValue> buyerResultMap;
 
   private long createtime;
 
   public BuyerResult(Tuple orderTuple, SimpleResult buyerResult) throws Exception {
     buyerResultMap = buyerResult.getResultMap();
     resultMap = new HashMap<>();
-    scan(orderTuple, resultMap);
+    scan(orderTuple);
 
     OrderSystem.KeyValue goodKv = resultMap.get("goodid");
     if (goodKv != null) {
       Tuple goodTuple = Database.goodIndex.getBg(goodKv.valueAsString());
-      scan(goodTuple, resultMap);
+      scan(goodTuple);
     }
 
     OrderSystem.KeyValue kv = resultMap.get("createtime");
@@ -74,5 +74,10 @@ public class BuyerResult extends AbstractResult implements OrderSystem.Result {
   @Override
   protected boolean needKey(byte[] key, int keyLen) {
     return true;
+  }
+
+  @Override
+  protected boolean done() {
+    return false;
   }
 }

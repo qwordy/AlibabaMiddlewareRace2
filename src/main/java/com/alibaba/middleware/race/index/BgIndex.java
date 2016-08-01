@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race.index;
 
 import com.alibaba.middleware.race.*;
+import com.alibaba.middleware.race.result.GoodResult;
 
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -110,22 +111,22 @@ public class BgIndex {
       fd.seek(off);
       fd.read(buf, 0, 4);
       int count = Util.byte2int(buf, 0);
-
+      List<Tuple> tupleList = new ArrayList<>();
       for (int i = 0; i < count; i++) {
         fd.read(buf, 0, 8);
         long tupleOff = Util.byte2long(buf, 0);
-        new Tuple(g2oDatFilename, tupleOff);
-
+        tupleList.add(new Tuple(g2oDatFilename, tupleOff));
       }
-
-
+      return tupleList;
     } else {
 
     }
 
-
-
     return null;
+  }
+
+  public void saveOrderTuples(List<GoodResult> resultList) {
+
   }
 
   public Tuple getBg(String bg) {

@@ -40,7 +40,7 @@ public class Tuple {
     this.offset = offset;
     pos = offset;  // current pos
     valid = false;
-    buf = new byte[4096];
+    buf = new byte[8192];
   }
 
   public void setRecordContent() {
@@ -67,9 +67,9 @@ public class Tuple {
       }
       return -1;
     }
-    if (blockOff == 4096) {
+    if (blockOff == 8192) {
       if (recordContent)
-        tupleContent.add(Arrays.copyOf(buf, 4096));
+        tupleContent.add(Arrays.copyOf(buf, 8192));
       valid = false;
     }
     return b;
@@ -78,31 +78,31 @@ public class Tuple {
   /**
    * @return next byte, -1 when end
    */
-  public int nextt() throws Exception {
-    int BUF_SIZE = 4096;
-    int BIT = 12;
-    int MASK = 0xfff;
-    if (!valid) {
-      RandomAccessFile fd = FdMap.get(file);
-      synchronized (fd) {
-        fd.seek((pos >>> BIT) << BIT);
-        fd.read(buf);
-      }
-      valid = true;
-    }
-    int blockOff = (int) (pos & MASK);
-    byte b = buf[blockOff];
-    pos++;
-    if (b == '\n' || b == '\r')
-      return -1;
-    if (blockOff == BUF_SIZE - 1)
-      valid = false;
-    return b;
-  }
-
-  public void reset() {
-    pos = offset;
-    valid = false;
-  }
+//  public int nextt() throws Exception {
+//    int BUF_SIZE = 4096;
+//    int BIT = 12;
+//    int MASK = 0xfff;
+//    if (!valid) {
+//      RandomAccessFile fd = FdMap.get(file);
+//      synchronized (fd) {
+//        fd.seek((pos >>> BIT) << BIT);
+//        fd.read(buf);
+//      }
+//      valid = true;
+//    }
+//    int blockOff = (int) (pos & MASK);
+//    byte b = buf[blockOff];
+//    pos++;
+//    if (b == '\n' || b == '\r')
+//      return -1;
+//    if (blockOff == BUF_SIZE - 1)
+//      valid = false;
+//    return b;
+//  }
+//
+//  public void reset() {
+//    pos = offset;
+//    valid = false;
+//  }
 
 }

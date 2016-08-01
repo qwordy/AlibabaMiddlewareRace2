@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class GoodResult extends AbstractResult implements OrderSystem.Result {
 
-  private Map<String, OrderSystem.KeyValue> goodResultMap, resultMap;
+  private Map<String, OrderSystem.KeyValue> goodResultMap;
 
   private Collection<String> keys;
 
@@ -38,12 +38,12 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
     }
 
     resultMap = new HashMap<>();
-    scan(orderTuple, resultMap);
+    scan(orderTuple);
     if (keys == null || resultMap.size() + goodResultMapSize < targetSize) {
       OrderSystem.KeyValue buyerKv = resultMap.get("buyerid");
       if (buyerKv != null) {
         Tuple buyerTuple = Database.buyerIndex.getBg(buyerKv.valueAsString());
-        scan(buyerTuple, resultMap);
+        scan(buyerTuple);
       }
     }
 
@@ -95,5 +95,10 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
 //    return Util.keysContainKey(keys, key, keyLen) ||
 //        Util.bytesEqual(key, 0, AbstractKvDealer.orderidBytes, 0, 7) ||
 //        Util.bytesEqual(key, 0, AbstractKvDealer.buyeridBytes, 0, 7);
+  }
+
+  @Override
+  protected boolean done() {
+    return false;
   }
 }

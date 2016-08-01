@@ -14,9 +14,9 @@ import java.util.Map;
  */
 public class SimpleResult extends AbstractResult {
 
-  private Map<String, OrderSystem.KeyValue> resultMap;
-
   private Collection<String> keys;
+
+  private int targetSize;
 
   /**
    * @param tuple
@@ -26,8 +26,9 @@ public class SimpleResult extends AbstractResult {
   public SimpleResult(Tuple tuple, Collection<String> keys) throws Exception {
     resultMap = new HashMap<>();
     this.keys = keys;
-    if (tuple != null)
-      scan(tuple, resultMap);
+    if (keys != null)
+      targetSize = keys.size();
+    scan(tuple);
   }
 
   public Map<String, OrderSystem.KeyValue> getResultMap() {
@@ -42,5 +43,10 @@ public class SimpleResult extends AbstractResult {
   protected boolean needKey(byte[] key, int keyLen) {
      return keys == null || keys.contains(new String(key, 0, keyLen));
 //    return Util.keysContainKey(keys, key, keyLen);
+  }
+
+  @Override
+  protected boolean done() {
+    return keys != null && resultMap.size() >= targetSize;
   }
 }
