@@ -16,15 +16,14 @@ public class OrderResult extends AbstractResult implements OrderSystem.Result {
 
   private Collection<String> keys;
 
-  private Map<String, OrderSystem.KeyValue> resultMap;
-
   private long orderid;
+
+  private int targetSize;
 
   public OrderResult(Tuple orderTuple, Collection<String> keys)
       throws Exception {
 
     this.keys = keys;
-    int targetSize = 0;
     if (keys != null) {
       targetSize = keys.size();
       if (!keys.contains("orderid"))
@@ -36,19 +35,19 @@ public class OrderResult extends AbstractResult implements OrderSystem.Result {
     }
 
     resultMap = new HashMap<>();
-    scan(orderTuple, resultMap);
+    scan(orderTuple);
     if (keys == null || resultMap.size() < targetSize) {
       OrderSystem.KeyValue goodKv = resultMap.get("goodid");
       if (goodKv != null) {
         Tuple goodTuple = Database.goodIndex.getBg(goodKv.valueAsString());
-        scan(goodTuple, resultMap);
+        scan(goodTuple);
       }
     }
     if (keys == null || resultMap.size() < targetSize) {
       OrderSystem.KeyValue buyerKv = resultMap.get("buyerid");
       if (buyerKv != null) {
         Tuple buyerTuple = Database.buyerIndex.getBg(buyerKv.valueAsString());
-        scan(buyerTuple, resultMap);
+        scan(buyerTuple);
       }
     }
 
@@ -90,4 +89,9 @@ public class OrderResult extends AbstractResult implements OrderSystem.Result {
         keyStr.equals("buyerid") ||
         keyStr.equals("goodid");
   }
+
+//  @Override
+//  protected boolean done() {
+//    return keys != null && resultMap.size() >= targetSize;
+//  }
 }

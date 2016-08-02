@@ -8,7 +8,11 @@ import com.alibaba.middleware.race.result.GoodResult;
 import com.alibaba.middleware.race.result.OrderResult;
 import com.alibaba.middleware.race.result.SimpleResult;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.*;
 
 /**
@@ -67,8 +71,41 @@ public class Database {
     buildB2oHash();
     buildG2gHash();
     buildB2bHash();
+    //loadO2o1DirectMemory();
     FdMap.init(orderFilesList, goodFilesList, buyerFilesList);
+        //fullname1("g2o.dat"), fullname2("b2o.dat"));
   }
+
+//  private void loadO2o1Memory() throws Exception {
+//    File file = new File(fullname1("o2o.idx"));
+//    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+//    long len = file.length();
+//    int blockSize = Config.orderIndexBlockSize;
+//    int blockNum = (int) (len / blockSize);
+//    byte[][] memory = new byte[blockNum][];
+//    for (int i = 0; i < blockNum; i++) {
+//      memory[i] = new byte[blockSize];
+//      bis.read(memory[i]);
+//    }
+//    orderIndex.setTable0Memory(memory);
+//    //file.delete();
+//  }
+
+//  private void loadO2o1DirectMemory() {
+//    try {
+//      FileInputStream fis = new FileInputStream(fullname1("o2o.idx"));
+//      FileChannel channel = fis.getChannel();
+//      int buffer1Size = Config.orderIndexBuffer1BlockNum * 4096;
+//      int buffer2Size = (int) (channel.size() - buffer1Size);
+//      ByteBuffer buffer1 = ByteBuffer.allocateDirect(buffer1Size);
+//      ByteBuffer buffer2 = ByteBuffer.allocateDirect(buffer2Size);
+//      channel.read(buffer1);
+//      channel.read(buffer2);
+//      orderIndex.setTable0DirectMemory(buffer1, buffer2);
+//    } catch (Exception e) {
+//      e.printStackTrace();
+//    }
+//  }
 
 //  public void construct() throws Exception {
 //    Thread thread = new Thread(this);
@@ -254,7 +291,7 @@ public class Database {
   public OrderResult queryOrder(long orderId, Collection<String> keys)
       throws Exception {
 
-    if (orderId > Config.orderidMax || orderId < Config.orderidMin)
+    if (orderId > 60767378408L || orderId < 587732231)
       return null;
     Tuple orderTuple = orderIndex.get(Util.long2byte5(orderId));
     if (orderTuple == null)
@@ -265,17 +302,21 @@ public class Database {
   public Iterator<OrderSystem.Result> queryOrdersByBuyer(
       long startTime, long endTime, String buyerid) throws Exception {
 
-    List<Tuple> orderTupleList = buyerIndex.getOrder(buyerid);
+    List<Tuple> orderTupleList = buyerIndex.getOrder(buyerid); // savedat
     if (orderTupleList.isEmpty())
       return new ArrayList<OrderSystem.Result>().iterator();
 
     Tuple buyerTuple = buyerIndex.getBg(buyerid);
+    if (buyerTuple == null)
+      return new ArrayList<OrderSystem.Result>().iterator();
     SimpleResult buyerResult = new SimpleResult(buyerTuple, null);
 
     List<BuyerResult> resultListAll =
         new ArrayList<>(orderTupleList.size());
     for (Tuple tuple : orderTupleList)
       resultListAll.add(new BuyerResult(tuple, buyerResult));
+    //if (resultListAll.get(0).getOrderTuple().isRecord()) // savedat
+    //  buyerIndex.saveBuyerOrder(resultListAll, buyerid);
     Collections.sort(resultListAll, buyerResultComparator);
 
     List<OrderSystem.Result> resultList = new ArrayList<>();
@@ -316,8 +357,8 @@ public class Database {
     List<Tuple> orderTupleList = goodIndex.getOrder(goodid);
 
     Tuple goodTuple = goodIndex.getBg(goodid);
-    SimpleResult goodResult = new SimpleResult(goodTuple, keys);
-    OrderSystem.KeyValue kv = goodResult.get(key);
+    SimpleResult simpleGoodResult = new SimpleResult(goodTuple, keys);
+    OrderSystem.KeyValue kv = simpleGoodResult.get(key);
     if (kv != null) {
       long vl = 0;
       double vd = 0;
@@ -337,10 +378,16 @@ public class Database {
       return new KeyValueForSum(key, vl * size, vd * size);
     }
 
+    //List<GoodResult> goodResultList = new ArrayList<>();
+
     for (Tuple tuple : orderTupleList) {
       long valueLong = 0;
       double valueDouble = 0;
-      kv = new OrderResult(tuple, keys).get(key);
+
+      //tuple.setRecordContent();
+      GoodResult goodResult = new GoodResult(tuple, simpleGoodResult, keys);
+      //goodResultList.add(goodResult);
+      kv = goodResult.get(key);
 
       if (kv == null)
         continue;
@@ -368,6 +415,10 @@ public class Database {
       if (!asLong && !asDouble)
         return null;
     }
+
+    // has traversed all results
+    //Collections.sort(goodResultList, goodResultComparator);
+    //goodIndex.saveOrderTuples(goodResultList, goodid);
 
     if (!hasKey)
       return null;

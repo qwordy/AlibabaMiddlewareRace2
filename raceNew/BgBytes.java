@@ -4,6 +4,7 @@ package com.alibaba.middleware.race;
  * Created by yfy on 7/29/16.
  * BgBytes
  * 21, 1, 4, 3
+ * key, fileId, fileOff, bgNo
  */
 public class BgBytes {
   public byte[] block;

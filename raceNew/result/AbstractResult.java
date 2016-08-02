@@ -14,13 +14,13 @@ import java.util.Set;
  */
 public abstract class AbstractResult {
 
+  protected Map<String, OrderSystem.KeyValue> resultMap;
+
   private byte[] key = new byte[256];
 
   private byte[] value = new byte[100000];
 
-  protected void scan(Tuple tuple, Map<String, OrderSystem.KeyValue> resultMap)
-      throws Exception {
-
+  protected void scan(Tuple tuple) throws Exception {
     int b, keyLen = 0, valueLen = 0;
     // 0 for read key, 1 for read value
     int status = 0;
@@ -38,6 +38,7 @@ public abstract class AbstractResult {
             String keyStr = new String(key, 0, keyLen);
             String valueStr = new String(value, 0, valueLen);
             resultMap.put(keyStr, new KeyValueImpl(keyStr, valueStr));
+            //if (done()) return;
           }
           keyLen = 0;
           status = 0;
@@ -55,5 +56,8 @@ public abstract class AbstractResult {
   }
 
   protected abstract boolean needKey(byte[] key, int keyLen);
+
+  // find all key-values
+  //protected abstract boolean done();
 
 }

@@ -13,14 +13,18 @@ import java.util.Map;
  */
 public class GoodResult extends AbstractResult implements OrderSystem.Result {
 
-  private Map<String, OrderSystem.KeyValue> goodResultMap, resultMap;
+  private Map<String, OrderSystem.KeyValue> goodResultMap;
 
   private Collection<String> keys;
 
   private long orderid;
 
+  private Tuple orderTuple, buyerTuple;
+
   public GoodResult(Tuple orderTuple, SimpleResult goodResult, Collection<String> keys)
       throws Exception {
+
+    this.orderTuple = orderTuple;
 
     goodResultMap = goodResult.getResultMap();
     int goodResultMapSize = goodResultMap.size();
@@ -38,12 +42,13 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
     }
 
     resultMap = new HashMap<>();
-    scan(orderTuple, resultMap);
+    scan(orderTuple);
     if (keys == null || resultMap.size() + goodResultMapSize < targetSize) {
       OrderSystem.KeyValue buyerKv = resultMap.get("buyerid");
       if (buyerKv != null) {
         Tuple buyerTuple = Database.buyerIndex.getBg(buyerKv.valueAsString());
-        scan(buyerTuple, resultMap);
+        this.buyerTuple = buyerTuple;
+        scan(buyerTuple);
       }
     }
 
@@ -95,5 +100,18 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
 //    return Util.keysContainKey(keys, key, keyLen) ||
 //        Util.bytesEqual(key, 0, AbstractKvDealer.orderidBytes, 0, 7) ||
 //        Util.bytesEqual(key, 0, AbstractKvDealer.buyeridBytes, 0, 7);
+  }
+
+//  @Override
+//  protected boolean done() {
+//    return false;
+//  }
+
+  public Tuple getOrderTuple() {
+    return orderTuple;
+  }
+
+  public Tuple getBuyerTuple() {
+    return buyerTuple;
   }
 }

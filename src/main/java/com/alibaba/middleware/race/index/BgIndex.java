@@ -1,10 +1,7 @@
 package com.alibaba.middleware.race.index;
 
 import com.alibaba.middleware.race.*;
-import com.alibaba.middleware.race.result.BuyerResult;
-import com.alibaba.middleware.race.result.GoodResult;
 
-import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,8 +51,9 @@ public class BgIndex {
   }
 
   public void addOrder(byte[] bg, int len, int fildId, long fildOff) {
+
     int bgNo;
-    boolean find = bgTable.getBg(bg, len, bgBytes, true);
+    boolean find = bgTable.getBg(bg, len, bgBytes);
     if (find) {
       bgNo = Util.byte3Toint(bgBytes.block, bgBytes.off + 5);
     } else {
@@ -68,7 +66,7 @@ public class BgIndex {
 
   // add all order then add bg
   public void addBg(byte[] bg, int len, int fileId, long fileOff) {
-    boolean find = bgTable.getBg(bg, len, bgBytes, true);
+    boolean find = bgTable.getBg(bg, len, bgBytes);
     bgBytes.block[bgBytes.off] = (byte) fileId;
     Util.longToByte4(fileOff, bgBytes.block, bgBytes.off + 1);
     if (!find)
@@ -88,211 +86,6 @@ public class BgIndex {
 //      list0.add(tuple);
 //    return list0;
     return orderTable.getAll(bgId);
-  }
-
-  public List<Tuple> getBuyerOrder(String bg) throws Exception {
-    int len = bg.length();
-    if (len != 20 && len != 21)
-      return new ArrayList<>();
-
-    BgBytes bgBytes = new BgBytes();
-    boolean find = bgTable.getBg(bg.getBytes(), len, bgBytes, false);
-    if (!find) return new ArrayList<>();
-
-    int bgNo = Util.byte3Toint(bgBytes.block, bgBytes.off + 5);
-    if (bgNo == 0xffffff) return new ArrayList<>();
-    if (bgNo == 0xfffff0) { // already record
-      long off = Util.byte5ToLong(bgBytes.block, bgBytes.off); // off in b2odat
-      byte[] buf = new byte[8];
-      RandomAccessFile fd = FdMap.b2oDat;
-      String g2oDatFilename = FdMap.b2oDatFilename;
-      List<Tuple> tupleList;
-      synchronized (fd) {
-        fd.seek(off);
-        fd.read(buf, 0, 4);
-        int count = Util.byte2int(buf, 0);
-        tupleList = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-          fd.read(buf, 0, 8);
-          long tupleOff = Util.byte2long(buf, 0);
-          tupleList.add(new Tuple(g2oDatFilename, tupleOff));
-        }
-      }
-      return tupleList;
-    } else {
-      List<Tuple> list = orderTable.getAll(bgNo);
-      for (Tuple tuple : list)
-        tuple.setRecord();
-      return list;
-    }
-  }
-
-  public void saveBuyerOrder(List<BuyerResult> resultList, String bg)
-      throws Exception {
-
-    BgBytes bgBytes = new BgBytes();
-    boolean find = bgTable.getBg(bg.getBytes(), bg.length(), bgBytes, false);
-    if (!find) return;
-
-    int bgNo = Util.byte3Toint(bgBytes.block, bgBytes.off + 5);
-    if (bgNo == 0xfffff0) return; // already in
-
-    int size = resultList.size();
-    RandomAccessFile fd = FdMap.b2oDat;
-    byte[] buf = new byte[8];
-    synchronized (fd) {
-      long fileLen = fd.length();
-      Util.int2byte(size, buf, 0);
-      fd.seek(fileLen);
-      fd.write(buf, 0, 4);  // size
-      long tupleOff = fileLen + 4 + 8 * size;
-      // write head: size, off, off...
-      for (BuyerResult result : resultList) {
-        Util.long2byte(tupleOff, buf, 0);
-        fd.write(buf, 0, 8);  // off
-        Tuple orderTuple = result.getOrderTuple();
-        Tuple goodTuple = result.getGoodTuple();
-        if (goodTuple == null)
-          throw new Exception();
-        tupleOff += orderTuple.getTupleLen() + goodTuple.getTupleLen() + 2;
-      }
-      for (BuyerResult result : resultList) {
-        Tuple orderTuple = result.getOrderTuple();
-        Tuple goodTuple = result.getGoodTuple();
-
-        List<byte[]> tupleContent = orderTuple.getTupleContent();
-        int tupleLen = orderTuple.getTupleLen();
-        int startOff = orderTuple.getTupleStartOff();
-        int blockNum = tupleContent.size();
-        if (blockNum == 1) {
-          fd.write(tupleContent.get(0), startOff, tupleLen);
-        } else {
-          fd.write(tupleContent.get(0), startOff, 4096 - startOff);
-          for (int i = 1; i < blockNum; i++)
-            fd.write(tupleContent.get(i));
-        }
-        fd.write('\t');
-
-        tupleContent = goodTuple.getTupleContent();
-        tupleLen = goodTuple.getTupleLen();
-        startOff = goodTuple.getTupleStartOff();
-        blockNum = tupleContent.size();
-        if (blockNum == 1) {
-          fd.write(tupleContent.get(0), startOff, tupleLen);
-        } else {
-          fd.write(tupleContent.get(0), startOff, 4096 - startOff);
-          for (int i = 1; i < blockNum; i++)
-            fd.write(tupleContent.get(i));
-        }
-        fd.write('\n');
-      }
-    }
-    // set bgId a special value
-    Util.int2byte3(0xfffff0, bgBytes.block, bgBytes.off + 5);
-  }
-
-  public List<Tuple> getGoodOrder(String goodid) throws Exception {
-    int len = goodid.length();
-    if (len != 20 && len != 21)
-      return new ArrayList<>();
-
-    BgBytes goodBytes = new BgBytes();
-    boolean find = bgTable.getBg(goodid.getBytes(), len, goodBytes, false);
-    if (!find)
-      return new ArrayList<>();
-
-    int bgNo = Util.byte3Toint(bgBytes.block, bgBytes.off + 5);
-    if (bgNo == 0xffffff)
-      return new ArrayList<>();
-
-    if (bgNo == 0xfffff0) { // tuples have been stored in g2o.dat
-      long off = Util.byte5ToLong(bgBytes.block, bgBytes.off);
-      byte[] buf = new byte[8];
-      RandomAccessFile fd = FdMap.g2oDat;
-      String g2oDatFilename = FdMap.g2oDatFilename;
-      fd.seek(off);
-      fd.read(buf, 0, 4);
-      int count = Util.byte2int(buf, 0);
-      List<Tuple> tupleList = new ArrayList<>();
-      for (int i = 0; i < count; i++) {
-        fd.read(buf, 0, 8);
-        long tupleOff = Util.byte2long(buf, 0);
-        tupleList.add(new Tuple(g2oDatFilename, tupleOff));
-      }
-      return tupleList;
-    } else {
-      return orderTable.getAll(bgNo);
-    }
-  }
-
-  public void saveOrderTuples(List<GoodResult> resultList, String goodid)
-      throws Exception {
-
-    BgBytes goodBytes = new BgBytes();
-    boolean find = bgTable.getBg(goodid.getBytes(), goodid.length(),
-        goodBytes, false);
-    if (!find) return;
-
-    int bgNo = Util.byte3Toint(bgBytes.block, bgBytes.off + 5);
-    if (bgNo == 0xfffff0)  // already in
-      return;
-
-    int size = resultList.size();
-    RandomAccessFile fd = FdMap.g2oDat;
-    byte[] buf = new byte[8];
-    synchronized (fd) {
-      long fileLen = fd.length();
-      Util.int2byte(size, buf, 0);
-      fd.seek(fileLen);
-      fd.write(buf, 0, 4);
-      long tupleOff = fileLen + 4 + 8 * size;
-      // write head: size, off, off...
-      for (GoodResult result : resultList) {
-        Util.long2byte(tupleOff, buf, 0);
-        fd.write(buf, 0, 8);
-
-        Tuple orderTuple = result.getOrderTuple();
-        Tuple buyerTuple = result.getBuyerTuple();
-        int tuplesLen = orderTuple.getTupleLen() + 1;
-        if (buyerTuple.isRecord()) {
-          tuplesLen += buyerTuple.getTupleLen() + 1;
-        }
-        tupleOff = tuplesLen;
-      }
-      // write tuples
-      for (GoodResult result : resultList) {
-        Tuple orderTuple = result.getOrderTuple();
-        Tuple buyerTuple = result.getBuyerTuple();
-
-        List<byte[]> tupleContent = orderTuple.getTupleContent();
-        int tupleLen = orderTuple.getTupleLen();
-        int startOff = orderTuple.getTupleStartOff();
-        int blockNum = tupleContent.size();
-        if (blockNum == 1) {
-          fd.write(tupleContent.get(0), startOff, tupleLen);
-        } else {
-          fd.write(tupleContent.get(0), startOff, 4096 - startOff);
-          for (int i = 1; i < blockNum; i++)
-            fd.write(tupleContent.get(i));
-        }
-
-        if (buyerTuple.isRecord()) {
-          fd.write('\t');
-          tupleContent = buyerTuple.getTupleContent();
-          tupleLen = buyerTuple.getTupleLen();
-          startOff = buyerTuple.getTupleStartOff();
-          blockNum = tupleContent.size();
-          if (blockNum == 1) {
-            fd.write(tupleContent.get(0), startOff, tupleLen);
-          } else {
-            fd.write(tupleContent.get(0), startOff, 4096 - startOff);
-            for (int i = 1; i < blockNum; i++)
-              fd.write(tupleContent.get(i));
-          }
-        }
-        fd.write('\n');
-      }
-    }
   }
 
   public Tuple getBg(String bg) {

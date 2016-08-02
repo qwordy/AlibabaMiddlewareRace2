@@ -26,7 +26,7 @@ public class Config {
 //  public static int goodIndexSize = 40000;
 
   // 500, 2.8g, 750, 3.7g
-  public static int goodIndexBlockSize = 766;
+  public static int goodIndexBlockSize = 761;
 
   public static int b2bIndexSize = 152381; // 0.75
 
@@ -35,9 +35,16 @@ public class Config {
   // 52.5 in 70 entrys
   public static int bg2bgIndexBlockSize = 2036;
 
+  public static long orderidMax = 60767378408L;
+  public static long orderidMin = 587732231;
+
+  //  public static int orderIndexSize = 732421; //3g
+//  public static int orderIndexSize = 1000;
   // 每个桶预计放300个，容量409个, 2.73g
   //public static int orderIndexSize = 666666;
-//  public static int orderIndexSize = 500;
+
+  //public static int orderIndexBuffer1BlockNum = 366210; // 4096
+  //public static int orderIndexBuffer1BlockNum = 500;
 
 //  //public static int b2bIndexSize = 37735;  // 0.75
 //  public static int b2bIndexSize = 35461;  // 0.8
@@ -52,9 +59,6 @@ public class Config {
 //  public static int g2gIndexSize = 37735; // 0.75
 //
 //  public static int bg2bgIndexBlockSize = 4096;
-
-  public static long orderidMax = 60767378408L;
-  public static long orderidMin = 587732231;
 
   //[yfy] buyer max orderNum 246
   //[yfy] good max orderNum 468
@@ -84,7 +88,15 @@ public class Config {
 //  order 400m 2m block
 
   /**
+   * 1:
+   * 76f77f9da39
+   * ae979f5f10e 351 751
+   * tmp/ca1ded20036/
+   * c6819d25856 346 746
    * 31:
+   * tmp/d7eb78703d2/ 341 736
+   * tmp/f04895cfad4/ 336 726
+   * a09f845cd6c 90000 371 746
    * 23cf629c17a
    * 30:
    * tmp/5e6e0847c8b/
