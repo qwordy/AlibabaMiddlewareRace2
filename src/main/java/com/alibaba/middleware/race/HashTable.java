@@ -1,5 +1,7 @@
 package com.alibaba.middleware.race;
 
+import com.alibaba.middleware.race.result.BuyerResult;
+
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
@@ -150,7 +152,7 @@ public class HashTable {
   }
 
   // get all order, entry size 5
-  public List<Tuple> getAll(int blockNo) throws Exception {
+  public List<Tuple> getAll(int blockNo, boolean record) throws Exception {
     List<Tuple> list = new ArrayList<>();
     byte[] block = new byte[BLOCK_SIZE];
     while (true) {
@@ -159,15 +161,103 @@ public class HashTable {
         fd.read(block);
       }
       int size = Util.byte2short(block, 4);
+      if (size == 0xffff) {
+        long off = Util.byte2long(block, 6);
+        return getBuyerAll(off);
+      }
       if (size == 0) size = 6;
       for (int off = 6; off + 5 <= size; off += 5) {
         int fileId = block[off] & 0xff;
         long fileOff = Util.byte4ToLong(block, off + 1);
-        list.add(new Tuple(dataFiles.get(fileId), fileOff));
+        Tuple tuple = new Tuple(dataFiles.get(fileId), fileOff);
+        if (record)
+          tuple.setRecord();
+        list.add(tuple);
       }
       blockNo = Util.byte2int(block, 0);
       if (blockNo == 0)
         return list;
+    }
+  }
+
+  // get all order from b2o.dat
+  private List<Tuple> getBuyerAll(long off) throws Exception {
+    RandomAccessFile fd = FdMap.b2odat;
+    String filename = FdMap.b2odatFilename;
+    byte[] buf = new byte[4096];
+    synchronized (fd) {
+      fd.seek(off);
+      fd.read(buf);
+    }
+    int count = Util.byte2int(buf, 0);
+    int bufOff = 4;
+    List<Tuple> tupleList = new ArrayList<>();
+    for (int i = 0; i < count; i++) {
+      long tupleOff = Util.byte2long(buf, bufOff);
+      bufOff += 8;
+      tupleList.add(new Tuple(filename, tupleOff));
+    }
+    return tupleList;
+  }
+
+  public void saveBuyerAll(List<BuyerResult> resultList, int blockNo) throws Exception {
+    int size = resultList.size();
+    RandomAccessFile bfd = FdMap.b2odat;
+    byte[] buf = new byte[8];
+    long fileLen;
+    synchronized (bfd) {
+      fileLen = bfd.length();
+      Util.int2byte(size, buf, 0);
+      bfd.seek(fileLen);
+      bfd.write(buf, 0, 4);  // size
+      long tupleOff = fileLen + 4 + 8 * size;
+      // write head: size, off, off...
+      for (BuyerResult result : resultList) {
+        Util.long2byte(tupleOff, buf, 0);
+        bfd.write(buf, 0, 8);  // off
+        Tuple orderTuple = result.orderTuple;
+        Tuple goodTuple = result.goodTuple;
+        if (goodTuple == null)
+          throw new Exception();
+        tupleOff += orderTuple.getTupleLen() + goodTuple.getTupleLen() + 2;
+      }
+      for (BuyerResult result : resultList) {
+        Tuple orderTuple = result.orderTuple;
+        Tuple goodTuple = result.goodTuple;
+
+        List<byte[]> tupleContent = orderTuple.getTupleContent();
+        int tupleLen = orderTuple.getTupleLen();
+        int startOff = orderTuple.getTupleStartOff();
+        int blockNum = tupleContent.size();
+        if (blockNum == 1) {
+          bfd.write(tupleContent.get(0), startOff, tupleLen);
+        } else {
+          bfd.write(tupleContent.get(0), startOff, 4096 - startOff);
+          for (int i = 1; i < blockNum; i++)
+            bfd.write(tupleContent.get(i));
+        }
+        bfd.write('\t');
+
+        tupleContent = goodTuple.getTupleContent();
+        tupleLen = goodTuple.getTupleLen();
+        startOff = goodTuple.getTupleStartOff();
+        blockNum = tupleContent.size();
+        if (blockNum == 1) {
+          bfd.write(tupleContent.get(0), startOff, tupleLen);
+        } else {
+          bfd.write(tupleContent.get(0), startOff, 4096 - startOff);
+          for (int i = 1; i < blockNum; i++)
+            bfd.write(tupleContent.get(i));
+        }
+        bfd.write('\n');
+      }
+    }
+    Util.short2byte(0xffff, buf, 0);
+    synchronized (fd) {
+      fd.seek(((long) blockNo) * BLOCK_SIZE + 4);
+      fd.write(buf, 0, 2);
+      Util.long2byte(fileLen, buf, 0);
+      fd.write(buf, 0, 8);
     }
   }
 
@@ -277,7 +367,7 @@ public class HashTable {
     memory = null;
     memoryExt = null;
 
-    fd = new RandomAccessFile(indexFile, "r");
+    fd = new RandomAccessFile(indexFile, "rw");
   }
 
   public void printBgIndexSize() {

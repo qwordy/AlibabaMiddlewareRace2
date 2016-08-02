@@ -6,13 +6,9 @@ package com.alibaba.middleware.race;
  */
 public class Config {
 
-  // 327.2 of 409, f = 0.8, 4g, 319531741 entrys
-  public static int orderIndex1Size = 976564;
-//  public static int orderIndex1Size = 100;
-
-  // 286 of 409, f = 0.7, 1.152g, 80468259 entrys
-  public static int orderIndex2Size = 281357;
-//  public static int orderIndex2Size = 25;
+  // 每个桶预计放300个，容量409个, 2.73g
+  public static int orderIndexSize = 666666;
+//  public static int orderIndexSize = 500;
 
   public static int orderIndexBlockSize = 4096;
 
@@ -20,7 +16,7 @@ public class Config {
 //  public static int buyerIndexSize = 80000;
 
   // 250, 2.9g, 375, 3.6g
-  public static int buyerIndexBlockSize = 366;
+  public static int buyerIndexBlockSize = 371;
 
   public static int goodIndexSize = 4000000;
 //  public static int goodIndexSize = 40000;
@@ -35,9 +31,13 @@ public class Config {
   // 52.5 in 70 entrys
   public static int bg2bgIndexBlockSize = 2036;
 
-  // 每个桶预计放300个，容量409个, 2.73g
-  //public static int orderIndexSize = 666666;
-//  public static int orderIndexSize = 500;
+  // 327.2 of 409, f = 0.8, 4g, 319531741 entrys
+  //public static int orderIndex1Size = 976564;
+//  public static int orderIndex1Size = 100;
+
+  // 286 of 409, f = 0.7, 1.152g, 80468259 entrys
+  //public static int orderIndex2Size = 281357;
+//  public static int orderIndex2Size = 25;
 
 //  //public static int b2bIndexSize = 37735;  // 0.75
 //  public static int b2bIndexSize = 35461;  // 0.8

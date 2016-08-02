@@ -18,15 +18,22 @@ public class BuyerResult extends AbstractResult implements OrderSystem.Result {
 
   private long createtime;
 
+  public Tuple orderTuple, goodTuple;
+
   public BuyerResult(Tuple orderTuple, SimpleResult buyerResult) throws Exception {
+    this.orderTuple = orderTuple;
     buyerResultMap = buyerResult.getResultMap();
     resultMap = new HashMap<>();
     scan(orderTuple, resultMap);
 
-    OrderSystem.KeyValue goodKv = resultMap.get("goodid");
-    if (goodKv != null) {
-      Tuple goodTuple = Database.goodIndex.getBg(goodKv.valueAsString());
-      scan(goodTuple, resultMap);
+    if (orderTuple.isRecord()) {
+      OrderSystem.KeyValue goodKv = resultMap.get("goodid");
+      if (goodKv != null) {
+        Tuple goodTuple = Database.goodIndex.getBg(goodKv.valueAsString());
+        this.goodTuple = goodTuple;
+        goodTuple.setRecord();
+        scan(goodTuple, resultMap);
+      }
     }
 
     OrderSystem.KeyValue kv = resultMap.get("createtime");

@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race.index;
 
 import com.alibaba.middleware.race.*;
+import com.alibaba.middleware.race.result.BuyerResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +74,7 @@ public class BgIndex {
       Util.int2byte3(0xffffff, bgBytes.block, bgBytes.off + 5);
   }
 
-  public List<Tuple> getOrder(String bg) throws Exception {
+  public List<Tuple> getOrder(String bg, boolean record) throws Exception {
     int len = bg.length();
     if (len != 20 && len != 21)
       return new ArrayList<>();
@@ -85,7 +86,12 @@ public class BgIndex {
 //    for (Tuple tuple : list1)
 //      list0.add(tuple);
 //    return list0;
-    return orderTable.getAll(bgId);
+    return orderTable.getAll(bgId, record);
+  }
+
+  public void saveBuyerAll(List<BuyerResult> list, String bg) throws Exception {
+    int bgId = bgTable.getBgId(bg.getBytes(), bg.length());
+    orderTable.saveBuyerAll(list, bgId);
   }
 
   public Tuple getBg(String bg) {

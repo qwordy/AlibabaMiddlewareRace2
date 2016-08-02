@@ -67,7 +67,7 @@ public class Database {
     buildB2oHash();
     buildG2gHash();
     buildB2bHash();
-    FdMap.init(orderFilesList, goodFilesList, buyerFilesList);
+    FdMap.init(orderFilesList, goodFilesList, buyerFilesList, fullname2("b2o.dat"));
   }
 
 //  public void construct() throws Exception {
@@ -91,9 +91,9 @@ public class Database {
     orderIndex = new OrderIndex(orderFilesList);
     O2oKvDealer dealer = new O2oKvDealer(orderIndex);
 
-    int mid = (int) (orderFilesList.size() * 0.8);
+    int mid = orderFilesList.size() / 2;
 
-    orderIndex.setCurrentTable(0, fullname0("o2o.idx"), Config.orderIndex1Size);
+    orderIndex.setCurrentTable(0, fullname0("o2o.idx"));
     for (int i = 0; i < mid; i++) {
       dealer.setFileId(i);
       readDataFile(orderFilesList.get(i), dealer);
@@ -101,7 +101,7 @@ public class Database {
     orderIndex.finish();
     System.gc();
 
-    orderIndex.setCurrentTable(1, fullname1("o2o.idx"), Config.orderIndex2Size);
+    orderIndex.setCurrentTable(1, fullname1("o2o.idx"));
     for (int i = mid; i < orderFilesList.size(); i++) {
       dealer.setFileId(i);
       readDataFile(orderFilesList.get(i), dealer);
@@ -265,7 +265,7 @@ public class Database {
   public Iterator<OrderSystem.Result> queryOrdersByBuyer(
       long startTime, long endTime, String buyerid) throws Exception {
 
-    List<Tuple> orderTupleList = buyerIndex.getOrder(buyerid);
+    List<Tuple> orderTupleList = buyerIndex.getOrder(buyerid, true);
     if (orderTupleList.isEmpty())
       return new ArrayList<OrderSystem.Result>().iterator();
 
@@ -276,6 +276,8 @@ public class Database {
         new ArrayList<>(orderTupleList.size());
     for (Tuple tuple : orderTupleList)
       resultListAll.add(new BuyerResult(tuple, buyerResult));
+    if (resultListAll.get(0).orderTuple.isRecord()) // savedat
+      buyerIndex.saveBuyerAll(resultListAll, buyerid);
     Collections.sort(resultListAll, buyerResultComparator);
 
     List<OrderSystem.Result> resultList = new ArrayList<>();
@@ -291,7 +293,7 @@ public class Database {
   public Iterator<OrderSystem.Result> queryOrdersBySaler(
       String goodid, Collection<String> keys) throws Exception {
 
-    List<Tuple> tupleList = goodIndex.getOrder(goodid);
+    List<Tuple> tupleList = goodIndex.getOrder(goodid, false);
     if (tupleList.isEmpty())
       return new ArrayList<OrderSystem.Result>().iterator();
 
@@ -313,7 +315,7 @@ public class Database {
     double sumDouble = 0;
 
     Collection<String> keys = Collections.singleton(key);
-    List<Tuple> orderTupleList = goodIndex.getOrder(goodid);
+    List<Tuple> orderTupleList = goodIndex.getOrder(goodid, false);
 
     Tuple goodTuple = goodIndex.getBg(goodid);
     SimpleResult goodResult = new SimpleResult(goodTuple, keys);

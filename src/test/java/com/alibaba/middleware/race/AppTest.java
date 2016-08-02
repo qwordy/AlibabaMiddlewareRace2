@@ -20,12 +20,12 @@ public class AppTest {
   public void queryBig() throws Exception {
     final OrderSystem os = constructBig();
 
-//    Runnable r = new Runnable() {
-//      @Override
-//      public void run() {
-//        try {
-//          for (int times = 0; times < 500; times++) {
-//            // queryOrder
+    Runnable r = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          for (int times = 0; times < 3; times++) {
+            // queryOrder
     OrderSystem.Result result = os.queryOrder(606092157, null);
     assertEquals(606092157, result.orderId());
     assertEquals("wx-ae52-539368e70aaa", result.get("buyerid").valueAsString());
@@ -103,7 +103,8 @@ public class AppTest {
       result = iter.next();
     assertEquals(587818574, result.orderId());
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 300; i++) {
+      //System.out.println(i);
       iter = os.queryOrdersByBuyer(1462018520, 1473999229, "wx-a0e0-6bda77db73ca");
       result = iter.next(); // 1
       assertEquals(607895670, result.orderId());
@@ -117,6 +118,13 @@ public class AppTest {
       for (int j = 0; j < 17; j++)
         result = iter.next();
       assertEquals(587818574, result.orderId());
+
+      iter = os.queryOrdersByBuyer(1470285742, 1478898941, "tp-a20e-8248d4665332");
+      result = iter.next();
+      assertEquals(627590607, result.orderId());
+      assertEquals(627590607, result.get("orderid").valueAsLong());
+      assertEquals("仉律", result.get("buyername").valueAsString());
+      assertEquals("蜡嘴全反射。", result.get("good_name").valueAsString());
     }
 
     // queryOrdersBySaler
@@ -175,15 +183,21 @@ public class AppTest {
 
     kv = os.sumOrdersByGood("al-9c4c-ac9ed4b6ad35", "offprice");
     assertEquals(235886.19656021666, kv.valueAsDouble(), 1e-6);
-//          }
-//        } catch (Exception e) {
-//          e.printStackTrace();
-//        }
-//      }
-//    };
-//
-//    for (int i = 0; i < 1; i++)
-//      new Thread(r).start();
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    };
+
+    List<Thread> list = new ArrayList<>();
+    for (int i = 0; i < 15; i++) {
+      Thread thread = new Thread(r);
+      thread.start();
+      list.add(thread);
+    }
+    for (Thread thread : list)
+      thread.join();
 
   }
 

@@ -19,7 +19,7 @@ public class OrderIndex {
 
   private List<String> dataFiles;
 
-  private int tableId, indexSize, indexSize1, indexSize2;
+  private int tableId;
 
   public OrderIndex(List<String> dataFiles) {
     tables = new HashTable[2];
@@ -27,15 +27,10 @@ public class OrderIndex {
   }
 
   // 0..1
-  public void setCurrentTable(int id, String indexFile, int indexSize) {
+  public void setCurrentTable(int id, String indexFile) {
     tables[id] = new HashTable(dataFiles, indexFile,
-        indexSize, Config.orderIndexBlockSize, 10);
+        Config.orderIndexSize, Config.orderIndexBlockSize, 10);
     tableId = id;
-    this.indexSize = indexSize;
-    if (id == 0)
-      indexSize1 = indexSize;
-    else
-      indexSize2 = indexSize;
   }
 
   public void finish() throws Exception {
@@ -44,18 +39,15 @@ public class OrderIndex {
 
   // id.length == 5
   public void add(byte[] id, int fileId, long fileOff) throws Exception {
-    int hash = Util.bytesHash(id) % indexSize;
+    int hash = Util.bytesHash(id) % Config.orderIndexSize;
     tables[tableId].add(id, hash, fileId, fileOff);
   }
 
   public Tuple get(byte[] id) throws Exception {
-    int rawHash = Util.bytesHash(id);
-    int hash = rawHash % indexSize1;
+    int hash = Util.bytesHash(id) % Config.orderIndexSize;
     Tuple tuple = tables[0].get(id, hash);
-    if (tuple == null) {
-      hash = rawHash % indexSize2;
+    if (tuple == null)
       tuple = tables[1].get(id, hash);
-    }
     return tuple;
   }
 }
