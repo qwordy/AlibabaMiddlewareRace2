@@ -56,37 +56,6 @@ public class AppTest {
     result = os.queryOrder(607050270, null);
     assertEquals(607050270, result.orderId());
 
-    // queryOrder
-    result = os.queryOrder(606092157, null);
-    assertEquals(606092157, result.orderId());
-    assertEquals("wx-ae52-539368e70aaa", result.get("buyerid").valueAsString());
-    assertEquals(false, result.get("done").valueAsBoolean());
-    assertEquals("晋恿吾", result.get("buyername").valueAsString());
-
-    result = os.queryOrder(604911336, Arrays.asList("buyerid"));
-    assertEquals("tp-9d00-3b1cf5d41ff5", result.get("buyerid").valueAsString());
-
-    result = os.queryOrder(590107063, Arrays.asList("a_g_12146"));
-    assertEquals(590107063, result.orderId());
-    assertEquals(null, result.get("a_g_12146"));
-
-    result = os.queryOrder(608178205, Arrays.asList("a_g_17779"));
-    assertEquals(false, result.get("a_g_17779").valueAsBoolean());
-
-    result = os.queryOrder(589733122, new ArrayList<String>());
-    assertEquals(589733122, result.orderId());
-    assertEquals(null, result.get("buyerid"));
-
-    result = os.queryOrder(606473320, Arrays.asList("price", "a_g_10209"));
-    assertEquals(7495.452620928783, result.get("price").valueAsDouble(), 1e-6);
-    assertEquals(7, result.get("a_g_10209").valueAsLong());
-
-    result = os.queryOrder(593188936, null);
-    assertEquals(11, result.get("amount").valueAsLong());
-
-    result = os.queryOrder(607050270, null);
-    assertEquals(607050270, result.orderId());
-
     // queryOrdersByBuyer
     Iterator<OrderSystem.Result> iter =
         os.queryOrdersByBuyer(1462018520, 1473999229, "wx-a0e0-6bda77db73ca");
@@ -103,7 +72,7 @@ public class AppTest {
       result = iter.next();
     assertEquals(587818574, result.orderId());
 
-    for (int i = 0; i < 300; i++) {
+    for (int i = 0; i < 10; i++) {
       //System.out.println(i);
       iter = os.queryOrdersByBuyer(1462018520, 1473999229, "wx-a0e0-6bda77db73ca");
       result = iter.next(); // 1

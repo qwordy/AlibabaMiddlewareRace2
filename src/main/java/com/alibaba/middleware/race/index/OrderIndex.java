@@ -45,9 +45,15 @@ public class OrderIndex {
 
   public Tuple get(byte[] id) throws Exception {
     int hash = Util.bytesHash(id) % Config.orderIndexSize;
-    Tuple tuple = tables[0].get(id, hash);
+    int t0, t1;
+    if ((id[0] & 0x1) == 0) {
+      t0 = 0; t1 = 1;
+    } else {
+      t0 = 1; t1 = 0;
+    }
+    Tuple tuple = tables[t0].get(id, hash);
     if (tuple == null)
-      tuple = tables[1].get(id, hash);
+      tuple = tables[t1].get(id, hash);
     return tuple;
   }
 }
