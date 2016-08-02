@@ -276,9 +276,10 @@ public class Database {
         new ArrayList<>(orderTupleList.size());
     for (Tuple tuple : orderTupleList)
       resultListAll.add(new BuyerResult(tuple, buyerResult));
-    if (resultListAll.get(0).orderTuple.isRecord()) // savedat
+    if (resultListAll.get(0).orderTuple.isRecord()) { // savedat
+      Collections.sort(resultListAll, buyerResultComparator);
       buyerIndex.saveBuyerAll(resultListAll, buyerid);
-    Collections.sort(resultListAll, buyerResultComparator);
+    }
 
     List<OrderSystem.Result> resultList = new ArrayList<>();
     for (BuyerResult br : resultListAll) {

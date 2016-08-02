@@ -16,7 +16,7 @@ public class Config {
 //  public static int buyerIndexSize = 80000;
 
   // 250, 2.9g, 375, 3.6g
-  public static int buyerIndexBlockSize = 371;
+  public static int buyerIndexBlockSize = 366;
 
   public static int goodIndexSize = 4000000;
 //  public static int goodIndexSize = 40000;

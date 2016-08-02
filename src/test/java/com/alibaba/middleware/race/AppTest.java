@@ -125,6 +125,21 @@ public class AppTest {
       assertEquals(627590607, result.get("orderid").valueAsLong());
       assertEquals("仉律", result.get("buyername").valueAsString());
       assertEquals("蜡嘴全反射。", result.get("good_name").valueAsString());
+      int count = 1;
+      while (iter.hasNext()) {
+        iter.next();
+        count++;
+      }
+      assertEquals(33, count);
+
+      iter = os.queryOrdersByBuyer(1466989179, 1484696090, "ap-b5a0-67275022beac");
+      count = 0;
+      while (iter.hasNext()) {
+        iter.next();
+        count++;
+      }
+      assertEquals(34, count);
+
     }
 
     // queryOrdersBySaler
