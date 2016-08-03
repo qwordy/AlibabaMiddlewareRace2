@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race;
 
 import com.alibaba.middleware.race.result.BuyerResult;
+import com.alibaba.middleware.race.result.GoodResult;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
@@ -152,7 +153,7 @@ public class HashTable {
   }
 
   // get all order, entry size 5
-  public List<Tuple> getAll(int blockNo, boolean record) throws Exception {
+  public List<Tuple> getAll(int blockNo, boolean buyer) throws Exception {
     List<Tuple> list = new ArrayList<>();
     byte[] block = new byte[BLOCK_SIZE];
     while (true) {
@@ -163,15 +164,14 @@ public class HashTable {
       int size = Util.byte2short(block, 4);
       if (size == 0xffff) {
         long off = Util.byte2long(block, 6);
-        return getBuyerAll(off);
+        return getFromDat(off, buyer);
       }
       if (size == 0) size = 6;
       for (int off = 6; off + 5 <= size; off += 5) {
         int fileId = block[off] & 0xff;
         long fileOff = Util.byte4ToLong(block, off + 1);
         Tuple tuple = new Tuple(dataFiles.get(fileId), fileOff);
-        if (record)
-          tuple.setRecord();
+        tuple.setRecord();
         list.add(tuple);
       }
       blockNo = Util.byte2int(block, 0);
@@ -180,10 +180,18 @@ public class HashTable {
     }
   }
 
-  // get all order from b2o.dat
-  private List<Tuple> getBuyerAll(long off) throws Exception {
-    RandomAccessFile fd = FdMap.b2odat;
-    String filename = FdMap.b2odatFilename;
+  // get all order from b2o.dat or g2o.dat
+  private List<Tuple> getFromDat(long off, boolean buyer) throws Exception {
+    RandomAccessFile fd;
+    String filename;
+    if (buyer) {
+      fd = FdMap.b2odat;
+      filename = FdMap.b2odatFilename;
+    } else {
+      //System.out.println("readgood" + off);
+      fd = FdMap.g2odat;
+      filename = FdMap.g2odatFilename;
+    }
     byte[] buf = new byte[4096];
     synchronized (fd) {
       fd.seek(off);
@@ -217,8 +225,6 @@ public class HashTable {
         bfd.write(buf, 0, 8);  // off
         Tuple orderTuple = result.orderTuple;
         Tuple goodTuple = result.goodTuple;
-        if (goodTuple == null)
-          throw new Exception();
         tupleOff += orderTuple.getTupleLen() + goodTuple.getTupleLen() + 2;
       }
       for (BuyerResult result : resultList) {
@@ -259,6 +265,69 @@ public class HashTable {
       Util.long2byte(fileLen, buf, 0);
       fd.write(buf, 0, 8);
     }
+  }
+
+  public void saveGoodAll(List<GoodResult> resultList, int blockNo) throws Exception {
+    int size = resultList.size();
+    RandomAccessFile gfd = FdMap.g2odat;
+    byte[] buf = new byte[8];
+    long fileLen;
+    synchronized (gfd) {
+      fileLen = gfd.length();
+      Util.int2byte(size, buf, 0);
+      gfd.seek(fileLen);
+      gfd.write(buf, 0, 4);  // size
+      long tupleOff = fileLen + 4 + 8 * size;
+      // write head: size, off, off...
+      for (GoodResult result : resultList) {
+        Util.long2byte(tupleOff, buf, 0);
+        gfd.write(buf, 0, 8);  // off
+        Tuple orderTuple = result.orderTuple;
+        Tuple buyerTuple = result.buyerTuple;
+        tupleOff += orderTuple.getTupleLen() + 1;
+        if (buyerTuple != null)
+          tupleOff += buyerTuple.getTupleLen() + 1;
+      }
+      for (GoodResult result : resultList) {
+        Tuple orderTuple = result.orderTuple;
+        Tuple buyerTuple = result.buyerTuple;
+
+        List<byte[]> tupleContent = orderTuple.getTupleContent();
+        int tupleLen = orderTuple.getTupleLen();
+        int startOff = orderTuple.getTupleStartOff();
+        int blockNum = tupleContent.size();
+        if (blockNum == 1) {
+          gfd.write(tupleContent.get(0), startOff, tupleLen);
+        } else {
+          gfd.write(tupleContent.get(0), startOff, 4096 - startOff);
+          for (int i = 1; i < blockNum; i++)
+            gfd.write(tupleContent.get(i));
+        }
+        if (buyerTuple != null) {
+          gfd.write('\t');
+          tupleContent = buyerTuple.getTupleContent();
+          tupleLen = buyerTuple.getTupleLen();
+          startOff = buyerTuple.getTupleStartOff();
+          blockNum = tupleContent.size();
+          if (blockNum == 1) {
+            gfd.write(tupleContent.get(0), startOff, tupleLen);
+          } else {
+            gfd.write(tupleContent.get(0), startOff, 4096 - startOff);
+            for (int i = 1; i < blockNum; i++)
+              gfd.write(tupleContent.get(i));
+          }
+        }
+        gfd.write('\n');
+      }
+    }
+    Util.short2byte(0xffff, buf, 0);
+    synchronized (fd) {
+      fd.seek(((long) blockNo) * BLOCK_SIZE + 4);
+      fd.write(buf, 0, 2);
+      Util.long2byte(fileLen, buf, 0);
+      fd.write(buf, 0, 8);
+    }
+    //System.out.println("savegood" + fileLen);
   }
 
   // 21 1 4 3

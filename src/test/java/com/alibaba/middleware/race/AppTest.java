@@ -72,7 +72,7 @@ public class AppTest {
       result = iter.next();
     assertEquals(587818574, result.orderId());
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 100; i++) {
       //System.out.println(i);
       iter = os.queryOrdersByBuyer(1462018520, 1473999229, "wx-a0e0-6bda77db73ca");
       result = iter.next(); // 1
@@ -111,62 +111,72 @@ public class AppTest {
 
     }
 
-    // queryOrdersBySaler
-    iter = os.queryOrdersBySaler(
-        "almm-8f6a-3e6a9697a0f9",
-        "aye-8d0d-57e792eb1371",
-        Arrays.asList("a_b_19123"));
-    result = iter.next();
-    assertEquals("c51c1ce6-8d10-401a-ae5e-4f4023911cf3",
-        result.get("a_b_19123").valueAsString());
-    assertEquals(587983792, result.orderId());
+            for (int i = 0; i < 100; i++) {
+              // queryOrdersBySaler
+              iter = os.queryOrdersBySaler(
+                  "almm-8f6a-3e6a9697a0f9",
+                  "aye-8d0d-57e792eb1371",
+                  Arrays.asList("a_b_19123"));
+              result = iter.next();
+              assertEquals("c51c1ce6-8d10-401a-ae5e-4f4023911cf3",
+                  result.get("a_b_19123").valueAsString());
+              assertEquals(587983792, result.orderId());
 
-    iter = os.queryOrdersBySaler(
-        "ay-bb53-b150818332f2",
-        "al-b702-2c34aeaa78cb",
-        Arrays.asList("a_b_19123", "a_o_12490", "a_b_26525", "description"));
-    result = iter.next();
-    assertEquals(587999455, result.orderId());
-    result = iter.next();
-    assertEquals(588610606, result.orderId());
+              iter = os.queryOrdersBySaler(
+                  "ay-bb53-b150818332f2",
+                  "al-b702-2c34aeaa78cb",
+                  Arrays.asList("a_b_19123", "a_o_12490", "a_b_26525", "description"));
+              result = iter.next();
+              assertEquals(587999455, result.orderId());
+              result = iter.next();
+              assertEquals(588610606, result.orderId());
 
-    iter = os.queryOrdersBySaler(null, "gd-b972-6926df8128c3",
-        Arrays.asList("a_o_30709", "a_g_32587"));
-    result = iter.next(); // 1
-    assertEquals(588368978, result.orderId());
-    assertEquals(6, result.get("a_g_32587").valueAsLong());
-    assertEquals(null, result.get("a_o_30709"));
-    iter.next(); // 2
-    result = iter.next(); // 3
-    assertEquals("e6efe5a9-5936-4d81-8d7b-ae14005584bf",
-        result.get("a_o_30709").valueAsString());
-    int count = 0;
-    while (iter.hasNext()) {
-      iter.next();
-      count++;
-    }
-    assertEquals(53, count);
+              iter = os.queryOrdersBySaler(null, "gd-b972-6926df8128c3",
+                  Arrays.asList("a_o_30709", "a_g_32587"));
+              result = iter.next(); // 1
+              assertEquals(588368978, result.orderId());
+              assertEquals(6, result.get("a_g_32587").valueAsLong());
+              assertEquals(null, result.get("a_o_30709"));
+              iter.next(); // 2
+              result = iter.next(); // 3
+              assertEquals("e6efe5a9-5936-4d81-8d7b-ae14005584bf",
+                  result.get("a_o_30709").valueAsString());
+              int count = 0;
+              while (iter.hasNext()) {
+                iter.next();
+                count++;
+              }
+              assertEquals(53, count);
 
-    iter = os.queryOrdersBySaler(null, "dd-b175-b63fc4e111cc", null);
+              iter = os.queryOrdersBySaler(null, "dd-b175-b63fc4e111cc", null);
 
-    // sumOrdersByGood
-    OrderSystem.KeyValue kv = os.sumOrdersByGood("al-950f-5924be431212", "a_g_10839");
-    assertEquals(null, kv);
+              // sumOrdersByGood
+              OrderSystem.KeyValue kv = os.sumOrdersByGood("al-950f-5924be431212", "a_g_10839");
+              assertEquals(null, kv);
 
-    kv = os.sumOrdersByGood("dd-8ad6-8de99e8d7dad", "amount");
-    assertEquals(735, kv.valueAsLong());
+              kv = os.sumOrdersByGood("dd-8ad6-8de99e8d7dad", "amount");
+              assertEquals(735, kv.valueAsLong());
 
-    kv = os.sumOrdersByGood("dd-b9e1-77c52c63fffa", "price");
-    assertEquals(455880.3135284825, kv.valueAsDouble(), 1e-6);
+              //kv = os.sumOrdersByGood("dd-8ad6-8de99e8d7dad", "a_b_6984");
+              //assertEquals(5, kv.valueAsDouble(), 1e-6);
 
-    kv = os.sumOrdersByGood("al-8162-0492cff4394c", "amount");
-    assertEquals(552, kv.valueAsLong());
+              kv = os.sumOrdersByGood("dd-b9e1-77c52c63fffa", "price");
+              assertEquals(455880.3135284825, kv.valueAsDouble(), 1e-6);
 
-    kv = os.sumOrdersByGood("dd-a665-acd638b44e92", "price");
-    assertEquals(117811.2897340, kv.valueAsDouble(), 1e-6);
+              kv = os.sumOrdersByGood("al-8162-0492cff4394c", "amount");
+              assertEquals(552, kv.valueAsLong());
 
-    kv = os.sumOrdersByGood("al-9c4c-ac9ed4b6ad35", "offprice");
-    assertEquals(235886.19656021666, kv.valueAsDouble(), 1e-6);
+              kv = os.sumOrdersByGood("dd-a665-acd638b44e92", "price");
+              assertEquals(117811.2897340, kv.valueAsDouble(), 1e-6);
+
+              kv = os.sumOrdersByGood("al-9c4c-ac9ed4b6ad35", "offprice");
+              assertEquals(235886.19656021666, kv.valueAsDouble(), 1e-6);
+
+              kv = os.sumOrdersByGood("aye-95f1-8b193a4e0866", "a_o_4699");
+              assertEquals(302399, kv.valueAsLong());
+
+              iter = os.queryOrdersBySaler(null, "aye-95f1-8b193a4e0866", null);
+            }
           }
         } catch (Exception e) {
           e.printStackTrace();

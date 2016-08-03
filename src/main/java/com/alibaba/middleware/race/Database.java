@@ -67,7 +67,8 @@ public class Database {
     buildB2oHash();
     buildG2gHash();
     buildB2bHash();
-    FdMap.init(orderFilesList, goodFilesList, buyerFilesList, fullname2("b2o.dat"));
+    FdMap.init(orderFilesList, goodFilesList, buyerFilesList,
+        fullname2("b2o.dat"), fullname0("g2o.dat"));
   }
 
 //  public void construct() throws Exception {
@@ -272,8 +273,7 @@ public class Database {
     Tuple buyerTuple = buyerIndex.getBg(buyerid);
     SimpleResult buyerResult = new SimpleResult(buyerTuple, null);
 
-    List<BuyerResult> resultListAll =
-        new ArrayList<>(orderTupleList.size());
+    List<BuyerResult> resultListAll = new ArrayList<>(orderTupleList.size());
     for (Tuple tuple : orderTupleList)
       resultListAll.add(new BuyerResult(tuple, buyerResult));
     if (resultListAll.get(0).orderTuple.isRecord()) { // savedat
@@ -301,11 +301,20 @@ public class Database {
     Tuple goodTuple = goodIndex.getBg(goodid);
     SimpleResult goodResult = new SimpleResult(goodTuple, keys);
 
-    List<OrderSystem.Result> resultList = new ArrayList<>();
+    List<GoodResult> resultList = new ArrayList<>(tupleList.size());
     for (Tuple tuple : tupleList)
       resultList.add(new GoodResult(tuple, goodResult, keys));
-    Collections.sort(resultList, goodResultComparator);
-    return resultList.iterator();
+    for (GoodResult result : resultList)
+      result.phase2();
+    if (resultList.get(0).orderTuple.isRecord()) {
+      Collections.sort(resultList, goodResultComparator);
+      goodIndex.saveGoodAll(resultList, goodid);
+    }
+
+    List<OrderSystem.Result> returnList = new ArrayList<>(resultList.size());
+    for (GoodResult result : resultList)
+      returnList.add(result);
+    return returnList.iterator();
   }
 
   public OrderSystem.KeyValue sumOrdersByGood(
@@ -317,10 +326,12 @@ public class Database {
 
     Collection<String> keys = Collections.singleton(key);
     List<Tuple> orderTupleList = goodIndex.getOrder(goodid, false);
+    if (orderTupleList.isEmpty())
+      return null;
 
     Tuple goodTuple = goodIndex.getBg(goodid);
-    SimpleResult goodResult = new SimpleResult(goodTuple, keys);
-    OrderSystem.KeyValue kv = goodResult.get(key);
+    SimpleResult simpleGoodResult = new SimpleResult(goodTuple, keys);
+    OrderSystem.KeyValue kv = simpleGoodResult.get(key);
     if (kv != null) {
       long vl = 0;
       double vd = 0;
@@ -340,16 +351,20 @@ public class Database {
       return new KeyValueForSum(key, vl * size, vd * size);
     }
 
+    List<GoodResult> goodResultList = new ArrayList<>(orderTupleList.size());
     for (Tuple tuple : orderTupleList) {
       long valueLong = 0;
       double valueDouble = 0;
-      kv = new OrderResult(tuple, keys).get(key);
+
+      GoodResult goodResult = new GoodResult(tuple, simpleGoodResult, keys);
+      goodResult.phase2();
+      goodResultList.add(goodResult);
+      kv = goodResult.get(key);
 
       if (kv == null)
         continue;
       else
         hasKey = true;
-
       if (asLong) {
         try {
           valueLong = kv.valueAsLong();
@@ -358,7 +373,6 @@ public class Database {
           asLong = false;
         }
       }
-
       if (asDouble) {
         try {
           valueDouble = kv.valueAsDouble();
@@ -367,9 +381,13 @@ public class Database {
           asDouble = false;
         }
       }
-
       if (!asLong && !asDouble)
         return null;
+    }
+
+    if (goodResultList.get(0).orderTuple.isRecord()) {
+      Collections.sort(goodResultList, goodResultComparator);
+      goodIndex.saveGoodAll(goodResultList, goodid);
     }
 
     if (!hasKey)
