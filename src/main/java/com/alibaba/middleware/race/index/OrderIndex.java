@@ -3,6 +3,7 @@ package com.alibaba.middleware.race.index;
 import com.alibaba.middleware.race.*;
 
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 /**
@@ -37,6 +38,10 @@ public class OrderIndex {
     tables[tableId].writeFile();
   }
 
+  public void setTable1DirectMemory(ByteBuffer buffer1, ByteBuffer buffer2) {
+    tables[1].setOrderTable1DirectMemory(buffer1, buffer2);
+  }
+
   // id.length == 5
   public void add(byte[] id, int fileId, long fileOff) throws Exception {
     int hash = Util.bytesHash(id) % Config.orderIndexSize;
@@ -45,15 +50,9 @@ public class OrderIndex {
 
   public Tuple get(byte[] id) throws Exception {
     int hash = Util.bytesHash(id) % Config.orderIndexSize;
-    int t0, t1;
-    if ((id[0] & 0x1) == 0) {
-      t0 = 0; t1 = 1;
-    } else {
-      t0 = 1; t1 = 0;
-    }
-    Tuple tuple = tables[t0].get(id, hash);
+    Tuple tuple = tables[1].get(id, hash);
     if (tuple == null)
-      tuple = tables[t1].get(id, hash);
+      tuple = tables[0].get(id, hash);
     return tuple;
   }
 }

@@ -56,6 +56,9 @@ public class AppTest {
     result = os.queryOrder(607050270, null);
     assertEquals(607050270, result.orderId());
 
+            result = os.queryOrder(588940008, null);
+            assertEquals(588940008, result.orderId());
+
     // queryOrdersByBuyer
     Iterator<OrderSystem.Result> iter =
         os.queryOrdersByBuyer(1462018520, 1473999229, "wx-a0e0-6bda77db73ca");
@@ -72,7 +75,7 @@ public class AppTest {
       result = iter.next();
     assertEquals(587818574, result.orderId());
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 5; i++) {
       //System.out.println(i);
       iter = os.queryOrdersByBuyer(1462018520, 1473999229, "wx-a0e0-6bda77db73ca");
       result = iter.next(); // 1
@@ -111,7 +114,7 @@ public class AppTest {
 
     }
 
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 5; i++) {
               // queryOrdersBySaler
               iter = os.queryOrdersBySaler(
                   "almm-8f6a-3e6a9697a0f9",
@@ -576,10 +579,10 @@ public class AppTest {
   @Test
   public void directMem() {
     try {
-      FileInputStream fis = new FileInputStream("order_records.txt");
+      FileInputStream fis = new FileInputStream("data/1order0");//order_records.txt");
       FileChannel fc = fis.getChannel();
       System.out.println(fc.size());
-      ByteBuffer buffer = ByteBuffer.allocateDirect(20);
+      ByteBuffer buffer = ByteBuffer.allocateDirect(900000000);
       ByteBuffer buffer2 = ByteBuffer.allocateDirect(20);
       fc.read(buffer);
       byte[] b = new byte[10];

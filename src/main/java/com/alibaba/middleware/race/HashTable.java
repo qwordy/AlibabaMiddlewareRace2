@@ -6,6 +6,7 @@ import com.alibaba.middleware.race.result.GoodResult;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,6 +72,8 @@ public class HashTable {
 
   private List<byte[]> memoryExt;
 
+  private ByteBuffer byteBuffer1, byteBuffer2;
+
   public HashTable(List<String> dataFiles, String indexFile,
       int size, int blockSize, int entrySize) {
 
@@ -129,13 +132,35 @@ public class HashTable {
     Util.short2byte(nextPos, block, 4);
   }
 
+  public void setOrderTable1DirectMemory(ByteBuffer buffer1, ByteBuffer buffer2) {
+    byteBuffer1 = buffer1;
+    byteBuffer2 = buffer2;
+  }
+
   // get order, entry size 10
   public Tuple get(byte[] key, int blockNo) throws Exception {
     byte[] block = new byte[BLOCK_SIZE];
     while (true) {
-      synchronized (fd) {
-        fd.seek(((long) blockNo) * BLOCK_SIZE);
-        fd.read(block);
+      if (byteBuffer1 != null) {
+        //System.out.println("bytebuffer" + blockNo);
+        int b1bn = Config.orderIndexBuffer1BlockNum;
+        if (blockNo < b1bn) {
+          synchronized (byteBuffer1) {
+            byteBuffer1.position(blockNo * BLOCK_SIZE);
+            byteBuffer1.get(block);
+          }
+        } else {
+          synchronized (byteBuffer2) {
+            byteBuffer2.position((blockNo - b1bn) * BLOCK_SIZE);
+            byteBuffer2.get(block);
+          }
+        }
+      } else {
+        //System.out.println("disk" + blockNo);
+        synchronized (fd) {
+          fd.seek(((long) blockNo) * BLOCK_SIZE);
+          fd.read(block);
+        }
       }
       int size = Util.byte2short(block, 4);
       if (size == 0) size = 6;

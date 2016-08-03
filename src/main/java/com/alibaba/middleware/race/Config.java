@@ -6,6 +6,9 @@ package com.alibaba.middleware.race;
  */
 public class Config {
 
+  public static int orderIndexBuffer1BlockNum = 333333;
+//  public static int orderIndexBuffer1BlockNum = 333;
+
   // 每个桶预计放300个，容量409个, 2.73g
   public static int orderIndexSize = 666666;
 //  public static int orderIndexSize = 500;

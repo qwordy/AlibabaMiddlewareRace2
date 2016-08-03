@@ -9,6 +9,9 @@ import com.alibaba.middleware.race.result.OrderResult;
 import com.alibaba.middleware.race.result.SimpleResult;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.*;
 
 /**
@@ -67,25 +70,26 @@ public class Database {
     buildB2oHash();
     buildG2gHash();
     buildB2bHash();
+    loadO2o1DirectMemory();
     FdMap.init(orderFilesList, goodFilesList, buyerFilesList,
-        fullname2("b2o.dat"), fullname0("g2o.dat"));
+        fullname2("b2o.dat"), fullname1("g2o.dat"));
   }
 
-//  public void construct() throws Exception {
-//    Thread thread = new Thread(this);
-//    thread.run();
-//    Thread.sleep(10);
-//  }
-
-  // construct in another thread
-//  @Override
-//  public void run() {
-//    try {
-//
-//    } catch (Exception e) {
-//      e.printStackTrace();
-//    }
-//  }
+  private void loadO2o1DirectMemory() {
+    try {
+      FileInputStream fis = new FileInputStream(fullname1("o2o.idx"));
+      FileChannel channel = fis.getChannel();
+      int buffer1Size = Config.orderIndexBuffer1BlockNum * 4096;
+      int buffer2Size = (int) (channel.size() - buffer1Size);
+      ByteBuffer buffer1 = ByteBuffer.allocateDirect(buffer1Size);
+      ByteBuffer buffer2 = ByteBuffer.allocateDirect(buffer2Size);
+      channel.read(buffer1);
+      channel.read(buffer2);
+      orderIndex.setTable1DirectMemory(buffer1, buffer2);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
   private void buildO2oHash() throws Exception {
     System.out.println(System.currentTimeMillis() + " [yfy] buildO2o");
