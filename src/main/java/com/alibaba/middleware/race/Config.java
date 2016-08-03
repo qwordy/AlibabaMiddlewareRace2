@@ -22,7 +22,7 @@ public class Config {
 //  public static int goodIndexSize = 40000;
 
   // 500, 2.8g, 750, 3.7g
-  public static int goodIndexBlockSize = 766;
+  public static int goodIndexBlockSize = 771;
 
   public static int b2bIndexSize = 152381; // 0.75
 
