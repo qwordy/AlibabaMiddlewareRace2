@@ -96,7 +96,7 @@ public class Database {
     orderIndex = new OrderIndex(orderFilesList);
     O2oKvDealer dealer = new O2oKvDealer(orderIndex);
 
-    int mid = (orderFilesList.size() - 5) / 2;
+    int mid = orderFilesList.size() / 2;
 
     orderIndex.setCurrentTable(0, fullname0("o2o.idx"));
     for (int i = 0; i < mid; i++) {
