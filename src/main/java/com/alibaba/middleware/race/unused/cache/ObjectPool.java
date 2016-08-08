@@ -1,8 +1,6 @@
-package com.alibaba.middleware.race.cache;
+package com.alibaba.middleware.race.unused.cache;
 
-import java.io.RandomAccessFile;
 import java.util.Vector;
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by yfy on 7/22/16.

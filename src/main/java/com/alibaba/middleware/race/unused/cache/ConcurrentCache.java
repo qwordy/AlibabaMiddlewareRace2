@@ -1,10 +1,7 @@
-package com.alibaba.middleware.race.cache;
+package com.alibaba.middleware.race.unused.cache;
 
 //import com.alibaba.middleware.race.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 //import com.alibaba.middleware.race.concurrentlinkedhashmap.EvictionListener;
-
-import java.io.RandomAccessFile;
-import java.util.*;
 
 /**
  * Created by yfy on 7/22/16.

@@ -1,4 +1,6 @@
-package com.alibaba.middleware.race;
+package com.alibaba.middleware.race.unused;
+
+import com.alibaba.middleware.race.Tuple;
 
 import java.util.Comparator;
 

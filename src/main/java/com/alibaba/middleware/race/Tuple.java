@@ -1,7 +1,5 @@
 package com.alibaba.middleware.race;
 
-import com.alibaba.middleware.race.cache.ConcurrentCache;
-
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
