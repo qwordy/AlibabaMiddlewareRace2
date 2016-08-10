@@ -2,7 +2,6 @@ package com.alibaba.middleware.race.result;
 
 import com.alibaba.middleware.race.OrderSystem;
 import com.alibaba.middleware.race.Tuple;
-import com.alibaba.middleware.race.Util;
 
 import java.util.Collection;
 import java.util.HashMap;

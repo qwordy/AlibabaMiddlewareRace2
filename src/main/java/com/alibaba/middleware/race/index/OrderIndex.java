@@ -1,8 +1,10 @@
 package com.alibaba.middleware.race.index;
 
-import com.alibaba.middleware.race.*;
+import com.alibaba.middleware.race.Config;
+import com.alibaba.middleware.race.HashTable;
+import com.alibaba.middleware.race.Tuple;
+import com.alibaba.middleware.race.Util;
 
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.List;
 

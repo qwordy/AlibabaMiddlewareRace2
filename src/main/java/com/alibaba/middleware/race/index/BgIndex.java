@@ -1,6 +1,9 @@
 package com.alibaba.middleware.race.index;
 
-import com.alibaba.middleware.race.*;
+import com.alibaba.middleware.race.BgBytes;
+import com.alibaba.middleware.race.HashTable;
+import com.alibaba.middleware.race.Tuple;
+import com.alibaba.middleware.race.Util;
 import com.alibaba.middleware.race.result.BuyerResult;
 import com.alibaba.middleware.race.result.GoodResult;
 

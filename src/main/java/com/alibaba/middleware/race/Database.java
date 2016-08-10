@@ -39,25 +39,17 @@ public class Database {
     buyerResultComparator = new BuyerResultComparator();
     goodResultComparator = new GoodResultComparator();
 
-    //ConcurrentCache cache = ConcurrentCache.getInstance();
-
     orderFilesList = new ArrayList<>();
-    for (String file : orderFiles) {
+    for (String file : orderFiles)
       orderFilesList.add(file);
-      //cache.addFd(file, true);
-    }
 
     goodFilesList = new ArrayList<>();
-    for (String file : goodFiles) {
+    for (String file : goodFiles)
       goodFilesList.add(file);
-      //cache.addFd(file, true);
-    }
 
     buyerFilesList = new ArrayList<>();
-    for (String file : buyerFiles) {
+    for (String file : buyerFiles)
       buyerFilesList.add(file);
-      //cache.addFd(file, true);
-    }
 
     storeFoldersList = new ArrayList<>();
     for (String folder : storeFolders)
@@ -145,38 +137,7 @@ public class Database {
     System.gc();
   }
 
-  private void buildBg2oHash() throws Exception {
-    System.out.println(System.currentTimeMillis() + " [yfy] buildBg2o");
-    buyerIndex = new BgIndex(orderFilesList, buyerFilesList,
-        Config.buyerIndexSize, Config.buyerIndexBlockSize,
-        Config.b2bIndexSize, Config.bg2bgIndexBlockSize);
-    goodIndex = new BgIndex(orderFilesList, goodFilesList,
-        Config.goodIndexSize, Config.goodIndexBlockSize,
-        Config.g2gIndexSize, Config.bg2bgIndexBlockSize);
-    Bg2oKvDealer dealer = new Bg2oKvDealer(buyerIndex, goodIndex);
 
-    int mid = orderFilesList.size() / 2;
-
-    buyerIndex.setCurrentTable(0, fullname1("b2o.idx"));
-    goodIndex.setCurrentTable(0, fullname2("g2o.idx"));
-    for (int i = 0; i < mid; i++) {
-      dealer.setFileId(i);
-      readDataFile(orderFilesList.get(i), dealer);
-    }
-    buyerIndex.finish();
-    goodIndex.finish();
-    System.gc();
-
-    buyerIndex.setCurrentTable(1, fullname2("b2o.idx"));
-    goodIndex.setCurrentTable(1, fullname0("g2o.idx"));
-    for (int i = mid; i < orderFilesList.size(); i++) {
-      dealer.setFileId(i);
-      readDataFile(orderFilesList.get(i), dealer);
-    }
-    buyerIndex.finish();
-    goodIndex.finish();
-    System.gc();
-  }
 
   private void buildB2bHash() throws Exception {
     BuyerKvDealer dealer = new BuyerKvDealer(buyerIndex);
@@ -394,11 +355,43 @@ public class Database {
       goodIndex.saveGoodAll(goodResultList, goodid);
     }
 
-    if (!hasKey)
-      return null;
+    if (!hasKey) return null;
 
     return new KeyValueForSum(key, sumLong, sumDouble);
   }
+
+  //  private void buildBg2oHash() throws Exception {
+//    System.out.println(System.currentTimeMillis() + " [yfy] buildBg2o");
+//    buyerIndex = new BgIndex(orderFilesList, buyerFilesList,
+//        Config.buyerIndexSize, Config.buyerIndexBlockSize,
+//        Config.b2bIndexSize, Config.bg2bgIndexBlockSize);
+//    goodIndex = new BgIndex(orderFilesList, goodFilesList,
+//        Config.goodIndexSize, Config.goodIndexBlockSize,
+//        Config.g2gIndexSize, Config.bg2bgIndexBlockSize);
+//    Bg2oKvDealer dealer = new Bg2oKvDealer(buyerIndex, goodIndex);
+//
+//    int mid = orderFilesList.size() / 2;
+//
+//    buyerIndex.setCurrentTable(0, fullname1("b2o.idx"));
+//    goodIndex.setCurrentTable(0, fullname2("g2o.idx"));
+//    for (int i = 0; i < mid; i++) {
+//      dealer.setFileId(i);
+//      readDataFile(orderFilesList.get(i), dealer);
+//    }
+//    buyerIndex.finish();
+//    goodIndex.finish();
+//    System.gc();
+//
+//    buyerIndex.setCurrentTable(1, fullname2("b2o.idx"));
+//    goodIndex.setCurrentTable(1, fullname0("g2o.idx"));
+//    for (int i = mid; i < orderFilesList.size(); i++) {
+//      dealer.setFileId(i);
+//      readDataFile(orderFilesList.get(i), dealer);
+//    }
+//    buyerIndex.finish();
+//    goodIndex.finish();
+//    System.gc();
+//  }
 
   //  private void buildO2oHash() throws Exception {
 //    System.out.println(System.currentTimeMillis() + " [yfy] buildO2o");

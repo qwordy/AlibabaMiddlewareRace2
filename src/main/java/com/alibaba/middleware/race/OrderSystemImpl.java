@@ -3,7 +3,6 @@ package com.alibaba.middleware.race;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * Created by yfy on 7/11/16.

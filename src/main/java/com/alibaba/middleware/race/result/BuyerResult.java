@@ -1,7 +1,6 @@
 package com.alibaba.middleware.race.result;
 
 import com.alibaba.middleware.race.Database;
-import com.alibaba.middleware.race.HashTable;
 import com.alibaba.middleware.race.OrderSystem;
 import com.alibaba.middleware.race.Tuple;
 

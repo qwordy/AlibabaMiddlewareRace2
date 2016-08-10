@@ -1,7 +1,8 @@
 package com.alibaba.middleware.race.result;
 
-import com.alibaba.middleware.race.*;
-import com.alibaba.middleware.race.kvDealer.AbstractKvDealer;
+import com.alibaba.middleware.race.Database;
+import com.alibaba.middleware.race.OrderSystem;
+import com.alibaba.middleware.race.Tuple;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,7 +20,7 @@ public class GoodResult extends AbstractResult implements OrderSystem.Result {
 
   private long orderid;
 
-  int goodResultMapSize, targetSize;
+  private int goodResultMapSize, targetSize;
 
   public Tuple orderTuple, buyerTuple;
 
